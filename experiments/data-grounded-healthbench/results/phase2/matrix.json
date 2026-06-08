@@ -1,0 +1,92 @@
+{
+  "ad5cf7e5": {
+    "example_id": "ad5cf7e5-8374-4e12-a03a-1dfcefa2756e",
+    "matrix": {
+      "baseline": {
+        "original": {
+          "awarded": 46,
+          "possible": 53,
+          "pct": 87.0
+        },
+        "mutated": {
+          "awarded": 9,
+          "possible": 32,
+          "pct": 28.0
+        }
+      },
+      "rawdump": {
+        "original": {
+          "awarded": 13,
+          "possible": 53,
+          "pct": 25.0
+        },
+        "mutated": {
+          "awarded": 10,
+          "possible": 32,
+          "pct": 31.0
+        }
+      },
+      "summary": {
+        "original": {
+          "awarded": 13,
+          "possible": 53,
+          "pct": 25.0
+        },
+        "mutated": {
+          "awarded": 10,
+          "possible": 32,
+          "pct": 31.0
+        }
+      }
+    },
+    "possible": {
+      "original": 53,
+      "mutated": 32
+    }
+  },
+  "553b75c2": {
+    "example_id": "553b75c2-8358-4837-820e-663bc7c16340",
+    "matrix": {
+      "baseline": {
+        "original": {
+          "awarded": 70,
+          "possible": 122,
+          "pct": 57.0
+        },
+        "mutated": {
+          "awarded": 53,
+          "possible": 122,
+          "pct": 43.0
+        }
+      },
+      "rawdump": {
+        "original": {
+          "awarded": 62,
+          "possible": 122,
+          "pct": 51.0
+        },
+        "mutated": {
+          "awarded": 69,
+          "possible": 122,
+          "pct": 57.0
+        }
+      },
+      "summary": {
+        "original": {
+          "awarded": 66,
+          "possible": 122,
+          "pct": 54.0
+        },
+        "mutated": {
+          "awarded": 73,
+          "possible": 122,
+          "pct": 60.0
+        }
+      }
+    },
+    "possible": {
+      "original": 122,
+      "mutated": 122
+    }
+  }
+}

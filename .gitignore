@@ -1,0 +1,62 @@
+# =============================================================================
+# Auto-Health-Bench — research log
+# Convention: high-level docs + code + small report files are committed.
+# Raw data and large generated artifacts are git-ignored (per experiment).
+# =============================================================================
+
+# ---- Per-experiment RAW DATA: never commit ---------------------------------
+# Large, and HealthBench carries a "do not share examples online" notice.
+# Re-download via each experiment's data/README.md.  Keep the README itself.
+experiments/*/data/*
+!experiments/*/data/README.md
+
+# ---- Per-experiment BULK / LARGE generated results -------------------------
+# Small report files (report.md, shortlist.md, matrix.json, *.md, small *.json)
+# stay committed; the heavy/verbatim artifacts below are ignored.
+# Add new bulk patterns here as experiments produce them.
+experiments/*/results/**/*.html
+experiments/*/results/**/*.pdf
+experiments/*/results/**/*.png
+experiments/*/results/**/prompt_*.txt
+experiments/*/results/**/resp_*.txt
+experiments/*/results/**/grade_*.json
+experiments/*/results/**/rubric_*.json
+experiments/*/results/**/dep_*.json
+experiments/*/results/**/cases_all.json
+experiments/*/results/**/shortlist.jsonl
+*.log
+
+# ---- Python ----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.python-version
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+notebooks/.ipynb_checkpoints/
+
+# ---- LaTeX build artifacts (latex/ keeps sources only) ---------------------
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.synctex.gz
+*.toc
+
+# ---- Env / secrets (API keys for model eval) -------------------------------
+.env
+.env.*
+!.env.example
+
+# ---- Local Claude settings -------------------------------------------------
+.claude/settings.local.json
+
+# ---- OS / editor -----------------------------------------------------------
+.DS_Store
+.vscode/
+.idea/
