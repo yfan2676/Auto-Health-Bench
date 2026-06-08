@@ -19,6 +19,11 @@ expensive, inconsistent, and pinned to a *text-only* world. We think large parts
 can be **automated** and made **data-aware**, and that doing so both improves evaluation
 and produces reusable artifacts (methods, not just datasets).
 
+**North-star question.** Given a health-AI product or use case, can we quickly answer:
+*is it already covered by an existing benchmark, or does it need a new one?* — and when it
+needs a new one, can we **generate that benchmark** (tasks + rubrics, data-grounded where
+relevant) largely automatically?
+
 ## Research directions
 
 These are **parallel tracks** that start independently and **intersect** later.
@@ -28,11 +33,14 @@ These are **parallel tracks** that start independently and **intersect** later.
 Rubrics define "what a good answer contains," yet writing them is slow, requires
 clinical expertise, and doesn't scale. This track tackles two questions:
 - **What constitutes a good rubric?** Coverage, calibration, discriminativeness,
-  clinical correctness, non-redundancy — making "good rubric" a measurable target.
+  clinical correctness, non-redundancy — making "good rubric" a measurable target. (Open
+  thread: how to set the *relative* scores between items when even experts disagree.)
 - **Can we auto-generate and validate them?** Generate rubrics (or extend existing ones)
   for a health question and validate them to a quality that agrees with expert raters.
 The deliverable is a reusable **rubric-generation + validation method**, not any single
-benchmark. *(No dedicated experiment yet — planned; see [`experiments/`](experiments/).)*
+benchmark. **First planned experiment:** hold out part of HealthBench, auto-generate
+rubrics for it, and require that they **preserve the model ranking** the original rubrics
+produce. Idea doc: [`docs/auto-rubric-generation.md`](docs/auto-rubric-generation.md).
 
 ### Direction B — Data-grounded evaluation
 *Evaluate health LLMs with the user's real data, not just their typed words.*

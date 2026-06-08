@@ -94,6 +94,25 @@ The hardest and most Meta-relevant axis, and the one Synthea cannot supply yet. 
 
 Together these turn one expected observation into a structured agenda: from *does the static score drop?* (yes, trivially) to *can a model enact the right data-conditional policy (N2), find the signal inside a real record (N3), reason over real sensor streams (N4) — and are we even measuring that fairly (N1)?* Those are the capabilities that decide whether a data-equipped health assistant is safe to deploy.
 
+### Meeting notes — what to watch for (collaborators, 2026-06-08)
+
+- **The no-data → with-data contrast: what is actually interesting?** Beyond the
+  (trivial) score drop, the signal we want from running *the same task with and without
+  the record* is **behavioral**: does the model switch from *asking* to *using* when the
+  data appears (the conditional policy, N2)? Where does adding data **help** vs. **hurt**,
+  and for which item types? Does it expose answers that were "right for the wrong reason"
+  in the text-only setting (scored well by *asking*, but mishandle the data once it is
+  present)? The interesting deliverable is a **map of where data-conditioning changes
+  behavior**, not the headline delta.
+- **Validity check — does better data raise the score? (a "hidden-context test").** A
+  data-grounded benchmark should be **monotone in data quality**: feeding a competent
+  model more-relevant / higher-quality / less-noisy data should *increase* its data-aware
+  score, and degrading the data should *lower* it. If the score does not move with data
+  quality, the benchmark is not really measuring data *use* — so this doubles as a sanity
+  check on our own construct and as a probe for whether the model is exploiting **hidden**
+  context (priors, leakage) rather than the provided record. Pairs naturally with N1's
+  provenance ablations.
+
 ---
 
 ## 5. Opportunities (what's novel / publishable)
