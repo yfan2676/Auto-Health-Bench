@@ -226,8 +226,7 @@ Auto-Health-Bench/
         │   ├── rubrics/              # parsing + indexing HealthBench
         │   ├── dependency/          # data-dependency classifier + taxonomy
         │   ├── phase2/              # instantiation, rubric mutation, grading, reporting
-        │   ├── analysis/           # user-data prevalence measurement
-        │   └── docx/               # plain-language overview generator
+        │   └── analysis/           # user-data prevalence measurement
         ├── data/                   # downloaded HealthBench (gitignored) + license notes
         ├── results/                # deltas, score matrices, shortlists
         └── reports/                # method logs / written-up findings

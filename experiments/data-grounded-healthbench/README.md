@@ -35,10 +35,9 @@ data-grounded-healthbench/
 │   ├── phase2/       build_cases.py, assemble.py,   # instantiate cases, render prompts,
 │   │                 make_report.py, make_batches.py#   grade, build the score matrix
 │   │                 grading_prompt.md, mutation_prompt.md
-│   ├── analysis/     user_data_scan.py,             # user-data prevalence (regex census +
-│   │                 build_eval_sample*.py,         #   LLM-judge sample)
-│   │                 eval_aggregate.py
-│   └── docx/         make_overview.py               # writes ../../docs/*.docx
+│   └── analysis/     user_data_scan.py,             # user-data prevalence (regex census +
+│                     build_eval_sample*.py,         #   LLM-judge sample)
+│                     eval_aggregate.py
 ├── data/             HealthBench JSONL + derived/    # git-ignored (see data/README.md)
 ├── results/          phase1/, phase2/               # small reports committed; bulk ignored
 └── reports/          phase1-method.md, phase2-poc.md, user-data-prevalence.md
@@ -69,9 +68,6 @@ python3 src/phase2/assemble.py      # score matrix -> results/phase2/{matrix.jso
 python3 src/analysis/user_data_scan.py     # regex census over all 5,000 conversations
 python3 src/analysis/build_eval_sample.py  # sample for the LLM judge (n=600)
 python3 src/analysis/eval_aggregate.py     # aggregate judge results + 95% CI
-
-# --- Regenerate the plain-language overview doc (writes to repo-root docs/) ---
-python3 src/docx/make_overview.py
 ```
 
 ## Data & sharing

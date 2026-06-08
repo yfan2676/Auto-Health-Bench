@@ -66,7 +66,7 @@ Auto-Health-Bench/
 ├── docs/                 # high-level idea docs + running literature review
 │   ├── vision.md         #   Direction B idea doc (data-grounded evaluation)
 │   ├── lit-review/       #   running lit-review index
-│   └── *.docx            #   plain-language overview for stakeholders
+│   └── *.md              #   incl. a plain-language overview for stakeholders
 ├── latex/                # paper drafts, Overleaf-compatible (one subfolder per project)
 └── experiments/          # self-contained explorations (the actual work)
     ├── README.md         #   index + status of all experiments, by direction
@@ -105,7 +105,7 @@ Per experiment:
 ```bash
 # Python venv (shared; lives at repo root, git-ignored)
 python3 -m venv .venv && source .venv/bin/activate
-pip install python-docx          # add deps as experiments require them
+pip install -U pip               # add deps as each experiment requires them
 
 # Run an experiment — always from its own directory (scripts use relative paths)
 cd experiments/data-grounded-healthbench
