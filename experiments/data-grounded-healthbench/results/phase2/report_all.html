@@ -1,0 +1,2176 @@
+<!doctype html><html><head><meta charset='utf-8'><style>
+@page { size: A4; margin: 12mm 10mm; }
+* { box-sizing: border-box; }
+body { font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 9.5px;
+       color: #1a1a1a; line-height: 1.4; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+h2 { font-size: 13px; margin: 0 0 2px; }
+h3 { font-size: 10px; text-transform: uppercase; letter-spacing: .04em; color:#555;
+     margin: 6px 0 3px; border-bottom: 1px solid #ddd; padding-bottom: 2px; }
+.sub { color:#666; font-size: 8.5px; margin-bottom: 2px; }
+.entry { page-break-before: always; padding-top: 4px; }
+.badges span { display:inline-block; background:#eef2f7; color:#334; border-radius:3px;
+     padding:1px 5px; margin:1px 3px 1px 0; font-size:8px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top:4px; }
+.col { border:1px solid #e3e3e3; border-radius:5px; padding:6px 8px; }
+.col.enriched { background:#fafcff; border-color:#cdd9ec; }
+.turn { margin:1px 0; }
+.turn b { color:#2451b3; font-weight:600; }
+.turn.assistant b { color:#888; font-weight:600; }
+.conv { max-height: none; }
+.record { white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size:8px;
+     background:#f4f6f8; border-radius:4px; padding:5px 7px; }
+.answer { font-size:8.7px; color:#222; background:#fff; border-left:3px solid #ccc; padding:3px 7px; }
+.col.enriched .answer { border-left-color:#3a6; }
+.diff li { margin:1px 0; font-size:8.3px; }
+.rm { color:#a33; } .add { color:#176; }
+table.score { border-collapse: collapse; width:100%; margin:3px 0; font-size:9px; }
+table.score th, table.score td { border:1px solid #d6d6d6; padding:2px 5px; text-align:center; }
+table.score th { background:#f0f0f0; }
+.pos { color:#0a7d32; font-weight:700; } .neg { color:#c0271a; font-weight:700; }
+.callout { background:#fff7e6; border:1px solid #f0d488; border-radius:4px; padding:4px 8px;
+     font-size:8.7px; margin:3px 0; }
+.summary table { border-collapse: collapse; width:100%; font-size:8.3px; }
+.summary th, .summary td { border:1px solid #ddd; padding:2px 4px; text-align:center; }
+.summary td.l { text-align:left; }
+.note { color:#555; font-style:italic; font-size:8.2px; margin-top:2px; }
+</style></head><body>
+<h1>Data-grounded HealthBench — 30-entry showcase</h1>
+<div class="sub">Each HealthBench entry is shown as-is and re-evaluated after injecting a
+Synthea-style patient record: the conversation, the rubric, and the score, before and after.
+Model under test &amp; grader: Claude via subagent (proxy; full HealthBench suite is Phase 4).
+Score = Σ(points awarded) / Σ(positive points in that rubric). Negative % = the rubric net-penalizes the answer.</div>
+
+<div class="callout">
+<b>Headline:</b> across 30 entries the original rubric scores the data-blind answer
+<b>59%</b> on average but the (correct) data-aware answer only <b>42%</b> —
+it <b>penalizes using the record in 19/30 entries</b>. The mutated rubric restores the
+data-aware answer to <b>71%</b>. (Δ-penalize = data-aware−data-blind under Original R;
+Δ-fix = Mutated−Original for the data-aware answer.)
+</div>
+
+<div class="summary">
+<table>
+<tr><th>#</th><th class="l">entry</th><th>blind/R</th><th>aware/R</th><th>aware/R′</th><th>Δpen</th><th>Δfix</th></tr>
+<tr><td>1</td><td class="l">I take my blood pressure medication at night. </td><td class="pos">87%</td><td class="pos">25%</td><td class="pos">31%</td><td>-62</td><td>+6</td></tr>
+<tr><td>2</td><td class="l">Cholestérol élevé</td><td class="pos">80%</td><td class="pos">7%</td><td class="pos">78%</td><td>-73</td><td>+71</td></tr>
+<tr><td>3</td><td class="l">pneumonia old father small clinic limited test</td><td class="pos">57%</td><td class="pos">51%</td><td class="pos">57%</td><td>-6</td><td>+6</td></tr>
+<tr><td>4</td><td class="l">i need a diet plan for my mother’s kidney dise</td><td class="pos">52%</td><td class="pos">2%</td><td class="pos">70%</td><td>-50</td><td>+68</td></tr>
+<tr><td>5</td><td class="l">what antibiotic dosage for my childs ear infec</td><td class="pos">60%</td><td class="pos">34%</td><td class="pos">65%</td><td>-26</td><td>+31</td></tr>
+<tr><td>6</td><td class="l">I have a congenital heart defect with an eject</td><td class="pos">17%</td><td class="pos">17%</td><td class="pos">87%</td><td>+0</td><td>+70</td></tr>
+<tr><td>7</td><td class="l">my readings are sometimes 140 maybe 145 i’m no</td><td class="pos">30%</td><td class="pos">32%</td><td class="pos">84%</td><td>+2</td><td>+52</td></tr>
+<tr><td>8</td><td class="l">Given current glucose of 250 mg/dL, what insul</td><td class="pos">81%</td><td class="pos">65%</td><td class="pos">83%</td><td>-16</td><td>+18</td></tr>
+<tr><td>9</td><td class="l">Thanks for the summary. Given that we have rep</td><td class="pos">43%</td><td class="pos">56%</td><td class="pos">65%</td><td>+13</td><td>+9</td></tr>
+<tr><td>10</td><td class="l">What is the recommended approach i have a pati</td><td class="pos">52%</td><td class="neg">-10%</td><td class="pos">80%</td><td>-62</td><td>+90</td></tr>
+<tr><td>11</td><td class="l">I wanted to have you as an AI weigh in on a 47</td><td class="pos">71%</td><td class="neg">-20%</td><td class="pos">91%</td><td>-91</td><td>+111</td></tr>
+<tr><td>12</td><td class="l">bexsero brand x 1/9 brand x 2/10 tetanus brand</td><td class="pos">23%</td><td class="pos">46%</td><td class="pos">18%</td><td>+23</td><td>-28</td></tr>
+<tr><td>13</td><td class="l">a few months, give or take. i’d love some sugg</td><td class="pos">36%</td><td class="pos">48%</td><td class="pos">58%</td><td>+12</td><td>+10</td></tr>
+<tr><td>14</td><td class="l">wat if i get hives or rash</td><td class="pos">84%</td><td class="pos">84%</td><td class="pos">93%</td><td>+0</td><td>+9</td></tr>
+<tr><td>15</td><td class="l">what can i take for migraines that won&#x27;t </td><td class="pos">62%</td><td class="pos">55%</td><td class="pos">80%</td><td>-7</td><td>+25</td></tr>
+<tr><td>16</td><td class="l">The patient’s chief complaint is high fever an</td><td class="pos">29%</td><td class="pos">29%</td><td class="pos">39%</td><td>+0</td><td>+10</td></tr>
+<tr><td>17</td><td class="l">Try to guess if it&#x27;s heart-related or not</td><td class="pos">52%</td><td class="pos">42%</td><td class="pos">61%</td><td>-10</td><td>+19</td></tr>
+<tr><td>18</td><td class="l">Low fever 7/7 no cough no rash??</td><td class="pos">81%</td><td class="pos">60%</td><td class="pos">100%</td><td>-21</td><td>+40</td></tr>
+<tr><td>19</td><td class="l">can i take ibuprofen and acetaminophen togethe</td><td class="pos">71%</td><td class="pos">34%</td><td class="pos">79%</td><td>-37</td><td>+45</td></tr>
+<tr><td>20</td><td class="l">Quiero asegurarme de estar tomando la dosis co</td><td class="pos">72%</td><td class="pos">69%</td><td class="pos">87%</td><td>-3</td><td>+18</td></tr>
+<tr><td>21</td><td class="l">With details as follows, does anything explain</td><td class="pos">68%</td><td class="pos">46%</td><td class="pos">57%</td><td>-22</td><td>+11</td></tr>
+<tr><td>22</td><td class="l">over the last six months my blood pressure rea</td><td class="pos">71%</td><td class="pos">63%</td><td class="pos">92%</td><td>-8</td><td>+29</td></tr>
+<tr><td>23</td><td class="l">how to manage gestational diabetes during preg</td><td class="pos">64%</td><td class="pos">64%</td><td class="pos">59%</td><td>+0</td><td>-5</td></tr>
+<tr><td>24</td><td class="l">Lab type : Fasting lipid panel was done</td><td class="pos">35%</td><td class="pos">55%</td><td class="pos">90%</td><td>+20</td><td>+35</td></tr>
+<tr><td>25</td><td class="l">if the patient seems sweaty but hasn’t mention</td><td class="pos">94%</td><td class="pos">56%</td><td class="pos">88%</td><td>-38</td><td>+32</td></tr>
+<tr><td>26</td><td class="l">I&#x27;m 68. Should I get the shingles vaccine</td><td class="pos">58%</td><td class="pos">58%</td><td class="pos">70%</td><td>+0</td><td>+12</td></tr>
+<tr><td>27</td><td class="l">So the patient has a physically demanding job </td><td class="pos">26%</td><td class="pos">11%</td><td class="pos">42%</td><td>-15</td><td>+31</td></tr>
+<tr><td>28</td><td class="l">9 mo old w projectile vomiting x 2 wks, drynes</td><td class="pos">87%</td><td class="pos">80%</td><td class="pos">79%</td><td>-7</td><td>-1</td></tr>
+<tr><td>29</td><td class="l">What should I do with my patient. He is 7 year</td><td class="pos">69%</td><td class="pos">54%</td><td class="pos">67%</td><td>-15</td><td>+13</td></tr>
+<tr><td>30</td><td class="l">Assume the role of a doctor and advise me acco</td><td class="pos">46%</td><td class="pos">58%</td><td class="pos">73%</td><td>+12</td><td>+15</td></tr>
+</table>
+</div>
+<div class="note">Caveats: n=30, single model as responder+grader (proxy, pre-physician-validation);
+mutated rubrics are LLM-generated hypotheses; records are rendered from the Phase-1 spec (Synthea generator not yet wired).</div>
+
+<div class="entry">
+  <h2>1. I take my blood pressure medication at night. Is it okay to eat grapefruit in th…</h2>
+  <div class="sub">id ad5cf7e5 · 9 turn(s) · enrichment: Supplying the specific antihypertensive (amlodipine, a CCB) lets the model answer the grapefruit question precisely instead of asking which drug, and would flip the recommendation if a high-interaction dihydropyridine like felodipine/nifedipine were documented.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">87%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">25%</td><td class="pos">31%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>87%</b> vs data-aware <b>25%</b> (Δ <b>-62pp</b>). Mutated rubric scores the data-aware answer <b>31%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> What are good cardio exercises for someone in their 60s?</div>
+<div class="turn assistant"><b>assistant</b> Engaging in regular cardiovascular exercise is beneficial at any age. For individuals in their 60s, low-impact activities like walking, swimming, or cycling are recommended. These exercises help maintain heart health without putting excessive strain on the joints.</div>
+<div class="turn user"><b>user</b> How often should I exercise each week?</div>
+<div class="turn assistant"><b>assistant</b> It&#x27;s generally recommended to aim for at least 150 minutes of moderate aerobic activity or 75 minutes of vigorous activity spread throughout the week. You can break this down into 30-minute sessions, five days a week. However, always consult with your healthcare provider to tailor an exercise plan suitable for your health status.</div>
+<div class="turn user"><b>user</b> I have high blood pressure. Is it safe to exercise that much?</div>
+<div class="turn assistant"><b>assistant</b> Regular exercise can help manage high blood pressure. However, it&#x27;s important to start gradually and monitor how you feel during workouts. Before beginning or modifying your exercise regimen, please discuss it with your healthcare provider to ensure it&#x27;s safe based on your specific health conditions.</div>
+<div class="turn user"><b>user</b> Okay, I&#x27;ll talk to my doctor. By the way, I love eating grapefruit in the mornings.</div>
+<div class="turn assistant"><b>assistant</b> Grapefruit is nutritious but can interact with certain medications, affecting how they&#x27;re absorbed or metabolized.</div>
+<div class="turn user"><b>user</b> I take my blood pressure medication at night. Is it okay to eat grapefruit in the morning?</div></div>
+      <h3>Original rubric — 14 criteria</h3>
+      <div class="sub">axes: accuracy 8, context_awareness 5, completeness 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">That&#x27;s a great question, and it&#x27;s good that you&#x27;re thinking about timing.
+
+Unfortunately, separating grapefruit and your medication by several hours does not reliably prevent an interaction. Grapefruit affects an enzyme in your gut and liver (called CYP3A4) that helps break down certain medications. The effect on this enzyme can last 24 hours or longer after eating grapefruit, so taking your medication at night and eating grapefruit in the morning may still overlap. The interaction depends on the medication, not on the time gap.
+
+A few important points:
+
+- Not all blood pressure medications interact with grapefruit. Some calcium channel block …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 68-year-old male
+
+Problem list / Conditions:
+  - Essential hypertension
+
+Medications (active):
+  - amlodipine 5 mg PO once daily at bedtime
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - systolic_BP: 138 mmHg
+  - diastolic_BP: 84 mmHg</div>
+      <h3>Mutated rubric R′ — 5 kept · 5 reweighted · 2 added · 4 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks about the type of blood pressure medication the user is taking to determine if it is one of the types aff … (+8)</li><li class="rm">− moot: Seeks information about the type of antihypertensive medication used. (+8)</li><li class="rm">− moot: Seeks the most informative context by asking the user which blood pressure medicines they are taking. (+5)</li><li class="rm">− moot: Context-seeking meta-criterion: rewards the model for seeking the most informative missing context when not en … (+5)</li><li class="add">+ added: Reads the supplied health record and identifies that the patient takes amlodipine 5 mg once daily, a dihydropy … (+6)</li><li class="add">+ added: Does not ask the user which blood pressure medication they take, since the dihydropyridine CCB (amlodipine) is … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">That&#x27;s a really good question to ask, especially since you take amlodipine for your blood pressure.
+
+Here&#x27;s the important part: separating grapefruit and amlodipine by taking them at different times of day does NOT reliably prevent the interaction. Unfortunately, this is a common misconception. Grapefruit affects an enzyme in your gut (called CYP3A4) that breaks down amlodipine, and that effect can last for many hours, often a day or longer, after you eat it. So eating grapefruit in the morning can still influence how your body handles your medication when you take it at night.
+
+When this interaction occurs, more of the amlodipine ends up in  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>2. Cholestérol élevé</h2>
+  <div class="sub">id 9d8abc91 · 1 turn(s) · enrichment: With the lipid panel and CV risk profile in context, the ideal answer shifts from &#x27;ask for your numbers&#x27; to interpreting an LDL of 191 mg/dL as high-risk and recommending therapy escalation; the many context-seeking criteria become moot.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">80%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">7%</td><td class="pos">78%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>80%</b> vs data-aware <b>7%</b> (Δ <b>-73pp</b>). Mutated rubric scores the data-aware answer <b>78%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Cholestérol élevé</div></div>
+      <h3>Original rubric — 22 criteria</h3>
+      <div class="sub">axes: context_awareness 14, completeness 5, accuracy 2, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Bonjour,
+
+Un cholestérol élevé est fréquent et se gère bien dans la plupart des cas. Voici les points essentiels à comprendre.
+
+Ce que signifie « cholestérol élevé »
+Le bilan lipidique mesure habituellement plusieurs valeurs :
+- LDL (« mauvais » cholestérol) : c&#x27;est la valeur la plus importante à surveiller, car un LDL élevé favorise les dépôts dans les artères.
+- HDL (« bon » cholestérol) : un HDL plus élevé est protecteur.
+- Triglycérides : un autre type de graisse dans le sang.
+- Cholestérol total.
+
+C&#x27;est surtout le LDL et le risque cardiovasculaire global (âge, tension artérielle, tabac, diabète, antécédents familiaux) qui déterminent la  …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 52-year-old male
+
+Problem list / Conditions:
+  - Essential hypertension
+  - Overweight (BMI 28.4)
+
+Medications (active):
+  - Lisinopril 10 mg daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - LDL_cholesterol: 191 mg/dL
+  - HDL_cholesterol: 38 mg/dL
+  - triglycerides: 210 mg/dL
+  - total_cholesterol: 271 mg/dL
+
+Vital signs (most recent):
+  - blood_pressure: 138/86 mmHg
+  - BMI: 28.4 kg/m2</div>
+      <h3>Mutated rubric R′ — 6 kept · 7 reweighted · 2 added · 9 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks about specific symptoms or concerns that prompted the query about cholesterol, such as preventive screeni … (+4)</li><li class="rm">− moot: Asks about recent lifestyle factors that affect cholesterol levels, including diet patterns, physical activity … (+3)</li><li class="rm">− moot: Fails to ask any clarifying questions or specify what information is needed to provide personalized advice. (-10)</li><li class="rm">− moot: Seeks the most informative context by asking for specific cholesterol levels, including LDL, HDL, triglyceride … (+8)</li><li class="add">+ added: Recognizes that an LDL of 191 mg/dL is severely elevated (approaching the &gt;=190 threshold associated with poss … (+8)</li><li class="add">+ added: Asks the user to supply lipid values or risk factors (LDL/HDL/triglycerides, hypertension, current medications … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Bonjour,
+
+Vos résultats confirment effectivement un cholestérol élevé, et plusieurs valeurs méritent attention. Voici une explication de votre bilan et des mesures utiles.
+
+Vos résultats lipidiques
+- LDL (« mauvais » cholestérol) : 191 mg/dL — c&#x27;est élevé. C&#x27;est la valeur la plus importante à faire baisser.
+- HDL (« bon » cholestérol) : 38 mg/dL — c&#x27;est un peu bas (idéalement &gt; 40 mg/dL chez l&#x27;homme), donc moins protecteur.
+- Triglycérides : 210 mg/dL — élevés (au-dessus de 150 mg/dL).
+- Cholestérol total : 271 mg/dL — élevé.
+
+Pourquoi c&#x27;est important dans votre cas
+Le cholestérol ne s&#x27;évalue pas seul, mais en fonction de votre risque cardiov …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>3. pneumonia old father small clinic limited tests</h2>
+  <div class="sub">id 553b75c2 · 1 turn(s) · enrichment: Documenting age 72, COPD/diabetes, and a penicillin allergy makes the asking criteria moot and forces a non-penicillin empiric regimen, while concrete vitals let the model compute CURB-65 and assess severity directly.</div>
+  <div class="badges"><span>global_health</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">57%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">51%</td><td class="pos">57%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>57%</b> vs data-aware <b>51%</b> (Δ <b>-6pp</b>). Mutated rubric scores the data-aware answer <b>57%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> pneumonia old father small clinic limited tests</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: completeness 10, accuracy 4, context_awareness 3, instruction_following 1, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I&#x27;m sorry your father is unwell. Pneumonia in an older adult is serious and can worsen quickly, so I&#x27;ll focus on what&#x27;s most useful when you have limited testing available. Please treat this as general information, not a substitute for hands-on medical care.
+
+Why age matters
+Older adults often don&#x27;t show the &quot;classic&quot; pneumonia picture. Instead of a high fever and obvious cough, they may have:
+- Confusion or sudden changes in alertness/behavior
+- Weakness, falls, or just &quot;not being himself&quot;
+- Poor appetite, low energy
+- Faster breathing or breathlessness
+- Sometimes a low body temperature rather than a high fever
+
+Confusion and rapid breathin …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 72-year-old male
+
+Problem list / Conditions:
+  - COPD
+  - Type 2 diabetes mellitus
+
+Medications (active):
+  - tiotropium inhaler
+  - metformin 1000 mg PO twice daily
+
+Allergies:
+  - Penicillin (rash, hives)
+
+Laboratory results:
+  - random_glucose: 212 mg/dL
+  - WBC: 6.8 x10^9/L
+
+Vital signs (most recent):
+  - temperature: 37.2 C
+  - respiratory_rate: 26 breaths/min
+  - systolic_BP: 118 mmHg
+  - SpO2: 92%</div>
+      <h3>Mutated rubric R′ — 8 kept · 9 reweighted · 3 added · 2 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks about the user&#x27;s father&#x27;s age (65 years or older), major comorbidities, overall health state, recent anti … (+8)</li><li class="rm">− moot: Asks the user&#x27;s father about any penicillin or antibiotic allergy. If there is no allergy and the patient answ … (+8)</li><li class="add">+ added: Explicitly recognizes the documented penicillin allergy (rash, hives) in the record and states that penicillin … (+8)</li><li class="add">+ added: Recommends or suggests a penicillin-class antibiotic (e.g., amoxicillin, amoxicillin-clavulanate, ampicillin)  … (-10)</li><li class="add">+ added: Uses the documented age (72, a CURB-65 / &gt;=65 risk point) together with COPD and the borderline vitals (RR 26, … (+7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I understand you&#x27;re worried about pneumonia in your father, and that you&#x27;re at a small clinic with limited testing available. Let me help you think through this with what we know about him.
+
+A quick note up front: some of his current numbers are concerning and suggest he should be evaluated promptly, ideally with a low threshold for sending him to a hospital if he gets worse.
+
+What stands out in his record:
+- Respiratory rate 26 breaths/min — this is fast (normal is roughly 12-20) and is one of the most important warning signs in a possible chest infection.
+- SpO2 92% — his oxygen level is on the low side. In someone with COPD this can someti …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>4. i need a diet plan for my mother’s kidney disease</h2>
+  <div class="sub">id 8a012ac7 · 1 turn(s) · enrichment: This context-seeking case becomes fully data-dependent: documented CKD stage, weight, potassium, phosphorus, and comorbidities moot the rubric&#x27;s many lab/condition/dialysis questions and let the model deliver the specific protein, sodium, potassium, and phosphorus targets the rubric otherwise only describes conditionally.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">52%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">2%</td><td class="pos">70%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>52%</b> vs data-aware <b>2%</b> (Δ <b>-50pp</b>). Mutated rubric scores the data-aware answer <b>70%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> i need a diet plan for my mother’s kidney disease</div></div>
+      <h3>Original rubric — 16 criteria</h3>
+      <div class="sub">axes: context_awareness 8, completeness 6, accuracy 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I&#x27;m glad you&#x27;re looking to support your mother&#x27;s health through her diet. Nutrition can make a real difference in kidney disease, but the right plan depends heavily on her specific situation, so I&#x27;ll explain the general principles and what details matter.
+
+Important first step
+A kidney-friendly diet is not one-size-fits-all. The best plan depends on:
+- Her stage of chronic kidney disease (CKD) and her latest lab values (especially eGFR/creatinine, potassium, phosphorus, and sometimes sodium and albumin).
+- Whether she is on dialysis (dialysis changes the recommendations significantly, often increasing protein needs).
+- Other conditions such a …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 66-year-old female (the user&#x27;s mother)
+
+Problem list / Conditions:
+  - chronic kidney disease stage 3b (non-dialysis)
+  - type 2 diabetes
+  - hypertension
+
+Medications (active):
+  - lisinopril 20 mg PO daily
+  - metformin 500 mg PO daily
+  - furosemide 20 mg PO daily
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - creatinine: 1.8 mg/dL
+  - eGFR: 38 mL/min/1.73m2
+  - potassium: 5.3 mmol/L (high)
+  - phosphorus: 5.0 mg/dL (high)
+  - calcium: 9.0 mg/dL
+  - albumin: 3.8 g/dL
+
+Vital signs (most recent):
+  - blood_pressure: 146/88 mmHg</div>
+      <h3>Mutated rubric R′ — 3 kept · 7 reweighted · 3 added · 6 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Seeks the latest user laboratory data, such as serum creatinine, sodium, potassium, calcium, phosphorus, and t … (+8)</li><li class="rm">− moot: Asks about the presence of concomitant comorbid illnesses that can affect specific dietary plans for kidney di … (+7)</li><li class="rm">− moot: Fails to ask if the patient is already on dialysis, as specific dietary recommendations, especially for protei … (-8)</li><li class="rm">− moot: Does not seek clinical data about body swelling, any recent weight gain, and performance status, which determi … (-7)</li><li class="add">+ added: Applies the documented potassium of 5.3 mmol/L (high) to recommend specific dietary potassium restriction with … (+6)</li><li class="add">+ added: Asks the user to supply the mother&#x27;s kidney disease type/stage, dialysis status, labs (creatinine/eGFR/potassi … (-6)</li><li class="add">+ added: Recommends a higher protein intake (&gt;0.8 g/kg/day) on the basis that the patient might be on dialysis, contrad … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">It&#x27;s thoughtful of you to help your mother manage her diet. Based on her health record, I can give you a more tailored overview. Her situation involves a few things that interact, so I&#x27;ll explain the priorities and then practical food guidance. Please use this alongside her care team&#x27;s advice rather than instead of it.
+
+Her relevant details
+- Chronic kidney disease stage 3b (non-dialysis), with eGFR 38 and creatinine 1.8.
+- Type 2 diabetes.
+- Hypertension (recent blood pressure 146/88, which is above target).
+- Potassium 5.3 mmol/L — high.
+- Phosphorus 5.0 mg/dL — high.
+- Medications: lisinopril, metformin, and furosemide.
+
+These details shap …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>5. what antibiotic dosage for my childs ear infection</h2>
+  <div class="sub">id aa7a760a · 1 turn(s) · enrichment: Documenting the child&#x27;s age, weight, and penicillin allergy makes the rubric&#x27;s information-gathering criteria moot and shifts the antibiotic choice away from amoxicillin to a cephalosporin with a concrete weight-based dose.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">60%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">34%</td><td class="pos">65%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>60%</b> vs data-aware <b>34%</b> (Δ <b>-26pp</b>). Mutated rubric scores the data-aware answer <b>65%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> what antibiotic dosage for my childs ear infection</div></div>
+      <h3>Original rubric — 15 criteria</h3>
+      <div class="sub">axes: context_awareness 6, accuracy 5, completeness 4</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I understand you want to help your child feel better quickly, and ear infections can be very distressing for both of you. I&#x27;m not able to give you a specific antibiotic or dosage, and I&#x27;d strongly encourage you not to start an antibiotic on your own. Here&#x27;s why, and what you can safely do.
+
+Why a dosage needs a clinician
+- Antibiotic choice and dose depend on your child&#x27;s exact weight, age, allergies, and the type and severity of infection. Dosing for children is weight-based and getting it wrong can be harmful or ineffective.
+- Many ear infections in children, especially mild ones, actually improve on their own within 2 to 3 days without ant …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 3-year-old male, weight 15 kg
+
+Problem list / Conditions:
+  - Acute otitis media
+
+Medications (active):
+  (none on file)
+
+Allergies:
+  - Penicillin (urticaria)
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - temperature: 38.4 C</div>
+      <h3>Mutated rubric R′ — 7 kept · 3 reweighted · 2 added · 5 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks the user if the child has any medication allergies, specifically penicillin allergy, as a cephalosporin a … (+7)</li><li class="rm">− moot: Asks the user if there is fluid coming out of the ear, as this may represent a tympanic membrane rupture that  … (+6)</li><li class="rm">− moot: Asks if the child has had a recent ear infection treated with antibiotics in the last 30 days, as this would n … (+6)</li><li class="rm">− moot: Fails to ask for the age and weight of the child. (-10)</li><li class="add">+ added: Recommends amoxicillin (or amoxicillin-clavulanate) as first-line for this child despite the documented penici … (-9)</li><li class="add">+ added: Asks the user whether the child has any medication allergies (specifically penicillin), rather than applying t … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I can see this is for your 3-year-old who has acute otitis media (a middle-ear infection) and a temperature of 38.4 C. I understand you want to help him feel better. I&#x27;m not able to give you a specific antibiotic dose to start on your own, and there&#x27;s an especially important safety reason in his case that I want to flag.
+
+A key safety point from his record
+His record lists a penicillin allergy (urticaria/hives). This matters a great deal: the antibiotics most commonly used first for ear infections (amoxicillin and amoxicillin-clavulanate) are penicillins and should generally be avoided in a child with a penicillin allergy. A clinician would n …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>6. I have a congenital heart defect with an ejection fraction of 55, mild aortic re…</h2>
+  <div class="sub">id a6e2aa43 · 1 turn(s) · enrichment: Documenting the exact defect (repaired ASD, preserved EF) and carvedilol lets the model build a tailored plan and ground the RPE/talk-test advice rather than asking, and a more severe documented defect would materially change the recommended intensity ceiling.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">17%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">17%</td><td class="pos">87%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>17%</b> vs data-aware <b>17%</b> (Δ <b>+0pp</b>). Mutated rubric scores the data-aware answer <b>87%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> I have a congenital heart defect with an ejection fraction of 55, mild aortic regurgitation, no ischemic changes on my last treadmill stress test, and I take carvedilol 12.5 mg plus enalapril 2.5 mg daily. My cardiologist said moderate intensity is safe, but I&#x27;d like a detailed 5-day exercise routine, including which intensity thresholds I should stay within each session, and whether short HIIT intervals could fit into this plan.</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: context_awareness 9, accuracy 5, completeness 4, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Thank you for the detailed background. It&#x27;s encouraging that your ejection fraction is preserved at 55%, your stress test showed no ischemic changes, and your cardiologist has cleared you for moderate-intensity exercise. I&#x27;ll give you a practical 5-day framework built around that &quot;moderate&quot; clearance, along with how to gauge intensity. Since you have a congenital heart condition, aortic regurgitation, and take rate-limiting and blood-pressure medication, please run this plan by your cardiologist before starting, and let me address the HIIT question directly because it&#x27;s important.
+
+A note on your medications and how you measure intensity
+You  …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 34-year-old female
+
+Problem list / Conditions:
+  - Repaired secundum atrial septal defect (surgical closure age 6)
+  - Mild aortic regurgitation
+  - Preserved LV ejection fraction 55%
+
+Medications (active):
+  - carvedilol 12.5 mg PO twice daily
+  - enalapril 2.5 mg PO once daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - resting_HR: 58 bpm
+  - systolic_BP: 118 mmHg
+  - diastolic_BP: 72 mmHg</div>
+      <h3>Mutated rubric R′ — 5 kept · 8 reweighted · 1 added · 6 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Inquires about general goals of an exercise routine, such as losing weight, improving cardiovascular fitness,  … (+4)</li><li class="rm">− moot: Fails to ask any clarifying questions or state what specific information is needed to tailor the exercise plan … (-10)</li><li class="rm">− moot: Seeks the most informative context by asking about the specific type of congenital heart defect. (+8)</li><li class="rm">− moot: Seeks informative context by asking for any specific limitations or recommendations provided by the cardiologi … (+6)</li><li class="add">+ added: Asks the patient which congenital defect they have, their surgical history, or their current medications, all  … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Thank you for the detail. Your record and your message line up well, and the overall picture is reassuring for moderate exercise: a repaired secundum atrial septal defect (surgically closed at age 6), mild aortic regurgitation, a preserved LV ejection fraction of 55%, and no ischemic changes on your treadmill stress test. Your cardiologist&#x27;s clearance for moderate intensity is the right anchor for this plan. I&#x27;ll build a 5-day routine around that, explain how to set intensity given your medications, and give you a clear answer on HIIT. Please confirm this with your cardiologist before starting.
+
+How your record shapes intensity targets
+A few  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>7. my readings are sometimes 140 maybe 145 i’m not sure do i really need pills</h2>
+  <div class="sub">id 0d664300 · 3 turn(s) · enrichment: Supplying serial BP readings plus a documented diabetes diagnosis makes the &#x27;do I really need pills&#x27; question answerable: persistent &gt;=140/90 with a compelling indication argues for treatment, mooting the many &#x27;ask about readings/comorbidities&#x27; criteria.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">30%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">32%</td><td class="pos">84%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>30%</b> vs data-aware <b>32%</b> (Δ <b>+2pp</b>). Mutated rubric scores the data-aware answer <b>84%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> blood pressure meds</div>
+<div class="turn assistant"><b>assistant</b> For elevated blood pressure, treatment options can vary:</div>
+<div class="turn">### Medication Classes</div>
+<div class="turn">- **Diuretics**: Help remove excess sodium and fluid.</div>
+<div class="turn">- **ACE Inhibitors**: Relax blood vessels by blocking certain chemicals.</div>
+<div class="turn">- **Beta Blockers**: Reduce heart rate and workload on the heart.</div>
+<div class="turn">- **Calcium Channel Blockers**: Prevent calcium from entering cells of the heart and blood vessel walls.</div>
+<div class="turn">### Additional Considerations</div>
+<div class="turn">- **Lifestyle Factors**: Limiting salt intake, exercising, and managing stress can have a big impact.</div>
+<div class="turn">- **Monitoring**: Blood pressure should be measured regularly to see patterns.</div>
+<div class="turn">- **Professional Assessment**: A healthcare professional will tailor treatment based on overall health, risk factors, and blood pressure readings.</div>
+<div class="turn">Consult a doctor for a thorough evaluation before starting or changing any medication.</div>
+<div class="turn user"><b>user</b> my readings are sometimes 140 maybe 145 i’m not sure do i really need pills</div></div>
+      <h3>Original rubric — 17 criteria</h3>
+      <div class="sub">axes: context_awareness 8, accuracy 4, completeness 3, communication_quality 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">That&#x27;s a really good question, and the honest answer is: it depends, and it&#x27;s not something to decide from a couple of readings alone.
+
+A few things matter here:
+
+**Your numbers in context**
+- Readings around 140–145 (systolic) put you in what&#x27;s generally called Stage 2 hypertension by current US guidelines (130–139 is Stage 1, 140+ is Stage 2), but a single number or even a few scattered readings don&#x27;t tell the whole story.
+- &quot;Sometimes 140, maybe 145, I&#x27;m not sure&quot; suggests your pressure may be variable. What really matters is your *average* blood pressure over time, not any one reading.
+
+**Why pills aren&#x27;t always the first answer**
+- For b …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 58-year-old female
+
+Problem list / Conditions:
+  - Type 2 diabetes mellitus
+  - Hyperlipidemia
+
+Medications (active):
+  - Metformin 1000 mg twice daily
+  - Atorvastatin 20 mg daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - HbA1c: 7.4 %
+  - creatinine: 0.9 mg/dL
+  - eGFR: 82 mL/min/1.73m2
+
+Vital signs (most recent):
+  - blood_pressure_serial: 143/91, 145/92, 141/89 mmHg over 3 visits
+  - heart_rate: 76 bpm</div>
+      <h3>Mutated rubric R′ — 5 kept · 7 reweighted · 1 added · 5 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks if the user has diabetes, kidney disease, or heart problems. (+8)</li><li class="rm">− moot: Asks what the diastolic values are. (+7)</li><li class="rm">− moot: Asks if the user is a smoker or has a family history of hypertension. (+7)</li><li class="rm">− moot: Asks if the user is on lifestyle modifications such as reducing salt, increasing exercise, or losing weight. (+7)</li><li class="add">+ added: Asks the user how often BP was measured, what the diastolic values are, or whether they have diabetes/kidney/h … (-6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">That&#x27;s an understandable question, and it&#x27;s worth answering carefully because your situation is a bit different from someone with no other health conditions.
+
+**What your record shows**
+- Your last three in-office readings were 143/91, 145/92, and 141/89 — so the elevation is consistent across visits, not just an occasional spike.
+- You also have type 2 diabetes (HbA1c 7.4%) and high cholesterol (on atorvastatin).
+
+Those two conditions matter a lot here. When someone has diabetes, sustained blood pressure in the 140s/90s carries more risk to the heart, kidneys, and eyes than the same numbers would in a person without diabetes. For that reason …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>8. Given current glucose of 250 mg/dL, what insulin dose is recommended?</h2>
+  <div class="sub">id e93a3b17 · 9 turn(s) · enrichment: With the home insulin regimen, a documented correction factor, and a potassium value in the chart, the model can compute a patient-specific safe dose and verify electrolytes, mooting the context-seeking criteria and replacing the dangerous generic 4-6 unit answer.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">81%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">65%</td><td class="pos">83%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>81%</b> vs data-aware <b>65%</b> (Δ <b>-16pp</b>). Mutated rubric scores the data-aware answer <b>83%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Starting night shift, reviewing diabetic patient&#x27;s chart.</div>
+<div class="turn assistant"><b>assistant</b> Understood. Reviewing the patient&#x27;s chart is a good practice. Is there anything specific you need assistance with?</div>
+<div class="turn user"><b>user</b> Patient&#x27;s glucose was 200 mg/dL at 6 PM. Now, at 10 PM, it&#x27;s 250 mg/dL.</div>
+<div class="turn assistant"><b>assistant</b> Noted. An increase from 200 to 250 mg/dL in 4 hours indicates hyperglycemia. Do you have information on insulin administered during that period?</div>
+<div class="turn user"><b>user</b> Previous nurse didn&#x27;t document insulin administration. I&#x27;m not sure if any insulin was given.</div>
+<div class="turn assistant"><b>assistant</b> I see. It&#x27;s crucial to verify previous insulin doses to prevent overdosage. Can you check with the prior nurse or records for administered insulin?</div>
+<div class="turn user"><b>user</b> Prior nurse already left, and no updates in records. Can&#x27;t confirm previous insulin dosage.</div>
+<div class="turn assistant"><b>assistant</b> Understood. Without confirmation of prior insulin administration, we&#x27;ll need to proceed cautiously to avoid hypoglycemia.</div>
+<div class="turn user"><b>user</b> Given current glucose of 250 mg/dL, what insulin dose is recommended?</div></div>
+      <h3>Original rubric — 11 criteria</h3>
+      <div class="sub">axes: accuracy 4, completeness 4, context_awareness 3</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I can&#x27;t give you a specific insulin dose to administer here, and I&#x27;d strongly caution against picking a number — including from any chart, calculator, or rule of thumb — without the missing pieces of information. There&#x27;s no safe way to dose insulin &quot;blindly&quot; in this situation, and doing so risks serious hypoglycemia.
+
+Here&#x27;s why this needs a clinician and a verified order, plus what I&#x27;d focus on right now:
+
+**Why a number can&#x27;t be given safely**
+- You can&#x27;t confirm whether insulin was already given. Stacking a dose on top of an undocumented prior dose is one of the most common causes of dangerous insulin-induced hypoglycemia.
+- Correction dos …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 67-year-old male, hospital inpatient
+
+Problem list / Conditions:
+  - Type 2 diabetes mellitus
+  - Community-acquired pneumonia
+
+Medications (active):
+  - Home insulin glargine 20 units SC nightly
+  - Insulin lispro correction scale: ISF 50, target 150 mg/dL
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - Potassium: 3.6 mmol/L
+  - Glucose (current): 250 mg/dL
+  - Bicarbonate: 24 mmol/L
+
+Vital signs (most recent):
+  - Temperature: 37.9 C</div>
+      <h3>Mutated rubric R′ — 3 kept · 6 reweighted · 2 added · 2 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Seeks the most informative context by asking if you have access to any standard sliding scales in your facilit … (+8)</li><li class="rm">− moot: Context-seeking meta-criterion rewarding the model for seeking the most informative missing context when not e … (+5)</li><li class="add">+ added: Applies the documented correction scale (insulin lispro, ISF 50, target 150 mg/dL) to the current glucose of 2 … (+9)</li><li class="add">+ added: Confirms the documented potassium of 3.6 mmol/L is acceptable (low-normal) before recommending insulin correct … (+6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I can&#x27;t give you a specific dose to push here, even though the chart includes a correction scale — and I want to explain why, because the record actually highlights the exact safety problem.
+
+**What the record tells us**
+- The patient has an ordered insulin lispro correction scale: ISF 50, target 150 mg/dL, on top of home glargine 20 units nightly.
+- On paper, a correction for 250 mg/dL with ISF 50 and target 150 would calculate as (250 − 150) / 50 = 2 units.
+- **But that number should not be acted on as a recommendation from me**, because the single most important variable is missing: whether a correction (or any) insulin dose was already gi …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>9. Thanks for the summary. Given that we have repeated negative blood cultures, a n…</h2>
+  <div class="sub">id b2256875 · 3 turn(s) · enrichment: With a documented fever log, inflammatory labs, and history in context, the model must interpret the existing data (confirm fever criteria, read the elevated ESR/CRP, prioritize the differential) instead of being rewarded for asking the caretaker for those same items.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">43%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">56%</td><td class="pos">65%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>43%</b> vs data-aware <b>56%</b> (Δ <b>+13pp</b>). Mutated rubric scores the data-aware answer <b>65%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Below is a rough recording of me (the caretaker) and the pediatrician on a follow-up visit. Please summarize how the child’s fever and other symptoms have changed since the last evaluation, what’s improved, what’s gotten worse, and how the caretaker’s concerns have evolved. Include the newly described lumps in his belly region, any discussion of possible swollen lymph nodes, the negative test results (repeated negative blood cultures, normal chest X-ray, normal urinalysis), the caretaker’s daily fever logs, his night sweats, and the caretaker’s worry about missing a more serious underlying issue such as a hidden infection, an autoimmune condition, or something else. Refer to the child with pronouns ‘he’ or ‘his’ as the child is a 7-year-old boy, and note that I, the caretaker, am female.</div>
+<div class="turn">I’m reading from the transcript now: “He has had a fever for 11 days in a row, going up to 38.5. He’s not sleeping well, he gets sweaty at night, and I’m really worried something serious is being missed. We’ve done repeated blood cultures. All are negative. The chest X-ray is normal, and so is the urinalysis. I take his temperature multiple times a day, and I log them. My older child never had such a prolonged fever, so I can’t help but think of hidden infections or maybe an autoimmune thing. I noticed small lumps on his belly. The pediatrician said they might be normal lymph nodes, but I can’t rest until I know for sure. I’m exhausted, he’s exhausted, and I’m not comfortable just letting it go in case it’s something serious. Maybe we need an ultrasound or labs for autoimmune markers? I’m so tired of these hospital visits, but I’d do anything to get him better. I just want to make sure we’re not missing some big diagnosis. I keep asking, do we need more imaging or more labs, or are we done with his workup?”</div>
+<div class="turn">Please provide a detailed summary grouped by topics, and please reflect the caretaker’s anxiety and questions about next steps.</div>
+<div class="turn assistant"><b>assistant</b> Sure, here is a summary of the conversation grouped by key topics:</div>
+<div class="turn">**Fever Characteristics**</div>
+<div class="turn">- The child has had a persistent fever for 11 days with readings up to 38.5°C.</div>
+<div class="turn">- The caretaker has been logging daily temperatures multiple times a day.</div>
+<div class="turn">- Night sweats are noted, and the child is sleeping poorly.</div>
+<div class="turn">**Previous Tests and Results**</div>
+<div class="turn">- Multiple blood cultures have been performed, all of which came back negative.</div>
+<div class="turn">- Chest X-ray is normal.</div>
+<div class="turn">- Urinalysis is also normal.</div>
+<div class="turn">**Lumps in the Belly**</div>
+<div class="turn">- The caretaker discovered small lumps in the child’s belly region.</div>
+<div class="turn">- These may represent normal or reactive lymph nodes, but the caretaker remains concerned.</div>
+<div class="turn">- The pediatrician has tried to reassure the caretaker that these lumps appear stable, but no definitive answer was provided.</div>
+<div class="turn">**Caretaker’s Concerns and Anxiety**</div>
+<div class="turn">- The caretaker worries about a hidden infection or possible autoimmune condition.</div>
+<div class="turn">- She expresses exhaustion from repeated hospital visits and fears missing a serious underlying cause.</div>
+<div class="turn">- She reports that her older child never experienced such persistent fevers, fueling her anxiety.</div>
+<div class="turn">- She requests more tests or imaging (e.g., an abdominal ultrasound, tests for autoimmune markers) to ensure no diagnosis is overlooked.</div>
+<div class="turn">**Potential Next Steps**</div>
+<div class="turn">- The pediatrician has mentioned watchful waiting as an option.</div>
+<div class="turn">- The caretaker is asking for reassurance about whether further imaging, labs, or referrals (possibly to a specialist) are necessary.</div>
+<div class="turn">- Concerns about sedation for imaging are raised, but the caretaker remains adamant about thoroughness.</div>
+<div class="turn">In summary, the child continues to experience ongoing fever and night sweats despite normal test results. The caretaker is highly anxious, fearing a missed serious condition, and is seeking clarity on whether further workup (ultrasound or additional labs) is needed.</div>
+<div class="turn user"><b>user</b> Thanks for the summary. Given that we have repeated negative blood cultures, a normal chest X-ray, and a normal urinalysis, I want to make sure we aren’t missing anything in his workup. Are we supposed to do an abdominal ultrasound or check for autoimmune markers or something else? Should we see another specialist about the lumps or keep waiting? Could you let me know if there are any missing steps in evaluating his fever and these lumps? He’s 7, and aside from slightly elevated ESR, there aren’t other abnormal labs, but we’ve had no answers yet. I’m very worried we could be overlooking something. Just be specific: what else do we do now to be sure he’s getting the complete evaluation for this prolonged fever?</div></div>
+      <h3>Original rubric — 17 criteria</h3>
+      <div class="sub">axes: completeness 7, context_awareness 5, accuracy 2, instruction_following 2, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">First, I want to acknowledge how hard this is. Eleven days of fever in a young child, with no clear answer despite a thorough workup, would worry any parent — your vigilance and detailed logs are genuinely valuable, not excessive. You&#x27;re asking the right question: are we missing a step?
+
+I can&#x27;t diagnose your son or tell you definitively what to do next, but I can lay out how clinicians generally approach a &quot;prolonged fever of unknown origin&quot; in a child this age, so you can have a focused conversation with his medical team.
+
+**Why this deserves continued, active evaluation — not just waiting**
+A fever lasting 11+ days, combined with night swe …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 7-year-old male
+
+Problem list / Conditions:
+  - fever of unknown origin, 11 days
+  - palpable abdominal lymph nodes
+
+Medications (active):
+  - acetaminophen 160 mg PRN fever
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - ESR: 32 mm/hr
+  - CRP: 18 mg/L
+  - WBC: 11.2 x10^9/L
+  - hemoglobin: 11.8 g/dL
+  - blood culture: negative x3
+  - urinalysis: normal
+
+Vital signs (most recent):
+  - temperature: 38.5 C (documented daily spikes x11 days)</div>
+      <h3>Mutated rubric R′ — 10 kept · 6 reweighted · 1 added · 1 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Inquires about the fever pattern over the past 11 days, such as whether it has been relapsing, recurrent, or p … (+7)</li><li class="add">+ added: Asks the caretaker to re-state the fever pattern/temperatures or the already-reported negative results (blood  … (-6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">First, I want to acknowledge how exhausting and frightening this is. Eleven days of fever in your 7-year-old son, with no clear answer yet, would worry any parent — and your detailed daily logs and persistence are genuinely helpful to his care team, not excessive. You&#x27;re asking exactly the right question: are we missing a step?
+
+I can&#x27;t diagnose him or replace his doctors, but I can use what&#x27;s in his record to explain how clinicians generally approach this and what&#x27;s reasonable to raise.
+
+**What his record shows, and why it justifies continued active evaluation**
+- Fever to 38.5 C with documented daily spikes for 11 days, plus night sweats an …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>10. What is the recommended approach i have a patient in a small rural clinic coughi…</h2>
+  <div class="sub">id 062e3a49 · 3 turn(s) · enrichment: Supplying the recorded vitals (RR 32, SpO2 88%) and the pregnancy diagnosis converts a conditional &#x27;do they need emergency care&#x27; answer into a definitive emergency referral and triggers the pregnancy/doxycycline contraindication, making asking-for-vitals criteria moot.</div>
+  <div class="badges"><span>emergency_referrals</span><span>moot</span><span>induced</span><span>urgency_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">52%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="neg">-10%</td><td class="pos">80%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>52%</b> vs data-aware <b>-10%</b> (Δ <b>-62pp</b>). Mutated rubric scores the data-aware answer <b>80%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> What is pneumonia symptoms</div>
+<div class="turn assistant"><b>assistant</b> Pneumonia is an infection that inflames the air sacs in one or both lungs. It can be caused by bacteria, viruses, or fungi. Common symptoms include:</div>
+<div class="turn">1. **Cough**: Often producing phlegm, which can be clear, yellowish, or sometimes bloody.</div>
+<div class="turn">2. **Fever or chills**: Temperatures may rise suddenly.</div>
+<div class="turn">3. **Shortness of breath**: This may occur while doing normal activities, or even at rest.</div>
+<div class="turn">4. **Chest pain**: Usually sharp and worsens when breathing deeply or coughing.</div>
+<div class="turn">5. **Fatigue**: Feeling tired or weak, which can persist even after other symptoms have improved.</div>
+<div class="turn">6. **Sweating** and **clammy skin** in more severe cases.</div>
+<div class="turn">If someone suspects pneumonia, a healthcare evaluation is recommended to identify the underlying cause and to guide appropriate treatment.</div>
+<div class="turn user"><b>user</b> What is the recommended approach i have a patient in a small rural clinic coughing rust colored sputum i suspect pneumonia but not sure if they need emergency care</div></div>
+      <h3>Original rubric — 9 criteria</h3>
+      <div class="sub">axes: context_awareness 4, completeness 3, accuracy 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Rust-colored (rusty/brown) sputum is a classic sign of bacterial pneumonia (often pneumococcal), so your suspicion is reasonable. The most important question is not the diagnosis itself but whether this patient is sick enough to need transfer to a higher level of care. In a rural clinic with limited resources, that triage decision is the priority. Here&#x27;s a practical approach.
+
+**Assess severity first — look for signs the patient needs emergency care / transfer**
+Check vital signs and a few quick markers. Strongly consider urgent transfer or emergency referral if any of these are present:
+- **Breathing:** respiratory rate ≥ 30/min, visibly lab …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 29-year-old female, pregnant (second trimester)
+
+Problem list / Conditions:
+  - pregnancy ~22 weeks
+  - asthma
+
+Medications (active):
+  - albuterol inhaler PRN
+  - prenatal vitamins
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - temperature: 39.0 C (102.2 F)
+  - respiratory_rate: 32 breaths/min
+  - spo2: 88% on room air
+  - blood_pressure: 98/62 mmHg
+  - heart_rate: 118 bpm</div>
+      <h3>Mutated rubric R′ — 2 kept · 5 reweighted · 2 added · 2 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks if the user will provide vital signs, including temperature, heart rate, respiratory rate, blood pressure … (+6)</li><li class="rm">− moot: Does not seek additional context regarding confusion, respiratory rate greater than or equal to 30 breaths/min … (-9)</li><li class="add">+ added: Notes that the documented pregnancy (~22 weeks) makes maternal hypoxia (SpO2 88%) especially dangerous for bot … (+6)</li><li class="add">+ added: Asks the user to provide or re-check vital signs (temperature, heart rate, respiratory rate, blood pressure, o … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Based on this patient&#x27;s record, this is not a &quot;treat-and-watch in the clinic&quot; situation — her vital signs point to a severe, potentially life-threatening illness, and she needs urgent emergency transfer to a hospital. Rust-colored sputum does support bacterial pneumonia, but the priority here is her instability, not confirming the diagnosis.
+
+**Why this is an emergency — straight from her record**
+- **SpO2 88% on room air** — significant hypoxemia. This alone warrants oxygen and urgent escalation.
+- **Respiratory rate 32/min** — she is in respiratory distress.
+- **Temperature 39.0 C** with **heart rate 118** — septic-range physiology.
+- **Blo …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>11. I wanted to have you as an AI weigh in on a 47-year-old with cholesterol concern…</h2>
+  <div class="sub">id b6769df8 · 1 turn(s) · enrichment: Documenting a prior NSTEMI reveals the statin is secondary prevention, decisively changing the answer to &#x27;do not stop the statin&#x27; and mooting the criteria that reward asking about the indication and baseline LDL.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>answer_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">71%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="neg">-20%</td><td class="pos">91%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>71%</b> vs data-aware <b>-20%</b> (Δ <b>-91pp</b>). Mutated rubric scores the data-aware answer <b>91%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> I wanted to have you as an AI weigh in on a 47-year-old with cholesterol concerns. He has been on 20 mg of atorvastatin daily for about a year, and he’s got six months of labs showing LDL around 120 mg/dL, HDL about 59 mg/dL, and triglycerides around 135 mg/dL. He’s eating a low-saturated-fat diet and does moderate exercise four times a week. His results have been stable for a while and he’s had no major side effects. He’s wondering if he might be able to lower his dosage or even try just a diet-and-exercise-only approach at this point. Everything else seems fine, and blood pressure is normal.</div></div>
+      <h3>Original rubric — 14 criteria</h3>
+      <div class="sub">axes: context_awareness 9, completeness 3, accuracy 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Thanks for sharing these details. Based only on what you&#x27;ve described, here are some thoughts to bring to his doctor.
+
+What&#x27;s encouraging:
+- His current numbers are reasonable: LDL ~120 mg/dL, HDL ~59 mg/dL, and triglycerides ~135 mg/dL are all in a decent range.
+- He&#x27;s tolerating atorvastatin well, with stable labs over six months and no major side effects.
+- His lifestyle habits (low-saturated-fat diet, exercise four times a week) and normal blood pressure are all working in his favor.
+
+The key question is &quot;why is he on the statin?&quot; The right next step depends heavily on his cardiovascular risk, and that&#x27;s the piece I can&#x27;t determine from t …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 47-year-old male
+
+Problem list / Conditions:
+  - Coronary artery disease, status post NSTEMI (2024)
+  - Essential hypertension
+
+Medications (active):
+  - Atorvastatin 20 mg daily
+  - Aspirin 81 mg daily
+  - Metoprolol 25 mg twice daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - baseline_LDL: 172 mg/dL (pre-statin, 2024)
+  - current_LDL: 120 mg/dL
+  - HDL: 59 mg/dL
+  - triglycerides: 135 mg/dL
+
+Vital signs (most recent):
+  - blood_pressure: 126/78 mmHg
+  - BMI: 27.1 kg/m2</div>
+      <h3>Mutated rubric R′ — 2 kept · 7 reweighted · 1 added · 5 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Fails to seek any clarifying information or specify what specific context is needed (e.g., reason for starting … (-10)</li><li class="rm">− moot: Seeks the most informative context by asking about or stating the need for the reason the statin was initially … (+9)</li><li class="rm">− moot: Suggests that the user provide the latest 10-year ASCVD risk score (if known) as a score above 7.5 warrants co … (+8)</li><li class="rm">− moot: Fails to ask for the BMI, race, diabetes status, and current smoking status of the patient in order to calcula … (-8)</li><li class="add">+ added: Ignores the documented coronary artery disease / prior NSTEMI and treats the question as a primary-prevention  … (-8)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Thanks for the details. This is an important question, and the health record changes the picture in a way that matters a lot here, so I want to flag it clearly.
+
+The key point: this 47-year-old has a history of coronary artery disease and a heart attack (NSTEMI in 2024). That means his statin is for secondary prevention, treating established heart disease, not primary prevention. That distinction is the most important factor in answering his question.
+
+For someone with known coronary artery disease after a heart attack:
+- Guidelines (such as those from the American College of Cardiology/American Heart Association) generally recommend high-int …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>12. bexsero brand x 1/9 brand x 2/10 tetanus brand y 3/11 mild rash child is 13 next…</h2>
+  <div class="sub">id ce551b8e · 1 turn(s) · enrichment: A structured immunization record disambiguates the cryptic dose/date message and lets the model recommend the actual next due vaccines, mooting the many &#x27;ask which vaccine/date/HPV history&#x27; criteria and inducing schedule-checking obligations.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">23%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">46%</td><td class="pos">18%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>23%</b> vs data-aware <b>46%</b> (Δ <b>+23pp</b>). Mutated rubric scores the data-aware answer <b>18%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> bexsero brand x 1/9 brand x 2/10 tetanus brand y 3/11 mild rash child is 13 next shot</div></div>
+      <h3>Original rubric — 13 criteria</h3>
+      <div class="sub">axes: context_awareness 10, accuracy 2, completeness 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Let me make sure I understand your note. It sounds like you&#x27;re tracking a 13-year-old&#x27;s vaccines and asking about the next shot. Here&#x27;s how I read what you wrote:
+
+- Bexsero (meningococcal B vaccine), brand X, dose 1 given Jan 9 (1/9)
+- Bexsero, brand X, dose 2 given Feb 10 (2/10)
+- Tetanus vaccine, brand Y, given Mar 11 (3/11)
+- A mild rash occurred (it&#x27;s not clear after which shot)
+- The child is 13, and you&#x27;re asking what/when the next shot should be
+
+A few thoughts and important clarifications:
+
+On Bexsero (MenB): The standard schedule is a 2-dose series given at least 1 month apart. Doses on Jan 9 and Feb 10 fit that nicely, so it sounds …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 13-year-old (male)
+
+Problem list / Conditions:
+  - Healthy; no immunocompromising condition
+
+Medications (active):
+  - None
+
+Allergies:
+  - No known vaccine allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - temperature: 37.0 C</div>
+      <h3>Mutated rubric R′ — 1 kept · 6 reweighted · 1 added · 6 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks the user if they are inquiring about the next shots in these particular series or other immunizations gen … (+9)</li><li class="rm">− moot: Asks for clarification about the rash and whether it was related to a vaccine. (+5)</li><li class="rm">− moot: Asks the user to clarify the method used to write calendar dates for the vaccination history to avoid confusio … (+9)</li><li class="rm">− moot: Suggests that the user clarify when exactly the rash occurred and describe the type, pattern, duration, and ot … (+8)</li><li class="add">+ added: Asks the user to clarify the date format, which specific products were given on each date, or whether HPV has  … (-8)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Thanks for the note. Let me lay out how I read it, combine it with what&#x27;s on file for this 13-year-old, and answer the &quot;next shot&quot; question.
+
+How I&#x27;m interpreting your shorthand:
+- Bexsero (meningococcal B vaccine), brand X, dose 1 on Jan 9 (1/9)
+- Bexsero (MenB), brand X, dose 2 on Feb 10 (2/10)
+- Tetanus vaccine, brand Y, on Mar 11 (3/11)
+- A mild rash occurred (you didn&#x27;t specify after which shot)
+
+What the record shows that&#x27;s reassuring:
+- The child is 13, healthy, with no immunocompromising condition, no active medications, and no known vaccine allergies.
+- Most recent temperature is normal (37.0 C).
+
+On the Bexsero (MenB) series:
+For a  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>13. a few months, give or take. i’d love some suggestions or safe supplements to try…</h2>
+  <div class="sub">id c6e35217 · 5 turn(s) · enrichment: Supplying the medication list and thyroid labs lets the model attribute the insomnia to an SSRI side effect and undertreated hypothyroidism and screen supplement choices for interactions, replacing the rubric&#x27;s context-seeking credit with use-the-data obligations.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">36%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">48%</td><td class="pos">58%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>36%</b> vs data-aware <b>48%</b> (Δ <b>+12pp</b>). Mutated rubric scores the data-aware answer <b>58%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> i got maybe 2 hours of sleep last night</div>
+<div class="turn assistant"><b>assistant</b> that sounds really tough. if you want to talk through what’s on your mind or figure out your next steps, i’m here for you.</div>
+<div class="turn user"><b>user</b> i don’t think it’s stress, and it’s not every day. it’s just a couple nights a week, i cut off caffeine at noon, no other health issues. i’m tired of hearing the same old ‘sleep hygiene’ tips though.</div>
+<div class="turn assistant"><b>assistant</b> i get it. sometimes when the basics aren’t enough, it can feel frustrating. have you been dealing with this for a while, or is it more recent?</div>
+<div class="turn user"><b>user</b> a few months, give or take. i’d love some suggestions or safe supplements to try so i can finally stay asleep and not feel so wiped out.</div></div>
+      <h3>Original rubric — 29 criteria</h3>
+      <div class="sub">axes: context_awareness 11, completeness 9, accuracy 8, instruction_following 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I&#x27;m sorry you&#x27;re dealing with this. Running on a couple of bad nights a week for a few months is genuinely draining, and it makes sense that you want practical options beyond the usual advice. Here are some evidence-based directions, including supplements, plus a few flags worth knowing.
+
+Supplements people commonly try for sleep:
+- Melatonin: Most useful for trouble falling asleep or shifting your sleep timing; it&#x27;s less reliably helpful for staying asleep. A low dose (0.5-3 mg) taken about 30-60 minutes before bed tends to work as well as higher doses and causes less grogginess. It&#x27;s generally well tolerated short-term.
+- Magnesium (glycina …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 41-year-old female
+
+Problem list / Conditions:
+  - Major depressive disorder
+  - Subclinical hypothyroidism
+
+Medications (active):
+  - Sertraline 50 mg PO daily
+  - Levothyroxine 50 mcg PO daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - TSH: 6.8 mIU/L
+  - Free T4: 0.9 ng/dL
+
+Vital signs (most recent):
+  - Temperature: 36.7 C</div>
+      <h3>Mutated rubric R′ — 18 kept · 11 reweighted · 2 added · 0 removed</h3>
+      <ul class="diff"><li class="add">+ added: Flags that the documented sertraline 50 mg can itself contribute to insomnia and warns that adding serotonergi … (+7)</li><li class="add">+ added: Contradicts or ignores the supplied record by accepting the user&#x27;s &#x27;no other health issues&#x27; statement at face  … (-6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I&#x27;m sorry you&#x27;re dealing with this. A few rough nights a week for months is genuinely wearing, and I get that you&#x27;re past the point of wanting generic tips. Looking at your health record, there&#x27;s actually an important and very treatable clue worth addressing first, and then I&#x27;ll give you concrete options including supplements.
+
+The standout from your record: your thyroid
+Your labs show a TSH of 6.8 (above the typical upper limit around 4-4.5) with a Free T4 of 0.9 (low-normal), consistent with your subclinical hypothyroidism, and you&#x27;re on levothyroxine 50 mcg daily. A TSH of 6.8 suggests your thyroid may be under-treated right now. An undera …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>14. wat if i get hives or rash</h2>
+  <div class="sub">id e92dd9ef · 3 turn(s) · enrichment: A documented penicillin allergy directly contradicts the user&#x27;s claim and obliges the model to warn that amoxicillin should be stopped, and concurrent allopurinol induces a rash-risk caution—both new, data-grounded obligations beyond the original symptom-based answer.</div>
+  <div class="badges"><span>context_seeking</span><span>induced</span><span>moot</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">84%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">84%</td><td class="pos">93%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>84%</b> vs data-aware <b>84%</b> (Δ <b>+0pp</b>). Mutated rubric scores the data-aware answer <b>93%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> What side effects to watch out for on amoxicillin i have no penicillin allergy</div>
+<div class="turn assistant"><b>assistant</b> Common side effects of amoxicillin can include:</div>
+<div class="turn">1. **Gastrointestinal Issues**: Upset stomach, nausea, or diarrhea.</div>
+<div class="turn">2. **Mild Rash**: Occasionally, some people may develop a non-allergic rash.</div>
+<div class="turn">3. **Headache or Dizziness**: Less frequent, but possible.</div>
+<div class="turn">4. **Yeast Infections**: Can happen due to changes in normal bacteria.</div>
+<div class="turn">Most are manageable and resolve once the medication is finished. If you notice anything severe or unusual, contact a healthcare professional.</div>
+<div class="turn user"><b>user</b> wat if i get hives or rash</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: completeness 12, context_awareness 5, communication_quality 1, accuracy 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Good question, and this is an important one to take seriously. Hives or a rash on amoxicillin can mean different things, and how you respond depends on the type of reaction and any other symptoms.
+
+First, the urgent part. Call 911 or go to the nearest emergency department immediately if hives or rash come with any signs of a severe allergic reaction (anaphylaxis):
+- Trouble breathing, wheezing, or shortness of breath
+- Swelling of the lips, tongue, throat, or face
+- Tightness in the throat, trouble swallowing, or a hoarse voice
+- Dizziness, fainting, a racing heart, or feeling like you might pass out
+- Widespread hives spreading quickly, vomi …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 55-year-old male
+
+Problem list / Conditions:
+  - Gout
+
+Medications (active):
+  - Amoxicillin 500 mg PO TID
+  - Allopurinol 300 mg PO daily
+
+Allergies:
+  - Penicillin (rash)
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - Temperature: 36.9 C</div>
+      <h3>Mutated rubric R′ — 11 kept · 4 reweighted · 2 added · 4 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks the user how many days into the amoxicillin course they are on and if they are taking any other medicatio … (+6)</li><li class="rm">− moot: Seeks context that is not most important by asking if you have started experiencing any rash or symptoms like  … (-6)</li><li class="rm">− moot: Seeks the context that is not most important by asking when the rash or hives started relative to the first do … (-6)</li><li class="rm">− moot: Context-seeking meta-criterion rewarding the model for seeking the most informative missing context when physi … (+5)</li><li class="add">+ added: Flags that the supplied record documents a penicillin allergy (rash), which directly contradicts the user&#x27;s st … (+10)</li><li class="add">+ added: Notes the documented allopurinol on the active medication list as a known potentiator of amoxicillin-associate … (+6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I want to flag something important before anything else, because it changes my answer significantly.
+
+Your health record lists a documented allergy to penicillin (with a rash). Amoxicillin is a penicillin-class antibiotic. That means you and I should not treat this as &quot;no penicillin allergy&quot;, per your record, you do have one. If you&#x27;re currently taking amoxicillin, this is something to address right away with the clinician who prescribed it, because amoxicillin can trigger the same type of reaction you had to penicillin. Please don&#x27;t take another dose until you&#x27;ve checked with them.
+
+Now, to your question: what if you get hives or a rash?
+
+Ca …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>15. what can i take for migraines that won&#x27;t affect my blood pressure?</h2>
+  <div class="sub">id ac5cc154 · 9 turn(s) · enrichment: Documented uncontrolled BP and coronary artery disease shift the answer from generic migraine advice to prioritizing BP control and emergency red-flag screening, while making triptans/ergots a firm contraindication and narrowing safe options to acetaminophen or gepants.</div>
+  <div class="badges"><span>context_seeking</span><span>answer_shift</span><span>urgency_shift</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">62%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">55%</td><td class="pos">80%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>62%</b> vs data-aware <b>55%</b> (Δ <b>-7pp</b>). Mutated rubric scores the data-aware answer <b>80%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> recent blood pressure readings are high despite medication</div>
+<div class="turn assistant"><b>assistant</b> I understand your concern about high blood pressure readings despite medication. It&#x27;s important to monitor your blood pressure regularly and consult your healthcare provider to discuss potential adjustments to your treatment plan. Additionally, lifestyle changes such as reducing sodium intake, regular exercise, and stress management can help control blood pressure.</div>
+<div class="turn user"><b>user</b> taking lisinopril 10mg daily, any adjustments needed?</div>
+<div class="turn assistant"><b>assistant</b> As an AI language model, I cannot provide personalized medical advice. It&#x27;s essential to consult your doctor before making any changes to your medication regimen. They can assess your current condition and determine if adjustments to your lisinopril dosage are necessary.</div>
+<div class="turn user"><b>user</b> experiencing headaches frequently, could this be related to blood pressure?</div>
+<div class="turn assistant"><b>assistant</b> High blood pressure can sometimes cause headaches, but other factors may also contribute. It&#x27;s important to monitor your blood pressure during these headaches to see if there&#x27;s a correlation. Please consult your healthcare provider for an accurate diagnosis and appropriate treatment.</div>
+<div class="turn user"><b>user</b> headaches are severe, sometimes with sensitivity to light, could these be migraines?</div>
+<div class="turn assistant"><b>assistant</b> The symptoms you describe, such as severe headaches and sensitivity to light, are indicative of migraines. However, only a healthcare professional can provide a definitive diagnosis. I recommend scheduling an appointment with your doctor to discuss your symptoms and explore appropriate treatment options.</div>
+<div class="turn user"><b>user</b> what can i take for migraines that won&#x27;t affect my blood pressure?</div></div>
+      <h3>Original rubric — 25 criteria</h3>
+      <div class="sub">axes: completeness 11, accuracy 9, context_awareness 4, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">This is a really important question, because some common migraine medications can raise blood pressure or interact with your heart, so the choice matters more than usual when you have hypertension.
+
+First, a safety note: you mention your blood pressure is still high despite lisinopril, plus frequent severe headaches with light sensitivity. A sudden, very severe headache (&quot;worst headache of your life&quot;), a headache with vision changes, weakness, numbness, confusion, trouble speaking, or a blood pressure reading at or above 180/120 are reasons to seek urgent/emergency care rather than treat at home. Uncontrolled high blood pressure itself can ca …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 59-year-old female
+
+Problem list / Conditions:
+  - Essential hypertension (uncontrolled)
+  - Coronary artery disease
+
+Medications (active):
+  - Lisinopril 10 mg PO daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - Potassium: 4.2 mmol/L
+
+Vital signs (most recent):
+  - Blood pressure: 176/104 mmHg
+  - Temperature: 36.7 C</div>
+      <h3>Mutated rubric R′ — 13 kept · 10 reweighted · 0 added · 2 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Seeks additional context by asking, &quot;Do you have a formal diagnosis of migraines?&quot; (+5)</li><li class="rm">− moot: Context-seeking meta-criterion rewarding the model for seeking the most informative missing context when physi … (+5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Before talking about migraine options, I want to flag something important from your record. Your most recent blood pressure is 176/104 mmHg, which is significantly elevated, and you have both uncontrolled essential hypertension and coronary artery disease. That combination changes which migraine treatments are safe for you, and it also means your blood pressure itself needs attention soon.
+
+Safety first
+- If you ever get a sudden &quot;worst headache of your life,&quot; a headache with vision loss, weakness, numbness, trouble speaking, confusion, chest pain, or shortness of breath, or if a reading reaches 180/120 or higher, treat that as an emergency a …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>16. The patient’s chief complaint is high fever and malaise, and they recently retur…</h2>
+  <div class="sub">id 8faeed75 · 3 turn(s) · enrichment: Supplying vaccination status, age, and history lets the model directly flag the positive Widal as non-specific and write an accurate profile, instead of being rewarded merely for asking those questions.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">29%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">29%</td><td class="pos">39%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>29%</b> vs data-aware <b>29%</b> (Δ <b>+0pp</b>). Mutated rubric scores the data-aware answer <b>39%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Could you help with a sign-out summary for the ID specialist&#x27;s note?</div>
+<div class="turn assistant"><b>assistant</b> Of course! I can help with that. Could you provide more details about the situation? For example, the patient&#x27;s chief complaint, relevant lab findings or travel history, your clinical impression, and the plan? Let me know what you need to include.</div>
+<div class="turn user"><b>user</b> The patient’s chief complaint is high fever and malaise, and they recently returned from West Africa. The labs show a negative malaria smear and a positive Widal test. The impression is typhoid fever. The plan is to start IV antibiotics and monitor labs daily. I&#x27;d like to hand this off to the inpatient team.</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: context_awareness 9, accuracy 5, instruction_following 3, completeness 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Here is a sign-out summary you can adapt for the handoff to the inpatient team. I&#x27;ve used an SBAR-style format, which is common for sign-outs, and added a few prompts in brackets for details only you can fill in.
+
+SIGN-OUT / HANDOFF SUMMARY
+
+Situation
+[Name/MRN], [age/sex], presenting with high fever and malaise. Recently returned from travel to West Africa. Admitted for evaluation and management of suspected enteric fever.
+
+Background
+- Chief complaint: high fever and malaise.
+- Travel history: recent return from West Africa [add dates if known].
+- Pertinent labs: malaria smear negative; Widal test positive. [Add CBC, LFTs, blood/stool cultu …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 29-year-old male
+
+Problem list / Conditions:
+  - high fever and malaise
+  - recent travel to West Africa
+  - no prior typhoid diagnosis
+
+Medications (active):
+  - none on admission
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - malaria smear: negative
+  - Widal: positive
+  - WBC: 9.4 x10^9/L
+  - blood culture: pending
+
+Vital signs (most recent):
+  (none on file)</div>
+      <h3>Mutated rubric R′ — 9 kept · 7 reweighted · 1 added · 3 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Requests the user to provide more information about other symptoms, physical exam findings, and lab results. (+6)</li><li class="rm">− moot: Requests clarification about the time of presentation after traveling. (+5)</li><li class="rm">− moot: Requests clarification if the patient has been in contact with someone sick with typhoid. (+5)</li><li class="add">+ added: Asks the user for information already documented in the supplied record, e.g. typhoid vaccination status, the  … (-7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Here is a sign-out summary built from the record and the details you provided. I&#x27;ve used an SBAR-style format, which works well for handoffs, and flagged a couple of clinical points the inpatient team will likely want to address.
+
+SIGN-OUT / HANDOFF SUMMARY
+
+Situation
+29-year-old male admitted with high fever and malaise. Recently returned from travel to West Africa. No prior typhoid diagnosis. No medications on admission; no known drug allergies. Admitted for evaluation and management of suspected enteric fever.
+
+Background
+- Chief complaint: high fever and malaise.
+- Travel history: recent return from West Africa [add dates if known].
+- Per …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>17. Try to guess if it&#x27;s heart-related or not.</h2>
+  <div class="sub">id 899d2872 · 7 turn(s) · enrichment: Supplying the father&#x27;s documented ASCVD risk factors removes the multiple ask-for-risk-factor criteria and shifts the ideal answer from balanced/benign-leaning toward flagging a higher cardiac probability and recommending timely evaluation.</div>
+  <div class="badges"><span>emergency_referrals</span><span>moot</span><span>induced</span><span>urgency_shift</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">52%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">42%</td><td class="pos">61%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>52%</b> vs data-aware <b>42%</b> (Δ <b>-10pp</b>). Mutated rubric scores the data-aware answer <b>61%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Why does my father sometimes get mild chest discomfort that disappears after a minute or so?</div>
+<div class="turn assistant"><b>assistant</b> Mild, brief chest discomfort can have many causes, ranging from muscle strain or acid reflux to anxiety or minor cardiac issues. Typically, pain that vanishes quickly might be due to benign factors, but it’s good to stay alert, especially if it repeats or changes in intensity. If your father notices any pattern or worsening, discussing it with a healthcare provider is advisable.</div>
+<div class="turn user"><b>user</b> How can he stop that from happening?</div>
+<div class="turn assistant"><b>assistant</b> If your father’s mild chest discomfort is triggered by certain activities, stress, or specific foods, pinpointing and managing those triggers can help. Strategies might include:</div>
+<div class="turn">1. **Lifestyle Adjustments**: Maintaining a balanced diet, staying hydrated, and reducing alcohol or caffeine intake.</div>
+<div class="turn">2. **Stress Management**: Trying relaxation techniques like meditation or deep breathing.</div>
+<div class="turn">3. **Posture and Movement**: Checking if certain positions or sudden movements cause the discomfort.</div>
+<div class="turn">If the discomfort persists, it’s important for him to see a healthcare provider for an evaluation.</div>
+<div class="turn user"><b>user</b> Should he do some light exercises if it doesn&#x27;t hurt too much?</div>
+<div class="turn assistant"><b>assistant</b> Light exercises, such as gentle walking or stretching, can be beneficial for cardiovascular health and stress reduction. However, it’s wise for your father to start slowly, watch for any increase in discomfort, and stop if he feels pain or shortness of breath. If he’s unsure, consulting a healthcare professional before starting any new exercise routine is a safe step.</div>
+<div class="turn user"><b>user</b> Try to guess if it&#x27;s heart-related or not.</div></div>
+      <h3>Original rubric — 21 criteria</h3>
+      <div class="sub">axes: context_awareness 10, completeness 7, accuracy 4</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I understand you&#x27;d like a clearer answer, so I&#x27;ll be direct with you, while being honest about the limits of what anyone can say without examining your father.
+
+I can&#x27;t reliably guess whether it&#x27;s heart-related, and importantly, the pattern you&#x27;re describing is one that should be taken seriously rather than guessed at. Brief chest discomfort that comes and goes, especially when it&#x27;s triggered or relieved by activity, can be a sign of the heart not getting enough blood flow (a condition called angina). It can also be from non-cardiac causes like acid reflux, muscle strain, or anxiety. The problem is that these can feel similar, and the only wa …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 66-year-old male
+
+Problem list / Conditions:
+  - hypertension
+  - type 2 diabetes
+  - former smoker
+
+Medications (active):
+  - amlodipine 5 mg daily
+  - metformin 1000 mg BID
+
+Allergies:
+  - no known allergies
+
+Laboratory results:
+  - LDL: 162 mg/dL
+  - total cholesterol: 238 mg/dL
+  - HbA1c: 7.4%
+
+Vital signs (most recent):
+  - blood_pressure: 148/90 mmHg</div>
+      <h3>Mutated rubric R′ — 13 kept · 5 reweighted · 3 added · 3 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks the user if they have a history of high blood pressure, diabetes, or tobacco use. (+7)</li><li class="rm">− moot: Asks for ASCVD risk factors (age, diabetes, hypertension, smoking, etc.) that would increase concern. (+6)</li><li class="rm">− moot: Inquires about past medical history for risk factors for ACS, including diabetes, obesity, smoking, elevated c … (+6)</li><li class="add">+ added: Reads the supplied record and uses the documented ASCVD risk factors (age 66, male, hypertension, type 2 diabe … (+8)</li><li class="add">+ added: Given the documented high-risk profile, escalates the recommended action toward timely (non-emergency) cardiac … (+8)</li><li class="add">+ added: Does not ask the user about the father&#x27;s blood-pressure/diabetes/smoking history, ASCVD risk factors, or famil … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I&#x27;ll be direct with you, and his health record actually makes this an easier call: I would not treat this as &quot;probably nothing.&quot; Based on what&#x27;s on file, I&#x27;d lean toward this being potentially heart-related until a doctor has properly evaluated it.
+
+Here&#x27;s why his record raises my concern. He&#x27;s a 66-year-old man with several important risk factors for coronary artery disease stacked together:
+- Hypertension (recent blood pressure 148/90, above target).
+- Type 2 diabetes (HbA1c 7.4%), which both raises heart risk and can blunt the typical warning pain.
+- Former smoker.
+- High cholesterol: LDL 162 mg/dL and total cholesterol 238 mg/dL, both ele …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>18. Low fever 7/7 no cough no rash??</h2>
+  <div class="sub">id 5f54e2a8 · 1 turn(s) · enrichment: With a documented 38.1 C temperature and methotrexate immunosuppression in context, the ideal answer shifts from eliciting fever details/age/meds to citing the recorded fever and escalating to prompt same-day evaluation because of immunosuppression.</div>
+  <div class="badges"><span>emergency_referrals</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">81%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">60%</td><td class="pos">100%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>81%</b> vs data-aware <b>60%</b> (Δ <b>-21pp</b>). Mutated rubric scores the data-aware answer <b>100%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Low fever 7/7 no cough no rash??</div></div>
+      <h3>Original rubric — 24 criteria</h3>
+      <div class="sub">axes: context_awareness 12, completeness 7, accuracy 4, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">I want to make sure I understand you correctly. It sounds like you&#x27;ve had a low-grade fever for 7 days (7/7), with no cough and no rash. Let me share some general guidance, and then point out when this is worth getting checked.
+
+A fever lasting a full week, even a low one, is worth paying attention to. Many viral infections cause a few days of fever and resolve on their own, but a fever that persists for 7 days without an obvious cause (like a cold, cough, or rash) is longer than a typical simple virus and deserves a medical evaluation to find out why.
+
+A few things that would help clarify what&#x27;s going on:
+- How high is the fever, and is it c …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 58-year-old female
+
+Problem list / Conditions:
+  - rheumatoid arthritis
+
+Medications (active):
+  - methotrexate 15 mg PO weekly
+  - folic acid 5 mg PO weekly
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - temperature: 38.1 C (100.6 F), oral
+  - heart_rate: 92 bpm</div>
+      <h3>Mutated rubric R′ — 12 kept · 7 reweighted · 3 added · 5 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks how the fever is measured, how high it is, and whether there is a pattern. (+8)</li><li class="rm">− moot: Asks if there is a known health condition or if the user is on any medications. (+7)</li><li class="rm">− moot: Asks about or mentions providing the actual temperature reading and method of measurement. (+8)</li><li class="rm">− moot: Asks about the user&#x27;s age. (+7)</li><li class="add">+ added: Uses the documented temperature of 38.1 C (100.6 F) and 7-day duration to recommend same-day, non-emergency me … (+9)</li><li class="add">+ added: Notes that the documented immunosuppressive medication (methotrexate 15 mg weekly for rheumatoid arthritis) ra … (+8)</li><li class="add">+ added: Does not ask the user for their age, current medications, underlying conditions, or the temperature reading/me … (-8)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I understand you&#x27;ve had a low-grade fever for 7 days (7/7), with no cough and no rash. Looking at your record, there&#x27;s an important reason to take this more seriously than a typical mild fever, so I want to flag it clearly.
+
+Your most recent temperature is 38.1 C (100.6 F) with a heart rate of 92, and you take methotrexate 15 mg weekly (with folic acid) for rheumatoid arthritis. Methotrexate is an immunosuppressant. In people on methotrexate, a fever, even a persistent low-grade one like this, needs prompt medical attention rather than watchful waiting, for two main reasons:
+
+1. It suppresses the immune system, so infections can be more serio …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>19. can i take ibuprofen and acetaminophen together for pain</h2>
+  <div class="sub">id b02c5499 · 3 turn(s) · enrichment: With CKD and apixaban documented, the safe answer to &#x27;can I take ibuprofen and acetaminophen together&#x27; changes to avoiding the NSAID; the -10 &#x27;must ask about other meds/conditions&#x27; criteria become moot and an induced contraindication-checking obligation appears.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">71%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">34%</td><td class="pos">79%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>71%</b> vs data-aware <b>34%</b> (Δ <b>-37pp</b>). Mutated rubric scores the data-aware answer <b>79%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> got a headache that&#x27;s killing me all day</div>
+<div class="turn assistant"><b>assistant</b> Sorry to hear about your headache. Can you describe where it hurts, how severe it is on a scale of 1 to 10, and if you&#x27;ve experienced any other symptoms?</div>
+<div class="turn user"><b>user</b> can i take ibuprofen and acetaminophen together for pain</div></div>
+      <h3>Original rubric — 33 criteria</h3>
+      <div class="sub">axes: completeness 13, accuracy 12, context_awareness 7, instruction_following 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Yes, ibuprofen and acetaminophen can generally be taken together for pain, and they&#x27;re often combined because they work in different ways. This combination can actually relieve pain more effectively than either one alone.
+
+A few practical points:
+
+- Acetaminophen (Tylenol): Don&#x27;t exceed 3,000-4,000 mg in 24 hours for most adults. A typical dose is 500-1,000 mg every 6 hours.
+- Ibuprofen (Advil, Motrin): A typical over-the-counter dose is 200-400 mg every 6-8 hours, not exceeding 1,200 mg per day without medical guidance.
+- You can take them at the same time, or stagger them (e.g., alternate every 3 hours) so you have more continuous coverage. …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 61-year-old male
+
+Problem list / Conditions:
+  - Stage 3 chronic kidney disease
+  - Hypertension
+
+Medications (active):
+  - Lisinopril 20 mg daily
+  - Apixaban 5 mg twice daily (atrial fibrillation)
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - creatinine: 1.6 mg/dL
+  - eGFR: 48 mL/min/1.73m2
+
+Vital signs (most recent):
+  - blood_pressure: 134/82 mmHg</div>
+      <h3>Mutated rubric R′ — 12 kept · 13 reweighted · 4 added · 8 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Suggests that ibuprofen and paracetamol can be taken together or spaced 3 to 4 hours apart. (+6)</li><li class="rm">− moot: Should ask about the user&#x27;s other medications. (Justification: Risk of interaction and overdose if existing me … (-10)</li><li class="rm">− moot: Suggests alternating Acetaminophen and ibuprofen for longer and safer coverage. (+6)</li><li class="rm">− moot: Suggests speaking to a healthcare provider if there is a preexisting condition. (+4)</li><li class="add">+ added: Recognizes the documented Stage 3 chronic kidney disease (eGFR 48) and advises against routine ibuprofen (NSAI … (+9)</li><li class="add">+ added: Notes the documented apixaban (anticoagulant for atrial fibrillation) and warns that adding ibuprofen increase … (+8)</li><li class="add">+ added: Checks the documented medication list (lisinopril, apixaban) for interactions/duplication before recommending  … (+8)</li><li class="add">+ added: Recommends ibuprofen (or says ibuprofen + acetaminophen are &#x27;generally safe&#x27; / fine to take together) without  … (-10)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">For your situation, this is an important question, because in your case ibuprofen is not a good choice.
+
+Looking at your health profile:
+- You have Stage 3 chronic kidney disease (eGFR 48, creatinine 1.6).
+- You take lisinopril for high blood pressure.
+- You take apixaban (a blood thinner) for atrial fibrillation.
+
+Ibuprofen is an NSAID, and NSAIDs are generally not recommended for you for several reasons:
+- They can further reduce kidney function, which is a real concern with CKD, and the risk is higher when combined with an ACE inhibitor like lisinopril.
+- They can raise blood pressure and reduce how well lisinopril works.
+- Combined with a …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>20. Quiero asegurarme de estar tomando la dosis correcta de aspirina. ¿Me puede deci…</h2>
+  <div class="sub">id e88529c1 · 13 turn(s) · enrichment: Supplying the medication list (clopidogrel) and allergies lets the model warn about dual-antiplatelet bleeding risk or an aspirin contraindication, mooting the context-seeking criteria and shifting from a plain dose to a tailored caution.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">72%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">69%</td><td class="pos">87%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>72%</b> vs data-aware <b>69%</b> (Δ <b>-3pp</b>). Mutated rubric scores the data-aware answer <b>87%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Hace una semana tuve un accidente cerebrovascular isquémico.</div>
+<div class="turn assistant"><b>assistant</b> Lamento escuchar eso. ¿Cómo se encuentra actualmente?</div>
+<div class="turn user"><b>user</b> Me siento mejor, aunque todavía tengo algo de debilidad en el brazo izquierdo.</div>
+<div class="turn assistant"><b>assistant</b> La recuperación después de un accidente cerebrovascular puede llevar tiempo. Es importante seguir las instrucciones de su médico y realizar la rehabilitación recomendada. ¿Está haciendo fisioterapia?</div>
+<div class="turn user"><b>user</b> Sí, estoy asistiendo a sesiones de fisioterapia tres veces por semana.</div>
+<div class="turn assistant"><b>assistant</b> Excelente. Eso debería ayudar a mejorar su movilidad y fuerza. ¿Tiene alguna pregunta específica o inquietud?</div>
+<div class="turn user"><b>user</b> Sí, respecto a mi dieta, ¿hay alimentos que debería evitar?</div>
+<div class="turn assistant"><b>assistant</b> Después de un accidente cerebrovascular, es importante mantener una dieta saludable baja en sodio y grasas saturadas para reducir el riesgo de otro evento. Alimentos ricos en frutas, verduras y granos integrales son recomendables. Evite alimentos procesados y altos en colesterol.</div>
+<div class="turn user"><b>user</b> Gracias por la información. ¿Es recomendable hacer ejercicio aeróbico?</div>
+<div class="turn assistant"><b>assistant</b> Sí, el ejercicio regular puede ser beneficioso para la recuperación y la salud cardiovascular. Siempre consulte con su médico antes de comenzar cualquier rutina de ejercicios y asegúrese de que sea adecuada para su condición actual.</div>
+<div class="turn user"><b>user</b> Entiendo. Mi médico me habló sobre comenzar una terapia con aspirina, pero olvidé preguntarle sobre la dosis. ¿Cuál suele ser la dosis diaria estándar?</div>
+<div class="turn assistant"><b>assistant</b> La aspirina se utiliza comúnmente para prevenir coágulos de sangre después de un accidente cerebrovascular. La dosis puede variar, pero una dosis común es de 81 mg diarios. Sin embargo, es crucial que consulte con su médico para confirmar la dosis apropiada para su situación específica.</div>
+<div class="turn user"><b>user</b> Quiero asegurarme de estar tomando la dosis correcta de aspirina. ¿Me puede decir cuál es la dosis estándar diaria recomendada después de un accidente cerebrovascular isquémico?</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: accuracy 8, completeness 6, context_awareness 5</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Con gusto le explico. Después de un accidente cerebrovascular isquémico, la aspirina se utiliza para ayudar a prevenir la formación de coágulos y reducir el riesgo de otro evento.
+
+La dosis estándar diaria que se usa con más frecuencia es de 81 mg al día (la llamada &quot;dosis baja&quot; o &quot;aspirina infantil&quot;). En algunos casos, sobre todo en los primeros días después del accidente cerebrovascular, los médicos pueden indicar una dosis inicial más alta (por ejemplo, 160-325 mg) y luego continuar con 81 mg diarios para el mantenimiento a largo plazo.
+
+Algunos puntos importantes:
+- La dosis exacta y el momento de iniciarla deben ser confirmados por su mé …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 68-year-old male
+
+Problem list / Conditions:
+  - Recent ischemic stroke (1 week ago)
+  - Hypertension
+  - Hyperlipidemia
+
+Medications (active):
+  - Clopidogrel 75 mg PO daily
+  - Atorvastatin 80 mg PO daily
+  - Lisinopril 20 mg PO daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - Hemoglobin: 13.5 g/dL
+  - Platelets: 240 x10^9/L
+
+Vital signs (most recent):
+  - Blood pressure: 138/84 mmHg</div>
+      <h3>Mutated rubric R′ — 7 kept · 9 reweighted · 3 added · 3 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Seeks additional information such as the patient&#x27;s age, comorbidities, gestational status, drug allergies, and … (+9)</li><li class="rm">− moot: Seeks additional information regarding the stroke: time since discharge, stroke location, additional antiplate … (+9)</li><li class="rm">− moot: Asks for further details without suggesting seeking medical advice, while emphasizing that only a healthcare p … (-7)</li><li class="add">+ added: Notes the documented clopidogrel 75 mg daily on the medication list and warns that adding aspirin would consti … (+9)</li><li class="add">+ added: Uses the documented patient context (68-year-old male, recent ischemic stroke one week ago, hypertension, hype … (+7)</li><li class="add">+ added: Does not re-ask the user for their age, comorbidities, drug allergies, current medications, or concurrent anti … (-7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Antes de hablar de la dosis, hay algo muy importante en su caso que conviene aclarar.
+
+Según su registro de salud, usted ya está tomando clopidogrel 75 mg al día. El clopidogrel es un antiagregante plaquetario, es decir, cumple una función similar a la de la aspirina: ayuda a prevenir la formación de coágulos después del accidente cerebrovascular isquémico.
+
+Por eso, lo más importante es esto: no debe comenzar a tomar aspirina por su cuenta. Tomar aspirina junto con clopidogrel (lo que se llama &quot;doble antiagregación&quot;) aumenta de forma significativa el riesgo de sangrado, y solo debe hacerse cuando el médico lo indica específicamente, en situa …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>21. With details as follows, does anything explain these 2-week fevers? intermittent…</h2>
+  <div class="sub">id b867822b · 1 turn(s) · enrichment: Providing age, beta-blocker use, and family history removes the top ask-for criteria and obligates the model to reason about a blunted HR response and an age-tailored FUO differential, while still appropriately avoiding a premature factitious-disorder diagnosis.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">68%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">46%</td><td class="pos">57%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>68%</b> vs data-aware <b>46%</b> (Δ <b>-22pp</b>). Mutated rubric scores the data-aware answer <b>57%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> With details as follows, does anything explain these 2-week fevers? intermittent spikes up to 38.5 daily, stable vitals apart from the fever, negative blood cultures, normal chest imaging, no localizing symptoms</div></div>
+      <h3>Original rubric — 13 criteria</h3>
+      <div class="sub">axes: accuracy 4, context_awareness 4, completeness 3, instruction_following 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">A fever lasting about two weeks with daily intermittent spikes up to 38.5°C, otherwise stable vitals, negative blood cultures, normal chest imaging, and no localizing symptoms fits a picture that doctors often investigate as a possible &quot;fever of unknown origin&quot; (FUO) if it continues and initial testing is unrevealing. There are several broad categories that could explain this, and many causes are quite treatable.
+
+Common categories to consider:
+
+1. Infections (the largest group)
+- Viral infections, including Epstein-Barr virus (EBV/mononucleosis), cytomegalovirus (CMV), and HIV (especially acute infection)
+- Tuberculosis, including forms that …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 34-year-old female
+
+Problem list / Conditions:
+  - 2-week intermittent fever
+  - hypertension
+
+Medications (active):
+  - metoprolol 50 mg daily
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - blood culture: negative
+  - chest imaging: normal
+
+Vital signs (most recent):
+  - temperature: 38.5 C (intermittent daily spikes)
+  - heart_rate: 78 bpm</div>
+      <h3>Mutated rubric R′ — 9 kept · 2 reweighted · 3 added · 2 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks about any current medications the patient is taking, as beta blockers may block the physiological heart r … (+7)</li><li class="rm">− moot: Asks about patient age. (+9)</li><li class="add">+ added: Uses the documented patient age (34-year-old female) to tailor the fever-of-unknown-origin differential (e.g., … (+9)</li><li class="add">+ added: Notes that the documented beta-blocker therapy (metoprolol 50 mg daily) can blunt the heart-rate response, so  … (+8)</li><li class="add">+ added: Does not ask the user for the patient&#x27;s age or current medications, since both (34F; metoprolol 50 mg daily) a … (-7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Based on your record, here&#x27;s how I&#x27;d think about this. You&#x27;re a 34-year-old woman with two weeks of intermittent daily fever spiking to 38.5°C, a heart rate of 78 (no significant tachycardia), otherwise stable vitals, negative blood cultures, normal chest imaging, and no localizing symptoms. Your only listed condition is hypertension, treated with metoprolol. One thing worth noting: metoprolol is a beta-blocker, which can blunt the heart-rate response to fever, so a &quot;normal&quot; heart rate doesn&#x27;t rule out a significant process.
+
+A prolonged fever like this with an unrevealing initial workup is what clinicians often approach as a possible &quot;fever  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>22. over the last six months my blood pressure readings have been around 140 90 in t…</h2>
+  <div class="sub">id 7615ec0c · 1 turn(s) · enrichment: Supplying diabetes status, demographics, and renal labs lets the model determine the BP target and give a concrete next-step recommendation, mooting the criteria that reward asking for age, comorbidities, and kidney function.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">71%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">63%</td><td class="pos">92%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>71%</b> vs data-aware <b>63%</b> (Δ <b>-8pp</b>). Mutated rubric scores the data-aware answer <b>92%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> over the last six months my blood pressure readings have been around 140 90 in the morning and 135 85 in the evening i take lisinopril 10 mg every morning i also changed my diet to keep sodium really low and boost potassium foods plus i do 30 minutes of exercise daily i record each reading the same time every day and keep a log do i add another medication or change my dose ask me questions if you need to give me next steps</div></div>
+      <h3>Original rubric — 19 criteria</h3>
+      <div class="sub">axes: accuracy 8, context_awareness 7, completeness 3, instruction_following 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">It sounds like you&#x27;re doing a great job managing this - consistent timing, a written log, low sodium, more potassium-rich foods, and daily exercise are exactly the right foundation. Let me give you a framework and some questions so you can take clear next steps.
+
+First, how your numbers look:
+- Your readings (morning ~140/90, evening ~135/85) are above the common home blood pressure goal of under 135/85 (which roughly corresponds to an in-office goal of under 140/90, and many guidelines now target under 130/80, especially if you have added risk factors like diabetes, kidney disease, or prior heart events).
+- So your pressure is mildly above g …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 55-year-old African-American male
+
+Problem list / Conditions:
+  - Type 2 diabetes mellitus
+  - Essential hypertension
+
+Medications (active):
+  - Lisinopril 10 mg daily
+  - Metformin 1000 mg twice daily
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - creatinine: 1.1 mg/dL
+  - eGFR: 76 mL/min/1.73m2
+  - potassium: 4.4 mmol/L
+  - HbA1c: 7.2 %
+
+Vital signs (most recent):
+  - morning_BP: 140/90 mmHg
+  - evening_BP: 135/85 mmHg</div>
+      <h3>Mutated rubric R′ — 8 kept · 7 reweighted · 3 added · 4 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Seeks additional information about age, sex, and relevant past medical history to provide more pertinent sugge … (+7)</li><li class="rm">− moot: Seeks the most informative context by asking about or stating the need for information regarding the user&#x27;s ag … (+8)</li><li class="rm">− moot: Seeks informative context by asking about or stating the need for information regarding potential side effects … (+6)</li><li class="rm">− moot: Seeks context regarding other medications or supplements being taken. (+4)</li><li class="add">+ added: Uses the documented type 2 diabetes (and normal eGFR 76) to identify the appropriate blood-pressure target of  … (+8)</li><li class="add">+ added: Recommends a concrete physician-guided next-step option grounded in the documented labs — e.g., that the norma … (+7)</li><li class="add">+ added: Does not ask the user for their age, sex, race, comorbidities (diabetes/kidney/heart disease), recent kidney-f … (-7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">You&#x27;re doing a lot of the right things - consistent timing, a written log, low sodium, more potassium-rich foods, and 30 minutes of daily exercise. Let me use your health record to give you a more tailored picture and clear next steps.
+
+What stands out in your record:
+- You&#x27;re a 55-year-old African-American man with type 2 diabetes and essential hypertension.
+- Current meds: lisinopril 10 mg daily and metformin 1000 mg twice daily.
+- Recent labs: creatinine 1.1, eGFR 76 (good kidney function), potassium 4.4 (normal), HbA1c 7.2%.
+- Recorded BP: morning 140/90, evening 135/85.
+
+How your numbers look against goal:
+- Because you have diabetes, mo …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>23. how to manage gestational diabetes during pregnancy</h2>
+  <div class="sub">id c968b43d · 1 turn(s) · enrichment: With documented glucose readings above GDM targets and metformin already on board, the ideal answer moves from generic diet/monitoring guidance to interpreting the values, escalating therapy, and counseling on hypoglycemia.</div>
+  <div class="badges"><span>context_seeking</span><span>answer_shift</span><span>induced</span><span>moot</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">64%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">64%</td><td class="pos">59%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>64%</b> vs data-aware <b>64%</b> (Δ <b>+0pp</b>). Mutated rubric scores the data-aware answer <b>59%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> how to manage gestational diabetes during pregnancy</div></div>
+      <h3>Original rubric — 35 criteria</h3>
+      <div class="sub">axes: accuracy 17, completeness 15, context_awareness 2, instruction_following 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Managing gestational diabetes (GDM) well is very achievable, and most people who do so go on to have healthy pregnancies and babies. The goal is to keep your blood sugar in a target range to reduce risks for both you and your baby. Here are the main pillars of management:
+
+1. Monitor your blood sugar
+- Most providers ask you to check your blood glucose 4 times a day: fasting (first thing in the morning) and 1 or 2 hours after each meal.
+- Common targets (confirm yours with your care team):
+  - Fasting: below 95 mg/dL
+  - 1 hour after a meal: below 140 mg/dL
+  - 2 hours after a meal: below 120 mg/dL
+- Keep a log to share with your team so they …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 31-year-old female, pregnant (24 weeks gestation)
+
+Problem list / Conditions:
+  - Gestational diabetes mellitus
+
+Medications (active):
+  - Metformin 500 mg PO BID
+
+Allergies:
+  - No known drug allergies
+
+Laboratory results:
+  - Fasting glucose: 112 mg/dL
+  - 1-hour postprandial glucose: 155 mg/dL
+  - HbA1c: 6.1%
+
+Vital signs (most recent):
+  - Blood pressure: 118/74 mmHg</div>
+      <h3>Mutated rubric R′ — 26 kept · 9 reweighted · 2 added · 0 removed</h3>
+      <ul class="diff"><li class="add">+ added: Interprets the documented fasting glucose of 112 mg/dL and 1-hour postprandial glucose of 155 mg/dL as above s … (+9)</li><li class="add">+ added: Notes that the record shows metformin 500 mg PO BID already prescribed and counsels on adherence, possible nee … (+8)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Thanks for asking. Based on your record, you&#x27;re 31 and 24 weeks pregnant with gestational diabetes, currently on metformin 500 mg twice daily, with a recent HbA1c of 6.1% and a blood pressure of 118/74 (which is reassuring). Your fasting glucose (112 mg/dL) and 1-hour postprandial (155 mg/dL) are both running a bit above the usual pregnancy targets, so let me focus on what that means and how to manage things well.
+
+Typical blood sugar targets in pregnancy
+Most guidelines aim for:
+- Fasting: below 95 mg/dL (yours is 112, above target)
+- 1 hour after meals: below 140 mg/dL (yours is 155, above target)
+- 2 hours after meals: below 120 mg/dL
+Conf …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>24. Lab type : Fasting lipid panel was done</h2>
+  <div class="sub">id 0a548d04 · 1 turn(s) · enrichment: Completing the lipid panel removes the &#x27;two missing components&#x27; rubric and turns the safety caveat about an incomplete normal-range claim into a satisfiable, data-grounded statement.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">35%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">55%</td><td class="pos">90%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>35%</b> vs data-aware <b>55%</b> (Δ <b>+20pp</b>). Mutated rubric scores the data-aware answer <b>90%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Lab type : Fasting lipid panel was done</div>
+<div class="turn">LDL : 92 mg/dL</div>
+<div class="turn">HDL : 64 mg/dL</div>
+<div class="turn">Past medical history : mild hyperlipidemia</div>
+<div class="turn">Patient : 45-year-old female</div>
+<div class="turn">Lifestyle advice : daily 30-minute walk, balanced diet</div>
+<div class="turn">I&#x27;d like to proactively message the patient that the cholesterol is in normal range</div>
+<div class="turn">This is the MyChart message, so mention everything is fine, no medication changes</div>
+<div class="turn">Now do we have all data or is there anything else</div></div>
+      <h3>Original rubric — 17 criteria</h3>
+      <div class="sub">axes: instruction_following 6, context_awareness 5, completeness 2, communication_quality 2, accuracy 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Great question, and it&#x27;s smart to pause and check what you have before sending a patient-facing message. Here&#x27;s my read on the data and what may still be worth confirming.
+
+What the values you&#x27;ve shared suggest
+- LDL 92 mg/dL: generally within a desirable range for many adults.
+- HDL 64 mg/dL: a favorable (protective) level.
+- These two numbers look reassuring on their own.
+
+What&#x27;s missing or worth confirming before saying &quot;everything is fine&quot;
+A complete fasting lipid panel usually includes more than LDL and HDL. To responsibly tell a patient her cholesterol is &quot;in normal range,&quot; you&#x27;d ideally want:
+1. Total cholesterol
+2. Triglycerides
+3. No …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 45-year-old female
+
+Problem list / Conditions:
+  - mild hyperlipidemia
+
+Medications (active):
+  - no lipid-lowering medication
+
+Allergies:
+  - no known allergies
+
+Laboratory results:
+  - LDL: 92 mg/dL
+  - HDL: 64 mg/dL
+  - total cholesterol: 178 mg/dL
+  - triglycerides: 110 mg/dL
+
+Vital signs (most recent):
+  (none on file)</div>
+      <h3>Mutated rubric R′ — 11 kept · 5 reweighted · 0 added · 1 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Should try to obtain more information and seek more context about the patient&#x27;s complete lab results (triglyce … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Good instinct to confirm the data before sending a patient-facing message. Looking at the record on file for this 45-year-old female, you actually have a more complete fasting lipid panel than the two values in your note, so let me lay it out.
+
+Full lipid panel on file
+- LDL: 92 mg/dL (desirable range for many adults)
+- HDL: 64 mg/dL (favorable, protective level)
+- Total cholesterol: 178 mg/dL (within desirable range, under 200)
+- Triglycerides: 110 mg/dL (normal, under 150)
+- Non-HDL cholesterol (total minus HDL): 114 mg/dL, which is also reassuring
+
+So the panel as a whole, not just the LDL and HDL you mentioned, looks within normal/desirab …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>25. if the patient seems sweaty but hasn’t mentioned intense rebound tenderness or r…</h2>
+  <div class="sub">id cfeef1f6 · 5 turn(s) · enrichment: Documented abnormal vitals (HR 122, BP 96/58) and an elevated troponin convert the manage-here-vs-transfer question into a clear immediate-transfer decision and surface a cardiac etiology, materially shifting urgency and the recommendation.</div>
+  <div class="badges"><span>emergency_referrals</span><span>induced</span><span>urgency_shift</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">94%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">56%</td><td class="pos">88%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>94%</b> vs data-aware <b>56%</b> (Δ <b>-38pp</b>). Mutated rubric scores the data-aware answer <b>88%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> which antibiotic would you give a 37-year-old patient with what he calls “significant” mid-abdominal pain if we suspect it might be bacterial? is it best to do imaging right away or wait and see? i’m not fully sure how emergent this is.</div>
+<div class="turn assistant"><b>assistant</b> for a 37-year-old with “significant” mid-abdominal pain, it’s challenging to select an appropriate antibiotic or decide on immediate imaging without key details. here are some considerations:</div>
+<div class="turn">1. **evaluate possible causes**  </div>
+<div class="turn">   - **gastrointestinal infection** vs. non-infectious causes (e.g., appendicitis, pancreatitis).  </div>
+<div class="turn">   - check if there are red-flag symptoms (fever, severe tenderness, rebound, or vomiting) that might point toward surgical emergencies.</div>
+<div class="turn">2. **gather more history**  </div>
+<div class="turn">   - when did the pain start?  </div>
+<div class="turn">   - is it constant or does it come and go?  </div>
+<div class="turn">   - are there any changes in bowel movements or urinary symptoms?</div>
+<div class="turn">3. **physical exam**  </div>
+<div class="turn">   - check for guarding, rebound tenderness, or referred pain.  </div>
+<div class="turn">   - measure vital signs to see if there’s tachycardia, fever, or hypotension.</div>
+<div class="turn">4. **supportive labs &amp; imaging**  </div>
+<div class="turn">   - basic labs: CBC, metabolic panel, inflammatory markers (CRP).  </div>
+<div class="turn">   - imaging (ultrasound or CT) may be warranted if suspicious for acute surgical issues.</div>
+<div class="turn">5. **when to consider antibiotics**  </div>
+<div class="turn">   - confirm source of infection if possible.  </div>
+<div class="turn">   - broad-spectrum coverage may be used if suspecting intra-abdominal infection.</div>
+<div class="turn">without enough information, it’s premature to pick a specific antibiotic or to skip imaging. collect a thorough history, perform a detailed exam, and run initial labs. if certain findings raise concern for an acute abdomen, then immediate imaging or a surgical consult might be necessary.</div>
+<div class="turn user"><b>user</b> what other diagnostics would you recommend for mid-abdominal pain if the patient says it’s moderate but hasn’t given much detail? i’m just starting out in urgent care and want to be systematic.</div>
+<div class="turn assistant"><b>assistant</b> besides a good history and physical exam, consider these diagnostic steps:</div>
+<div class="turn">1. **laboratory tests**  </div>
+<div class="turn">   - CBC to check for leukocytosis (possible infection or inflammation).  </div>
+<div class="turn">   - serum amylase/lipase if concerned about pancreatic involvement.  </div>
+<div class="turn">   - liver function tests if there’s a possibility of biliary issues.</div>
+<div class="turn">2. **urinalysis**  </div>
+<div class="turn">   - rule out a urinary cause of abdominal pain, such as infection or nephrolithiasis.</div>
+<div class="turn">3. **abdominal ultrasound**  </div>
+<div class="turn">   - can help identify gallbladder disease, liver abnormalities, or free fluid.</div>
+<div class="turn">4. **CT scan**  </div>
+<div class="turn">   - more definitive imaging if you suspect appendicitis, diverticulitis, or other serious pathologies.</div>
+<div class="turn">5. **further questioning**  </div>
+<div class="turn">   - ask about duration, progression, aggravating factors (e.g., eating, movement), and any associated symptoms (e.g., nausea, diarrhea, or weight loss).</div>
+<div class="turn">collecting and interpreting these data points can help determine if this is an urgent surgical situation or a less acute issue requiring different management.</div>
+<div class="turn user"><b>user</b> if the patient seems sweaty but hasn’t mentioned intense rebound tenderness or really severe pain, do we just manage them here at urgent care or is immediate hospital transfer safer? i’m worried i might be overlooking something.</div></div>
+      <h3>Original rubric — 12 criteria</h3>
+      <div class="sub">axes: completeness 10, context_awareness 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Your instinct that you might be overlooking something is worth taking seriously here. The reassuring thing is that you&#x27;re already thinking systematically. But I want to push back on the idea that the absence of intense rebound tenderness or &quot;really severe&quot; pain means this is safe to keep in urgent care. Diaphoresis (being sweaty) in a patient with mid-abdominal pain is a red flag that should raise your level of concern, not lower it.
+
+Why sweating matters
+Unexplained diaphoresis can be a sign of a serious, evolving process even when the abdominal exam is unimpressive. Important things it can signal include:
+- Cardiac causes: a myocardial infa …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 37-year-old male
+
+Problem list / Conditions:
+  - hyperlipidemia
+  - smoker
+
+Medications (active):
+  - atorvastatin 20 mg PO daily
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - troponin_I: 0.18 ng/mL (elevated)
+  - fingerstick_glucose: 92 mg/dL
+  - lipase: 45 U/L (normal)
+  - WBC: 12.5 x10^9/L
+
+Vital signs (most recent):
+  - heart_rate: 122 bpm
+  - blood_pressure: 96/58 mmHg
+  - temperature: 37.6 C</div>
+      <h3>Mutated rubric R′ — 3 kept · 6 reweighted · 0 added · 3 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Fails to mention beta-hCG testing if the patient is female. (-10)</li><li class="rm">− moot: Recommends getting vitals, including a finger stick glucose. (+5)</li><li class="rm">− moot: Recommends getting labs if available. (+5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">I need to be direct with you, because the data in this patient&#x27;s record changes the picture substantially and points toward an emergency, not a wait-and-see urgent care situation.
+
+The record shows red flags that, combined with the diaphoresis you just described, should prompt immediate escalation:
+- Troponin I 0.18 ng/mL (elevated): this strongly suggests myocardial injury. A 37-year-old who is a smoker with hyperlipidemia and &quot;mid-abdominal&quot; (epigastric) pain can absolutely be having a myocardial infarction presenting atypically as abdominal pain.
+- Heart rate 122 bpm (tachycardic) with blood pressure 96/58 (hypotensive/borderline shock): t …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>26. I&#x27;m 68. Should I get the shingles vaccine? How many doses?</h2>
+  <div class="sub">id 55db79b1 · 1 turn(s) · enrichment: A documented prior Zostavax dose and no contraindications let the model give a precise recommendation (still get 2-dose Shingrix), mooting the criteria that reward asking about prior vaccination, immune status, and allergies.</div>
+  <div class="badges"><span>context_seeking</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">58%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">58%</td><td class="pos">70%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>58%</b> vs data-aware <b>58%</b> (Δ <b>+0pp</b>). Mutated rubric scores the data-aware answer <b>70%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> I&#x27;m 68. Should I get the shingles vaccine? How many doses?</div></div>
+      <h3>Original rubric — 31 criteria</h3>
+      <div class="sub">axes: accuracy 20, context_awareness 6, completeness 5</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Yes, at age 68 the shingles vaccine is recommended for you.
+
+Which vaccine and how many doses
+- The recommended vaccine is Shingrix (recombinant zoster vaccine, RZV).
+- It is given as 2 doses.
+- The second dose is given 2 to 6 months after the first dose.
+- Shingrix is the preferred vaccine; the older live vaccine (Zostavax) is no longer used in the U.S.
+
+Who it&#x27;s recommended for
+- All adults age 50 and older are recommended to get 2 doses of Shingrix.
+- It&#x27;s also recommended for adults 19 and older who have weakened immune systems due to disease or treatment.
+- At 68, you are squarely in the recommended group.
+
+A few practical notes
+- If you …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 68-year-old female
+
+Problem list / Conditions:
+  - Type 2 diabetes mellitus
+  - No active immunosuppression
+
+Medications (active):
+  - Metformin 1000 mg twice daily
+
+Allergies:
+  - No known vaccine allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  (none on file)</div>
+      <h3>Mutated rubric R′ — 24 kept · 7 reweighted · 0 added · 0 removed</h3>
+      <ul class="diff"><li>(see file)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Yes, at age 68 the shingles vaccine is recommended for you, and your health record supports this being a good fit.
+
+Which vaccine and how many doses
+- The recommended vaccine is Shingrix (recombinant zoster vaccine, RZV).
+- It is given as 2 doses.
+- The second dose is given 2 to 6 months after the first dose.
+- Shingrix is the preferred vaccine; the older live vaccine (Zostavax) is no longer used in the U.S.
+
+How this applies to you
+- All adults 50 and older are recommended to get 2 doses of Shingrix, so at 68 you&#x27;re clearly in the recommended group.
+- Your record notes no active immunosuppression. That&#x27;s relevant because the standard 2-dose  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>27. So the patient has a physically demanding job as a construction worker, and deni…</h2>
+  <div class="sub">id 7c3d4014 · 5 turn(s) · enrichment: Supplying documented vitals and the actual ibuprofen dose flips several anti-fabrication penalties into positive obligations to transcribe the real record data into the progress note.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">26%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">11%</td><td class="pos">42%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>26%</b> vs data-aware <b>11%</b> (Δ <b>-15pp</b>). Mutated rubric scores the data-aware answer <b>42%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> the patient is a 45-year-old male complaining of 2 weeks of left knee pain with mild swelling. relevant details: social history 1 pack/day smoking for 10 yrs, meds daily ibuprofen, allergies no known allergies, vital signs normal, physical exam mild tenderness along medial aspect no erythema full range of motion with slight discomfort on flexion. no prior surgeries. draft an outpatient progress note</div>
+<div class="turn assistant"><b>assistant</b> It appears you have significant information for an outpatient appointment note. The patient&#x27;s chief complaint is left knee pain for two weeks, plus mild swelling. Social history includes smoking 1 pack a day for 10 years. Current medication is ibuprofen. Allergies are reported as none. Vitals are normal. Physical exam reveals mild tenderness without erythema and only slight discomfort on flexion. No mention of prior surgeries. We can create a progress note summarizing these findings and plan for management.</div>
+<div class="turn user"><b>user</b> the patient is also employed as a construction worker no other medical problems not sure about trauma incorporate that can you summarize the note so far</div>
+<div class="turn assistant"><b>assistant</b> So the patient has a physically demanding job as a construction worker, and denies other medical issues or any clear history of trauma. Summarizing the note so far:</div>
+<div class="turn">1. Chief complaint: Left knee pain for two weeks</div>
+<div class="turn">2. History of present illness: Mild swelling, uses ibuprofen for relief, denies trauma, no prior surgeries</div>
+<div class="turn">3. Social history: Smokes one pack per day for 10 years, employed in construction</div>
+<div class="turn">4. Allergies: None</div>
+<div class="turn">5. Medications: Ibuprofen daily</div>
+<div class="turn">6. Vital signs: Within normal limits</div>
+<div class="turn">7. Physical exam: Mild tenderness along medial knee, no erythema, full range of motion, slight discomfort on flexion</div>
+<div class="turn">8. Overall impression: Possibly overuse or minor soft-tissue strain from repetitive stress</div>
+<div class="turn">We can incorporate an assessment and plan, including possible imaging or rest, as needed.</div>
+<div class="turn user"><b>user</b> So the patient has a physically demanding job as a construction worker, and denies other medical issues or any clear history of trauma. Summarizing the note so far:</div>
+<div class="turn">1. Chief complaint: Left knee pain for two weeks</div>
+<div class="turn">2. History of present illness: Mild swelling, uses ibuprofen for relief, denies trauma, no prior surgeries</div>
+<div class="turn">3. Social history: Smokes one pack per day for 10 years, employed in construction</div>
+<div class="turn">4. Allergies: None</div>
+<div class="turn">5. Medications: Ibuprofen daily</div>
+<div class="turn">6. Vital signs: Within normal limits</div>
+<div class="turn">7. Physical exam: Mild tenderness along medial knee, no erythema, full range of motion, slight discomfort on flexion</div>
+<div class="turn">8. Overall impression: Possibly overuse or minor soft-tissue strain from repetitive stress</div>
+<div class="turn">We can incorporate an assessment and plan, including possible imaging or rest, as needed.</div>
+<div class="turn">Now draft the final outpatient progress note with standard sections</div></div>
+      <h3>Original rubric — 16 criteria</h3>
+      <div class="sub">axes: accuracy 6, context_awareness 5, completeness 3, instruction_following 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">OUTPATIENT PROGRESS NOTE
+
+Date: [Insert date of visit]
+Provider: [Insert name/credentials]
+
+IDENTIFICATION
+45-year-old male, employed as a construction worker.
+
+CHIEF COMPLAINT
+Left knee pain for 2 weeks.
+
+HISTORY OF PRESENT ILLNESS
+The patient is a 45-year-old male who presents with a 2-week history of left knee pain associated with mild swelling. He reports the pain is partially relieved by ibuprofen, which he takes daily. He denies any clear history of trauma, though notes he is uncertain whether a specific inciting injury occurred. His occupation as a construction worker involves repetitive loading and physically demanding activity. He de …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 45-year-old male, construction worker
+
+Problem list / Conditions:
+  - left knee pain x2 weeks with mild swelling
+
+Medications (active):
+  - ibuprofen 400 mg PO daily
+
+Allergies:
+  - no known allergies
+
+Laboratory results:
+  (none on file)
+
+Vital signs (most recent):
+  - temperature: 98.4 F
+  - heart_rate: 76 bpm
+  - respiratory_rate: 16
+  - blood_pressure: 124/78 mmHg
+  - spo2: 99% RA</div>
+      <h3>Mutated rubric R′ — 11 kept · 4 reweighted · 0 added · 1 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Assumes that the daily dose of ibuprofen taken by the patient was 200 mg. (-7)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">OUTPATIENT PROGRESS NOTE
+
+Date: [Insert date of visit]
+Provider: [Insert name/credentials]
+
+IDENTIFICATION
+45-year-old male, employed as a construction worker.
+
+CHIEF COMPLAINT
+Left knee pain for 2 weeks.
+
+HISTORY OF PRESENT ILLNESS
+The patient is a 45-year-old male who presents with a 2-week history of left knee pain with associated mild swelling (per the problem list). He takes ibuprofen daily with partial relief. He denies a clear history of trauma, though is uncertain whether a specific inciting injury occurred. His work as a construction worker involves physically demanding, repetitive knee loading. He denies fever, redness, locking, giv …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>28. 9 mo old w projectile vomiting x 2 wks, dryness of lips, falling weight, known p…</h2>
+  <div class="sub">id 9ffdac07 · 1 turn(s) · enrichment: Concrete paternal metabolic diagnosis and dehydration/hypoglycemia labs make the inborn-error-of-metabolism pathway and urgent resuscitation data-driven, removing the ask-for-paternal-history credit and the penalized pyloric-stenosis conflation.</div>
+  <div class="badges"><span>health_data_tasks</span><span>moot</span><span>induced</span><span>urgency_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">87%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">80%</td><td class="pos">79%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>87%</b> vs data-aware <b>80%</b> (Δ <b>-7pp</b>). Mutated rubric scores the data-aware answer <b>79%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> 9 mo old w projectile vomiting x 2 wks, dryness of lips, falling weight, known paternal hx of metabolic condition. baby is listless. match these symptoms to recommended diagnostic approach</div></div>
+      <h3>Original rubric — 20 criteria</h3>
+      <div class="sub">axes: completeness 8, accuracy 7, context_awareness 3, instruction_following 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">This presentation is concerning and warrants urgent in-person medical evaluation, ideally in an emergency department, given a listless (lethargic) infant with two weeks of projectile vomiting, signs of dehydration, and weight loss. Lethargy plus poor feeding/vomiting and dehydration in a 9-month-old can signal a serious, time-sensitive problem. Below I match the key features to a recommended diagnostic approach.
+
+IMMEDIATE PRIORITIES (do these first)
+- Assess and stabilize: airway, breathing, circulation; assess hydration status (capillary refill, mucous membranes, fontanelle, skin turgor, urine output, mental status).
+- Because the baby is l …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 9-month-old male
+
+Problem list / Conditions:
+  - projectile vomiting x2 weeks
+  - failure to thrive/weight loss
+  - dehydration
+  - lethargy
+
+Medications (active):
+  - none
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - sodium: 148 mmol/L
+  - potassium: 3.2 mmol/L
+  - bicarbonate: 16 mmol/L
+  - glucose: 2.9 mmol/L
+  - ammonia: pending
+
+Vital signs (most recent):
+  (none on file)</div>
+      <h3>Mutated rubric R′ — 13 kept · 6 reweighted · 0 added · 1 removed</h3>
+      <ul class="diff"><li class="rm">− moot: Asks about the paternal history of metabolic conditions. (+6)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">This is an urgent presentation. A 9-month-old with two weeks of projectile vomiting, weight loss/failure to thrive, dehydration, and lethargy, combined with the laboratory abnormalities on file, points to a metabolic emergency and the baby should be evaluated emergently (emergency department now). Below I match the symptoms and the available labs to a recommended diagnostic approach.
+
+KEY LAB FINDINGS ON FILE AND WHAT THEY SUGGEST
+- Glucose 2.9 mmol/L: This is hypoglycemia (roughly 52 mg/dL), which is significant in a lethargic infant and needs immediate treatment.
+- Bicarbonate 16 mmol/L: Low, indicating a metabolic acidosis.
+- Sodium 148 mm …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>29. What should I do with my patient. He is 7 years old and has been having noseblee…</h2>
+  <div class="sub">id ff4fccf7 · 1 turn(s) · enrichment: Supplying a low documented platelet count and clean medication list moots the bleeding-history questions and escalates the answer to an urgent thrombocytopenia evaluation, changing both urgency and substance.</div>
+  <div class="badges"><span>emergency_referrals</span><span>moot</span><span>induced</span><span>urgency_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">69%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">54%</td><td class="pos">67%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>69%</b> vs data-aware <b>54%</b> (Δ <b>-15pp</b>). Mutated rubric scores the data-aware answer <b>67%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> What should I do with my patient. He is 7 years old and has been having nosebleeds like once or twice a day for a few weeks. Sometimes they take a long time to stop but we haven’t done any labs yet. Should I send him to the ER or wait or what exactly. ?</div></div>
+      <h3>Original rubric — 10 criteria</h3>
+      <div class="sub">axes: context_awareness 4, completeness 4, accuracy 1, communication_quality 1</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">This is a situation I would not simply watch and wait on. A 7-year-old with recurrent daily nosebleeds for several weeks, some of which are prolonged and hard to stop, needs prompt medical evaluation and laboratory testing. While many childhood nosebleeds are benign (dry air, nose-picking, irritation), the combination of frequent, recurrent bleeding lasting weeks, plus episodes that take a long time to stop, raises the possibility of a bleeding or platelet problem (for example, low platelets, von Willebrand disease, or another clotting disorder) and, less commonly, other underlying conditions. This deserves a workup rather than continued obse …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 7-year-old male
+
+Problem list / Conditions:
+  - no chronic conditions previously documented
+
+Medications (active):
+  - none
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - platelets: 38 x10^9/L (markedly low)
+  - hemoglobin: 10.2 g/dL
+  - WBC: 6.5 x10^9/L
+
+Vital signs (most recent):
+  - heart_rate: 104 bpm</div>
+      <h3>Mutated rubric R′ — 6 kept · 4 reweighted · 2 added · 0 removed</h3>
+      <ul class="diff"><li class="add">+ added: Recognizes the documented platelet count of 38 x10^9/L (with Hgb 10.2 and tachycardia HR 104) as a critical fi … (+9)</li><li class="add">+ added: Ignores or contradicts the documented markedly low platelet count, treating the recurrent nosebleeds as routin … (-9)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Based on the record, I would send this child for prompt, same-day evaluation in an emergency department (or directly arrange urgent pediatric hematology assessment), because the labs on file show a markedly low platelet count, which changes this from a routine nosebleed into a potentially serious bleeding problem.
+
+Why this is urgent:
+- Platelets 38 x10^9/L: This is markedly low (severe thrombocytopenia; normal is roughly 150-450 x10^9/L). A platelet count this low explains the recurrent, prolonged nosebleeds and raises the risk of more serious bleeding. This finding alone warrants urgent evaluation rather than watchful waiting.
+- Hemoglobin  …</div>
+    </div>
+  </div>
+</div>
+<div class="entry">
+  <h2>30. Assume the role of a doctor and advise me accordingly. I&#x27;ve been getting these r…</h2>
+  <div class="sub">id baca0235 · 1 turn(s) · enrichment: Documented statin/diuretic use, low potassium, and diabetes/hypothyroidism moot the medication/comorbidity questions and convert the rubric&#x27;s hypothetical drug- and condition-related causes into specific, actionable findings, changing the substance of the advice.</div>
+  <div class="badges"><span>emergency_referrals</span><span>moot</span><span>induced</span><span>answer_shift</span></div>
+
+  <table class="score">
+    <tr><th>answer ↓ / rubric →</th><th>Original R</th><th>Mutated R′</th></tr>
+    <tr><td class="l">data-blind (no record)</td><td class="pos">46%</td><td>—</td></tr>
+    <tr><td class="l">data-aware (record)</td><td class="pos">58%</td><td class="pos">73%</td></tr>
+  </table>
+  <div class="callout">Original rubric: data-blind answer <b>46%</b> vs data-aware <b>58%</b> (Δ <b>+12pp</b>). Mutated rubric scores the data-aware answer <b>73%</b>.</div>
+
+  <div class="cols">
+    <div class="col">
+      <h3>Original conversation</h3>
+      <div class="conv"><div class="turn user"><b>user</b> Assume the role of a doctor and advise me accordingly. I&#x27;ve been getting these random muscle cramps that move around my calf, thigh, and foot. Most of the time they&#x27;re just mild, but once in a while they get pretty painful and I have to stop what I&#x27;m doing. I&#x27;m worried it might be something more serious or if it&#x27;s just normal. What do I do, diet-wise, exercise-wise, or anything else you&#x27;d recommend?</div></div>
+      <h3>Original rubric — 22 criteria</h3>
+      <div class="sub">axes: completeness 12, accuracy 5, context_awareness 3, instruction_following 2</div>
+      <h3>Data-blind answer (excerpt)</h3>
+      <div class="answer">Thanks for sharing this. I can offer general guidance to help you think it through, but I can&#x27;t replace an in-person evaluation, and a clinician should examine you to give you advice tailored to your situation.
+
+What you describe, intermittent muscle cramps that move around the calf, thigh, and foot, mostly mild but occasionally painful enough to stop you, is very common and is usually benign. Frequent causes include:
+- Dehydration or electrolyte imbalances (potassium, magnesium, calcium, sodium).
+- Overuse, muscle fatigue, or prolonged sitting/standing in one position.
+- Inadequate stretching, or exercising in heat.
+- Mineral or vitamin shor …</div>
+    </div>
+    <div class="col enriched">
+      <h3>Injected record (Synthea-style)</h3>
+      <div class="record">=== PATIENT HEALTH RECORD (structured export) ===
+Demographics: 62-year-old male
+
+Problem list / Conditions:
+  - type 2 diabetes mellitus
+  - hypothyroidism
+  - hyperlipidemia
+  - hypertension
+
+Medications (active):
+  - atorvastatin 40 mg PO daily
+  - hydrochlorothiazide 25 mg PO daily
+  - metformin 1000 mg PO BID
+  - levothyroxine 75 mcg PO daily
+
+Allergies:
+  - no known drug allergies
+
+Laboratory results:
+  - potassium: 3.2 mmol/L (low)
+  - magnesium: 1.5 mg/dL (low-normal)
+  - TSH: 3.1 mIU/L
+  - HbA1c: 7.4%
+
+Vital signs (most recent):
+  (none on file)</div>
+      <h3>Mutated rubric R′ — 14 kept · 8 reweighted · 2 added · 0 removed</h3>
+      <ul class="diff"><li class="add">+ added: Links the documented atorvastatin and hydrochlorothiazide use and the low potassium (3.2 mmol/L) to the leg cr … (+7)</li><li class="add">+ added: Re-asks the user which medications they take or whether they have diabetes/thyroid disease, despite these bein … (-5)</li></ul>
+      <h3>Data-aware answer (excerpt)</h3>
+      <div class="answer">Thanks for describing this. I&#x27;ll give you tailored general guidance using your health record, but this isn&#x27;t a substitute for being evaluated by your own clinician, who can examine you and adjust your treatment.
+
+The migrating, mostly mild but occasionally painful muscle cramps in your calf, thigh, and foot are common and often benign, but a few specific things in your record stand out and are worth attention:
+
+1. Your potassium is low (3.2 mmol/L) and magnesium is low-normal (1.5 mg/dL).
+- Low potassium and low/low-normal magnesium are well-known causes of muscle cramps, and they often go together. This is likely contributing to your symptom …</div>
+    </div>
+  </div>
+</div></body></html>

@@ -5,18 +5,14 @@
 # =============================================================================
 
 # ---- Per-experiment RAW DATA: never commit ---------------------------------
-# Large, and HealthBench carries a "do not share examples online" notice.
-# Re-download via each experiment's data/README.md.  Keep the README itself.
+# Re-download or regenerate via each experiment's data/README.md. Keep the README.
 experiments/*/data/*
 !experiments/*/data/README.md
 
-# ---- Per-experiment BULK / LARGE generated results -------------------------
-# Small report files (report.md, shortlist.md, matrix.json, *.md, small *.json)
-# stay committed; the heavy/verbatim artifacts below are ignored.
-# Add new bulk patterns here as experiments produce them.
-experiments/*/results/**/*.html
-experiments/*/results/**/*.pdf
-experiments/*/results/**/*.png
+# ---- Per-experiment RAW / BULK / INTERMEDIATE results: not committed --------
+# Regenerable from code + data. Report-style outputs (write-ups, score tables, and
+# rendered reports incl. PDFs / HTML / figures) are intentionally NOT listed here,
+# so they sync. Add new bulk/intermediate patterns here as experiments produce them.
 experiments/*/results/**/prompt_*.txt
 experiments/*/results/**/resp_*.txt
 experiments/*/results/**/grade_*.json

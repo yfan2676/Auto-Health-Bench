@@ -89,19 +89,16 @@ Auto-Health-Bench/
 
 *(Direction A: no experiment yet — planned.)*
 
-## Data & sharing policy
+## Data & results conventions
 
-HealthBench carries a *"do not share examples online to prevent leakage"* notice.
 Per experiment:
 
-- **Raw data** (`experiments/*/data/`) and **large generated artifacts** (PDFs, HTML,
-  per-case prompt/response/grade dumps) are **git-ignored**. Re-download raw data via the
+- **Raw data is not committed** — re-download or regenerate it locally via the
   experiment's `data/README.md`.
-- **Small report files** (method-log markdown, score matrices, shortlists) **are
-  committed** so findings travel with the repo.
-
-> ⚠️ Some committed report files (e.g. `shortlist.md`, `report.md`) embed verbatim
-> HealthBench text. **Keep this repository private** unless those files are scrubbed.
+- **Large raw / intermediate result files are not committed** — they are regenerable
+  from the code and data.
+- **Report-style files are synced** — write-ups, method logs, score tables, and rendered
+  reports (including large PDFs) travel with the repo so findings stay versioned.
 
 ## Getting started
 
