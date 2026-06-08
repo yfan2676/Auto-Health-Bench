@@ -94,7 +94,7 @@ The hardest and most Meta-relevant axis, and the one Synthea cannot supply yet. 
 
 Together these turn one expected observation into a structured agenda: from *does the static score drop?* (yes, trivially) to *can a model enact the right data-conditional policy (N2), find the signal inside a real record (N3), reason over real sensor streams (N4) — and are we even measuring that fairly (N1)?* Those are the capabilities that decide whether a data-equipped health assistant is safe to deploy.
 
-### Meeting notes — what to watch for (collaborators, 2026-06-08)
+### Meeting notes — what to watch for (collaborators, 2026-06-05)
 
 - **The no-data → with-data contrast: what is actually interesting?** Beyond the
   (trivial) score drop, the signal we want from running *the same task with and without

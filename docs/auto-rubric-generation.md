@@ -5,7 +5,7 @@
 > Runs in parallel to **Direction B** (data-grounded evaluation, [`vision.md`](vision.md))
 > and intersects it at *data-conditioned rubric generation* (§5).
 >
-> **Status:** early — seeded from the 2026-06-08 collaborator meeting. No experiment yet;
+> **Status:** early — seeded from the 2026-06-05 collaborator meeting. No experiment yet;
 > the first one is scoped in §4.
 
 ## 1. Why
@@ -34,7 +34,7 @@ Candidate properties:
   ranking a trusted reference rubric (or expert) would give. ← the property we can
   operationalize first (§4).
 
-### Open question — relative scoring between items (meeting, 2026-06-08)
+### Open question — relative scoring between items (meeting, 2026-06-05)
 
 How should we set the **discrete / relative scores** between rubric items? HealthBench
 items carry integer points, but the "right" weights are themselves contested — **experts
@@ -51,7 +51,7 @@ weighting; it is a *distribution* of defensible weightings. Threads to study:
 
 ## 3. Generating tasks at HealthBench quality (data-agnostic, for now)
 
-A parallel sub-thread (meeting, 2026-06-08): can we **generate more tasks like
+A parallel sub-thread (meeting, 2026-06-05): can we **generate more tasks like
 HealthBench's — at the same quality — without yet adding user data?** Staged:
 
 1. **Augment / modify existing HealthBench items effectively** — can we edit or extend an
@@ -94,7 +94,7 @@ experiment already prototypes it via automatic rubric **mutation** (see
 The §4 rank-preservation metric is exactly the yardstick we will reuse to judge whether a
 *data-conditioned* generated rubric is any good.
 
-## Open questions parked from the meeting (2026-06-08)
+## Open questions parked from the meeting (2026-06-05)
 
 - Relative / discrete scoring between rubric items under expert disagreement (§2).
 - Does ranking robustness make exact item weights less important than the item *set*?
