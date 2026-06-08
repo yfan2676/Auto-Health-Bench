@@ -1,14 +1,44 @@
 # Literature review
 
-A running, living index of the literature this project builds on. Organized by the
-themes that the study directions in [`../vision.md`](../vision.md) §4 connect to. Add
-entries as you read; promote the strongest ones into the related-work section of the
-paper draft under [`../../latex/`](../../latex/).
+A running, living index of the literature this project builds on. Add entries as you
+read; promote the strongest ones into the related-work section of the paper draft under
+[`../../latex/`](../../latex/).
 
-> Status: **seeded skeleton** — topic buckets and primary sources are listed; per-paper
-> notes are still to be filled in.
+The index now spans **both research directions**:
 
-## Primary benchmark & context
+- **Direction A — automatic rubric generation** has its own full review in
+  [`auto-rubric-generation.md`](auto-rubric-generation.md) (synthesis + verified
+  key-paper table + an "implications for our idea" section). Bucket map below.
+- **Direction B — data-grounded evaluation** is organized by the N1–N4 themes from
+  [`../vision.md`](../vision.md) §4, listed further down.
+
+> Status: Direction A reviewed in depth (2026-06). Direction B below is a **seeded
+> skeleton** — topic buckets and primary sources listed; per-paper notes still to fill in.
+
+## Direction A — automatic rubric generation
+
+Full review: [`auto-rubric-generation.md`](auto-rubric-generation.md). Buckets:
+
+- **A1** — rubric/checklist-based evaluation, the paradigm (G-Eval, FLASK, Prometheus,
+  CheckEval, BiGGen Bench, TICK, LLM-Rubric)
+- **A2** — automatic rubric/criteria generation methods (CARMO, Auto-Rubric, RRD, CDRRM,
+  ARES, RubricHub, Autorubric, AdaRubric; skeptic: "Are Checklists Really Useful?")
+- **A3** — rubrics as RL reward signals (RaR, RLCF, InfiMed-ORBIT, Rubric-ARM)
+- **A4** — medical/clinical rubric generation + physician disagreement (Health-SCORE,
+  ClinAlign, MedDialogRubrics, LiveMedBench, MedHELM, Decomposing Physician Disagreement)
+- **A5** — what makes a rubric "good" + rank-preservation & meta-evaluation (RubricBench,
+  RubricEval, JudgeBench, construct validity, ranking brittleness, Kendall τ vs Spearman ρ)
+- **A6** — setting item weights under expert disagreement (Auto-Rubric implicit weights,
+  Plank HLV, perspectivist modeling, NUTMEG, DiADEM, Bradley-Terry/Plackett-Luce)
+- **A7** — automatic benchmark/task generation (AutoBencher, BenchAgents, Auto Evol-Instruct,
+  MCQG-SRefine, LiveBench, ArenaBencher)
+
+**Headline implication:** auto-generating good *health* rubrics is already crowded as of
+early 2026; the open white space is **rank-preservation as the validation yardstick**,
+**weight-vs-item-set sensitivity**, and **data-conditioned rubric generation (A∩B)**. See
+the review's [Implications section](auto-rubric-generation.md#3-implications--what-may-need-to-change).
+
+## Primary benchmark & context (shared)
 
 - **HealthBench** — [announcement](https://openai.com/index/healthbench/) ·
   [paper PDF](https://cdn.openai.com/pdf/bd7a39d5-9e9f-47b3-903c-8b847ca650c7/healthbench_paper.pdf) ·
@@ -18,7 +48,7 @@ paper draft under [`../../latex/`](../../latex/).
   [OpenAI PDF](https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf)
 - **HealthBench in practice** — [arXiv:2509.02594](https://arxiv.org/html/2509.02594v2)
 
-## Theme buckets (from vision §4 "lit hooks")
+## Direction B — data-grounded evaluation (themes N1–N4, from [`../vision.md`](../vision.md) §4)
 
 ### N1 — Construct validity & leakage
 *Is the test fair when we synthesize the data to fit the question?*
