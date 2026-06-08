@@ -4,13 +4,21 @@ Each subfolder here is **one self-contained exploration**. Experiments are indep
 they may use different environments, datasets, and tooling, and each owns its own
 results. This is the part of the repo that changes fastest.
 
+Experiments are tagged by the project's research **directions** (see the
+[top-level README](../README.md)):
+
+- **A — Automatic rubric generation:** what makes a good rubric; how to auto-generate
+  and validate them.
+- **B — Data-grounded evaluation:** evaluating health LLMs with the user's real data.
+- **A∩B:** data-conditioned rubric generation, where the two directions intersect.
+
 ## Index
 
-| Folder | Status | One line |
-|---|---|---|
-| [`data-grounded-healthbench/`](data-grounded-healthbench/) | active — Phase 1 & 2 (PoC) done | Turn HealthBench items into functions of patient data; measure how rubrics and scores shift once the record is present. |
+| Folder | Direction | Status | One line |
+|---|---|---|---|
+| [`data-grounded-healthbench/`](data-grounded-healthbench/) | B (+ A∩B via rubric mutation) | active — Phase 1 & 2 (PoC) done | Turn HealthBench items into functions of patient data; measure how rubrics and scores shift once the record is present. |
 
-*(Add a row per new experiment.)*
+*(Add a row per new experiment. Direction A has no experiment yet — planned.)*
 
 ## Anatomy of an experiment
 

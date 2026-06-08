@@ -1,5 +1,11 @@
 # Data-Grounded HealthBench
 
+> **Scope.** This is the idea doc for **Direction B (data-grounded evaluation)** of the
+> broader [Auto-Health-Bench](../README.md) project. The project's other track —
+> **Direction A, automatic rubric generation** (what makes a good rubric; how to
+> auto-generate and validate them) — runs in parallel and intersects here at
+> *data-conditioned rubric mutation*.
+
 **Working title:** HealthBench-Grounded (HB-G)
 **One line:** Extend OpenAI's HealthBench from text-only vignettes to evaluations *conditioned on real longitudinal user data* (wearables + EHR), to expose where the "right answer," the rubric, and model behavior change once a model actually has the patient's data.
 
