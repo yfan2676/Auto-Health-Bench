@@ -9,7 +9,7 @@ codebase or a single benchmark. It holds **idea/lit-review docs**, **paper draft
 (Overleaf-compatible), and a growing set of **self-contained experiments** spanning
 several research directions, each with its own code, environment, data, and results.
 
-## The bet
+## The big picture
 
 Evaluation is the bottleneck for trustworthy health AI. A health-LLM answer is graded
 against a **rubric** — a checklist of what a good answer must contain — and the quality
