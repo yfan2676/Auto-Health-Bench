@@ -9,7 +9,7 @@
 > proposed here; this doc states the general method they instantiate.
 >
 > **Status:** exploration-stage proposal (2026-06-10). No experiment yet; first
-> experiments scoped in §8. Literature grounding:
+> experiments scoped in §9; claim discipline in §8. Literature grounding:
 > [`lit-review/auto-rubric-generation.md`](lit-review/auto-rubric-generation.md) and
 > [`lit-review/data-grounded-evaluation.md`](lit-review/data-grounded-evaluation.md).
 
@@ -231,7 +231,95 @@ quantity we measure, not assume** (see threats, §7).
 
 ---
 
-## 8. First experiments (sequenced, cheap-first)
+## 8. The claim ladder — keeping the motivation honest
+
+The enticing maximal pitch — *"an automatic agent framework that takes **any** existing
+rubric-based benchmark, augments it with data, is **accurate**, and reveals
+**never-seen-before** model properties, because rubric mutation is **perfect**"* — is the
+right ambition and the wrong sentence. It decomposes into five sub-claims with very
+different evidentiary status; the motivation should claim the reachable ones and present
+the rest as trajectory, with each escalation licensed by a named experiment (§9).
+
+| Sub-claim | Status | Assessment |
+|---|---|---|
+| "Automatic agent framework" | **Reachable — engineering, not research risk** | The pipeline is LLM-driven end-to-end already (dependency classifier → phenotype extraction → Synthea-to-spec → mutation → grading); packaging it as an agent framework is work, not uncertainty. |
+| "Any rubric-based benchmark" | **Overclaim as stated; bounded version reachable** | The mutation *operator* is general — it needs only atomic criteria, the seam to mutate. The *instantiation engine* is domain-specific (Synthea exists for health; nothing equivalent for law or finance). Defensible: "rubric benchmarks in domains with structured user context," credible only with **two demonstrations** (E5). |
+| "Accurate" | **The weakest link — redefine it** | There is no gold reference for a mutated criterion, and hard ceilings exist: rubric judges ~56% on hard items ([2603.25133](https://arxiv.org/abs/2603.25133)), ~82% of HealthBench variance is case-level ([2602.22758](https://arxiv.org/abs/2602.22758)), human κ ≈ 0.85–0.90. Mutation can never be *verified perfect* — only **certified within bounds** (§6). |
+| "Never-seen-before model properties" | **Most defensible enticing part — partially demonstrated** | The PoC already surfaced one (a model that *had* the medication in context and still hedged — invisible to text-only eval); the unified **data-use policy profile** is open, with the precise prior-art boundary in §8.2. |
+| "Because mutation is perfect" | **Wrong causal story — drop it** | The contribution is the *measurement framework* that makes imperfect mutation usable: the fit test says **where** the benchmark is wrong, certification bounds **how much** to trust the repair. Perfection is neither achievable nor needed. |
+
+### 8.1 The supportable headline
+
+Replace "any" and "perfect" and the claim is both honest and still enticing:
+
+> *An automatic framework that takes a rubric-based benchmark, **measures** whether its
+> verdicts survive the product's data regime (the fit test), **repairs** it where they
+> don't — with validation cost proportional to the delta, not the benchmark — and in
+> doing so measures a model property no existing benchmark reports: the conditional
+> data-use policy.*
+
+This position is stronger than "perfect," not weaker: we do not promise the mutation is
+right, we promise you can **tell how right it is and what it costs to check** — the only
+position the certification literature (noisy judges, ranking brittleness) actually
+supports. A pragmatic argument points the same way: the Jan–Feb 2026 wave shows this
+space moves in months; a maximal claim that needs two years will be partially eaten
+before it ships, while the bounded claim is stakeable this summer.
+
+### 8.2 The "new model property" claim, stated precisely
+
+"Model M always-asks, model N always-trusts" must be claimed carefully, because pieces of
+it *are* benchmarked (checked against the B1/B3 sweeps; the two closest counterexamples
+re-verified against their abstracts):
+
+- **Data-as-input benchmarks score endpoints only, with data always present.** MedAlign:
+  clinician ranking vs. references; MedAgentBench: programmatic task success; EHRNoteQA /
+  MedCalc-Bench: answer correctness; EHRSHOT: AUROC; PH-LLM: fixed expert-rubric scores.
+  None varies the data state on the same case; none scores the model's *behavior toward
+  the data* as distinct from answer quality.
+- **The behavioral literature does benchmark asking** — "nobody measures asking" would be
+  false. MediQ ([2406.00922](https://arxiv.org/abs/2406.00922), re-verified) varies
+  information completeness and lets the model decide whether to ask, but the *scored*
+  metric is diagnostic accuracy — asking is instrumental, and the variation runs only
+  from incomplete toward complete. Q4Dx scores asking-efficiency over 100/80/50%
+  symptom-exposure levels; AbstentionBench scores abstention; RAMDocs / DriftMedQA score
+  answer accuracy under conflicting evidence.
+- **What is genuinely missing (no exceptions found in the sweeps):** **(1) the USE
+  half** — no scoring function anywhere penalizes re-asking for what is already on file
+  or rewards correctly using the supplied value; interactive benchmarks treat asking as
+  cost-free, and static rubrics (HealthBench) actively *reward* it — nowhere does asking
+  become *wrong*. **(2) RECONCILE as scored behavior** — under noisy/conflicting data the
+  literature reports *that* models get swayed, not whether flagging the conflict was
+  credited as the correct response. **(3) the same-case, cross-state profile** — nobody
+  holds the case fixed, sweeps no-data → missing-field → noisy/conflicting → clean on
+  injected structured records, and scores the state-appropriate behavior in each.
+
+**Wording for the paper:** *existing interactive benchmarks score whether asking improves
+the final answer; none scores whether the model enacts the right policy across data
+states — in particular, no existing scoring function ever makes asking* wrong*. We
+measure the full ask/use/reconcile profile on the same cases with injected structured
+records.*
+
+**Before print:** read the full texts of MediQ and AgentClinic
+([2405.07960](https://arxiv.org/abs/2405.07960)) — the latter's abstract mentions
+unspecified "patient-centric metrics" — to confirm neither scores question necessity.
+Two one-hour reads, cheap insurance on a priority claim.
+
+### 8.3 What licenses each rung (claims ↔ evidence)
+
+| Claim | Licensed by |
+|---|---|
+| "Benchmark fitness is measurable" | E1 + E2 (drift replicates at scale, with significance) |
+| "The framework reveals a new model property" | E2's degradation-curve extension + the §8.2 differentiation |
+| "Benchmark repair is affordable" | E3 (repair ≈ rebuild on τ at a fraction of expert surface) |
+| "The operator generalizes beyond HealthBench" | E5 (one small transfer) |
+| "Any benchmark / registry / chain of trust" | Research program (E4 is the first data point) — present as trajectory, never as result |
+
+**Internship-realistic:** E1–E3, plus E5 at toy scale. **Program-scale:** the registry,
+multi-axis regimes, "any benchmark."
+
+---
+
+## 9. First experiments (sequenced, cheap-first)
 
 - **E1 — The first Fit Report (mostly already done, needs assembly).** Target:
   HealthBench vs. a "wearable health assistant" product context. F2 is the
@@ -242,7 +330,10 @@ quantity we measure, not assume** (see threats, §7).
 - **E2 — The Fit Oracle at scale (= Direction B Phase 4, reframed).** Regime-instantiate
   100–300 items on the data axis, run the model suite, report Δscore / Δτ with the
   noisy-judge significance machinery, and produce the **drift map**. One experiment now
-  serves both the Direction-B paper and the north-star method paper.
+  serves both the Direction-B paper and the north-star method paper. **Run a reduced
+  version (n≈50) first — this is the kill-shot:** the PoC cases were *chosen* to be
+  sharp; if drift does not replicate on classifier-flagged items, the motivation
+  deflates, and we want to learn that in month one, not month three.
 - **E3 — The repair ladder head-to-head.** On the drifted items from E2, compare L1
   (reweight only) vs L2 (mutate) vs L4 (regenerate from scratch with an
   AutoBencher-style baseline) on: bridge-set τ, expert-validation surface (count of
@@ -251,10 +342,16 @@ quantity we measure, not assume** (see threats, §7).
 - **E4 — One chain hop.** Certify a generated benchmark (Direction A §4's rank-preserving
   generation) against HealthBench via a bridge set, then run one further repair on top
   of it and measure τ-degradation at depth 2. First empirical number for chain drift.
+- **E5 — Transfer demo (stretch).** Apply the instantiate → mutate → certify loop to a
+  second rubric benchmark at n≈20. Cheapest: **HealthBench Professional** (same family;
+  its "care consult" tasks are *the* data-hungry cases, vision O7). More convincing for
+  generality: a non-health checklist benchmark from Direction A §A1 (TICK-style,
+  BiGGen Bench). One small transfer turns "a HealthBench patch" into "an operator,
+  demonstrated twice" — and is what licenses any talk of the L4 / registry trajectory.
 
 ---
 
-## 9. One-line takeaway
+## 10. One-line takeaway
 
 **Fit** becomes a measured invariance ("the benchmark's verdicts don't change when we
 instantiate the product's regime"), **generation** becomes graduated repair of the
