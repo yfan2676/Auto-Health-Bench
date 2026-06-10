@@ -4,16 +4,18 @@ A running, living index of the literature this project builds on. Add entries as
 read; promote the strongest ones into the related-work section of the paper draft under
 [`../../latex/`](../../latex/).
 
-The index now spans **both research directions**:
+The index now spans **both research directions**, each with its own full review:
 
-- **Direction A — automatic rubric generation** has its own full review in
+- **Direction A — automatic rubric generation** —
   [`auto-rubric-generation.md`](auto-rubric-generation.md) (synthesis + verified
   key-paper table + an "implications for our idea" section). Bucket map below.
-- **Direction B — data-grounded evaluation** is organized by the N1–N4 themes from
-  [`../vision.md`](../vision.md) §4, listed further down.
+- **Direction B — data-grounded evaluation** —
+  [`data-grounded-evaluation.md`](data-grounded-evaluation.md) (same structure; buckets
+  B1–B6, where **B2–B5 map one-to-one to the N1–N4 themes** from
+  [`../vision.md`](../vision.md) §4). Bucket map below.
 
-> Status: Direction A reviewed in depth (2026-06). Direction B below is a **seeded
-> skeleton** — topic buckets and primary sources listed; per-paper notes still to fill in.
+> Status: both directions reviewed in depth (2026-06). Verified key-paper tables and an
+> "implications / gap + plan" section live in each review.
 
 ## Direction A — automatic rubric generation
 
@@ -48,32 +50,32 @@ the review's [Implications section](auto-rubric-generation.md#3-implications--wh
   [OpenAI PDF](https://cdn.openai.com/dd128428-0184-4e25-b155-3a7686c7d744/HealthBench-Professional.pdf)
 - **HealthBench in practice** — [arXiv:2509.02594](https://arxiv.org/html/2509.02594v2)
 
-## Direction B — data-grounded evaluation (themes N1–N4, from [`../vision.md`](../vision.md) §4)
+## Direction B — data-grounded evaluation
 
-### N1 — Construct validity & leakage
-*Is the test fair when we synthesize the data to fit the question?*
-- Counterfactual / controllable clinical-record synthesis — _to add_
-- Construct validity in benchmark design — _to add_
-- Dataset shortcut features / spurious cues ("Clever Hans") — _to add_
-- Contamination & leakage critiques — _to add_
+Full review: [`data-grounded-evaluation.md`](data-grounded-evaluation.md). Buckets
+(B2–B5 ↔ the N1–N4 themes in [`../vision.md`](../vision.md) §4):
 
-### N2 — Missing/noisy data, abstention & graceful degradation
-*Correct use is a policy over data states, not a single answer.*
-- Robustness to missing / noisy features — _to add_
-- Selective prediction / abstention & calibration — _to add_
-- Uncertainty-aware & conflicting-evidence clinical decision support — _to add_
+- **B1** — the competitor landscape: data-grounded / EHR-conditioned clinical LLM eval
+  (MedAlign, MedAgentBench, AgentClinic, EHRSHOT, EHRNoteQA, PH-LLM, MedCalc-Bench; rubric
+  near-neighbors: Adaptive Precise Boolean rubrics, Health-SCORE)
+- **B2** (= N1) — construct validity & leakage (Construct-Validity reviews, shortcut/Clever-Hans,
+  hypothesis-only & record-only probes, counterfactually-augmented data, label-leakage-in-healthcare,
+  synthetic-eval easiness)
+- **B3** (= N2) — missing/noisy data, abstention & graceful degradation (MediQ, AbstentionBench,
+  CLAMBER, Q4Dx, MADAM-RAG/RAMDocs, DriftMedQA, informative-missingness, calibration & hallucination)
+- **B4** (= N3) — relevance under a full record / long context (Lost-in-the-Middle, GSM-IC, RULER,
+  RGB, MedDistractQA, MedOdyssey, RAG-vs-long-context-over-EHRs, clinical IE)
+- **B5** (= N4) — numeric & wearable time-series grounding (PH-LLM, Health-LLM, PHIA, OpenTSLM,
+  HEARTS, LLMTime, VL-Time, NumericBench, Program-of-Thoughts)
+- **B6** — the synthetic-data engine: Synthea (+ its validity study), synthetic-EHR scoping review,
+  HiSGT, LLM patient simulators (PatientSim/AIPatient), Polyjuice, MedAgentBench-as-eval-precedent
 
-### N3 — Relevance under a full record (long context)
-*Find the decision-relevant fields amid distractors.*
-- Long-context distractor robustness / needle-in-a-haystack / lost-in-the-middle — _to add_
-- Retrieval-augmented generation over clinical notes — _to add_
-- Clinical information extraction — _to add_
-
-### N4 — Numeric & wearable time-series grounding
-*Read trends, units, and noise in sensor streams.*
-- LLMs for time-series & numeracy — _to add_
-- Wearable-signal interpretation — _to add_
-- Serialization of numeric data for LLMs; tool-use / code-execution for computation — _to add_
+**Headline implication:** evaluating health LLMs *with* patient data is crowded, and
+instance-specific medical rubric *generation* is crowding fast — but **rubric *mutation*
+conditioned on an injected real record** (criteria become moot / new data-grounded criteria
+induced / urgency flipped) is the open **A∩B** white space, alongside the **policy-over-data-states**
+(graceful-degradation) framing. See the review's
+[Implications section](data-grounded-evaluation.md#3-implications--the-gap-and-an-actionable-plan).
 
 ## Datasets referenced
 
