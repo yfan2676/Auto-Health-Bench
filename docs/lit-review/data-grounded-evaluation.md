@@ -354,7 +354,92 @@ strongest realism caveats we must report.*
 *Recommendations only. Per project convention the idea doc [`../vision.md`](../vision.md) is left
 as-is; this section is where the "this may change the idea" reading lives.*
 
-### 3.1 The gap, stated precisely
+### 3.1 Why mutate an existing benchmark rather than build a new one
+
+The first objection to the gap below is not "is it open?" but "*so what — why not just build a
+new, better benchmark on real data, instead of mutating HealthBench?*" The answer is that the two
+approaches answer **different questions**, and only mutation answers ours. A new real-data
+benchmark is an *observational* instrument — "how well do models do on real data?"; mutation is a
+*controlled, counterfactual* one — "*what specifically breaks when data is added, and why?*" The
+project's entire value sits in the second question. Six reasons make mutation the correct design,
+not a shortcut.
+
+1. **The contribution is a *delta*, and a delta needs a paired design.** Every headline claim is
+   comparative: *X% of criteria are data-dependent*; *the static rubric penalizes data use by N
+   points*; *model M falls from rank 3 to rank 6 once data is present*. Each is a statement about
+   `R`-under-no-data vs. `R`-under-data, or `R` vs. `R′` — it is **undefined without the original
+   `(V, R)` as the counterfactual baseline.** A fresh real-data benchmark has no "before": it can
+   report an absolute level ("model scores 60%") but never the *mis-attribution* ("the data-blind
+   assumption scored this +30pp wrong"). The delta **is** the finding, and mutation is the only
+   design that produces it. This is exactly counterfactually-augmented data (Kaushik et al.,
+   ICLR'20; B2) lifted from labels to rubrics: minimally edit one factor, hold everything else
+   fixed, study *the difference that makes a difference*.
+
+2. **Identification and statistical power — the strongest, most quantitative point.** Comparing a
+   new benchmark's scores to HealthBench's confounds the data effect with topic, difficulty,
+   phrasing, and rubric-author differences: any gap is uninterpretable. There is a sharper,
+   project-specific version. *Decomposing Physician Disagreement* (Direction A §A4,
+   [2602.22758](https://arxiv.org/abs/2602.22758)) finds **~82% of HealthBench label variance is
+   case-level residual** and only ~16% is rubric identity. A *between-benchmark* comparison is
+   therefore swamped by case-level noise — the data effect would sit below the detection floor. A
+   *within-item* mutation **differences that dominant term out**: same case, same conversation,
+   only the data state varies. So the paired design is not merely convenient; given the noise
+   structure it is close to *necessary* to detect the effect at all — a power argument we can state
+   numerically in the paper.
+
+3. **Inheriting expert gold — validated quality *and* atomic granularity.** HealthBench is 48,562
+   conversation-specific weighted criteria from 262 physicians: peer-reviewed, on hard emergency
+   and context-seeking cases — precisely where data-conditioning bites hardest. Two consequences:
+   - *Validated quality is cheap to inherit, expensive to reproduce.* The realistic alternative to
+     mutation is **not** "a new benchmark with equally good rubrics" — the project has **no
+     physician access right now** (a resolved constraint, vision §12). So the honest alternative is
+     a new benchmark with *worse, un-validated* rubrics. Mutation stands on validated gold and
+     re-validates only **the delta** — the handful of criteria that changed per item, not all 48k.
+     That collapse of the physician-validation surface (vision C3) is what makes the project
+     feasible, and is itself part of the contribution.
+   - *Atomic granularity makes the mutation operation well-defined.* Because criteria are explicit
+     and atomic ("ask about X", "+pts for recommending Y"), one can mechanically identify *which*
+     criteria the record makes moot and *how* it changes each (moot / induced / urgency). A
+     holistic or coarse rubric has **no seam to mutate** — the operation could not even be defined.
+     The expert rubric's specificity is what makes mutation auditable and automatable.
+
+4. **Comparability and the rank-shift result.** Reusing the same items and the same model suite
+   keeps our data-grounded scores **directly comparable to the published HealthBench leaderboard**.
+   "Model M ranks 3rd text-only but 6th once data is present" is a statement about the *same*
+   benchmark — impossible from an apples-to-oranges new dataset, and itself a headline only the
+   anchored design can produce.
+
+5. **Outcomes only mutation can yield** (impossible by construction in a fresh real-data benchmark):
+   - the **mis-scoring quantity** — how wrong the static rubric is — needs the original rubric as
+     reference;
+   - the **ask→use behavioral transition** and **"right for the wrong reason"** detection (an answer
+     scored well by *asking* in text-only, then mishandling the same data once present) — needs the
+     *same item* across both regimes (B3);
+   - **known ground-truth relevance**: synthesizing the record *to spec* against the rubric means we
+     *know* which fields are decision-relevant, which is what lets us cleanly mutate the rubric,
+     build the B4 distractor controls, and run the monotonicity / hidden-context test. A real record
+     carries *uncontrolled* relevance and forfeits that leverage;
+   - the **full data-state spectrum** (B3): a static real-data benchmark is only the "(4) present,
+     clean" corner — mutation builds the *same case across all four states* and scores the
+     conditional policy.
+
+6. **The honest steelman — the real-data benchmark is downstream, not a rival.** The mutation design
+   is the *controlled instrument*; it tells you what to measure and what breaks. The naturalistic
+   real-cohort benchmark — the project's own **Phase 5** (vision §9) — is the *field study* that
+   establishes external validity, and it inherits the failure taxonomy and the validated mutation
+   operator the instrument produced. You calibrate the instrument first, then run the field study;
+   you do not start with the uncontrolled one. The synthetic-data limitation (B2/N1) is *why* this
+   is framed as a controlled diagnostic plus future real-data validation — sequenced and
+   complementary, not a concession.
+
+**In one sentence (for the draft):** *we mutate rather than rebuild because the quantity of
+interest is a counterfactual delta — how the ideal answer, the rubric, and the model ranking change
+when data appears — which is identifiable only by holding the expert-validated task fixed and
+varying the data state; a fresh benchmark discards the counterfactual, the validated gold, and the
+leaderboard comparability, and (with ~82% of HealthBench variance at the case level) lacks the
+power to detect the effect at all.*
+
+### 3.2 The gap, stated precisely
 
 The user's prior is confirmed and sharpened. Three concentric circles, outer-to-inner:
 
@@ -381,7 +466,7 @@ Differentiate sharply from the three nearest neighbors, because reviewers will r
   cases; we *re-derive an existing physician rubric* against an *injected real record* and measure how
   the original mis-scores data-aware behavior.
 
-### 3.2 Manage two real threats up front
+### 3.3 Manage two real threats up front
 
 - **Engineered relevance (B2).** Because the record is synthesized from the query+rubric, the trivial
   objection is leakage-by-construction. The literature gives a clean defense kit: **(1)** a **record-only /
@@ -400,7 +485,7 @@ Differentiate sharply from the three nearest neighbors, because reviewers will r
   concentrates), and explicitly disclaim outcome realism. LLM-filling extra fields degrades correlation
   fidelity (Lin'25), so prefer rule-based generation for the structured core.
 
-### 3.3 Actionable plan (what to run, in order)
+### 3.4 Actionable plan (what to run, in order)
 
 The plan reuses the existing phase structure ([vision §9](../vision.md)) and slots each study against
 its literature, leading with the cleanest open claims and the studies runnable on Synthea *now*.
@@ -410,7 +495,7 @@ its literature, leading with the cleanest open claims and the studies runnable o
    *original* R mis-scores the data-aware answer (the −62pp mechanism) and how R′ realigns it. Validate R′
    with the proxy ensemble now; physician round later (vision C3). **Reuse the Direction-A rank-preservation
    yardstick** (Kendall τ + weight-perturbation, Direction A §A5) to ask whether the *mutation* preserves
-   the *intended* ranking. This is the headline contribution; differentiate per §3.1.
+   the *intended* ranking. This is the headline contribution; differentiate per §3.2.
 
 2. **Behavioral study — competence as a policy over data states (B3, the cleanest open framing).** Build the
    *same case across the four states* (no data / relevant field missing / present-but-noisy / present-clean),
