@@ -53,7 +53,7 @@ question. Four reasons to prefer mutation (full argument in the
 A real-data benchmark isn't a competing idea. It's the later field study, once the
 controlled instrument works.
 
-## 4. Why this is worth being excited about
+## 4. Why this is worth it
 
 The mutation idea generalizes past HealthBench (written up in
 [benchmark-fit.md](benchmark-fit.md)):
