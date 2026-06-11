@@ -1,4 +1,4 @@
-# Agenda — Direction B lit review results & proposal (2026-06)
+# Agenda — Direction B lit review results & proposal (2026-06-11)
 
 > Background links for anyone who wants the details:
 > [Direction-B lit review](lit-review/data-grounded-evaluation.md) ·
