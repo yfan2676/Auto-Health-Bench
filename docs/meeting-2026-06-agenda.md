@@ -88,25 +88,19 @@ are identical either way; this mostly affects how we write it up.
 
 Order of work, cheapest first:
 
-1. Kill-shot: replicate the drift on ~50–100 classifier-flagged items. The PoC is n=2
-   and the cases were hand-picked, so if the drift doesn't replicate at scale the
-   motivation collapses — better to find that out right away.
-2. If it replicates: full drift map plus ranking impact (Kendall τ with noisy-judge
-   significance) over the model suite.
+1. Replicate the drift at scale: run the mutation loop on roughly 50–100
+   classifier-flagged items. The PoC covered only two hand-picked cases, so this is the
+   make-or-break check. If the effect doesn't hold on a representative sample, the
+   motivation collapses, and we should know that before investing further.
+2. If it holds, build the full drift map and measure the ranking impact (Kendall τ with
+   noisy-judge significance) across the HealthBench model suite. A practical note: this
+   step needs more resources than we currently have. Ranking claims only mean something
+   when measured over many models, so we will need API access and evaluation budget for
+   the full suite of frontier and open models.
 3. The policy profile: the four-data-state sweep on the same cases.
-4. Stretch: a small transfer (~20 items) to a second benchmark — HealthBench Professional
-   is the cheapest option — to show this is an operator, not a HealthBench patch.
+4. If time permits, a small transfer (~20 items) to a second benchmark, with HealthBench
+   Professional as the cheapest option, to show this is a general operator rather than a
+   HealthBench-specific patch.
 
 Expected outputs: a headline number ("X% of HealthBench verdicts flip once data is
 present"), the per-model policy profile, and a repair-vs-rebuild cost comparison.
-
-## 6. Discussion
-
-1. Framework positioning vs. "a new data-grounded benchmark": the right call for the
-   paper?
-2. Kill-shot threshold: what drift magnitude or flip rate counts as motivation confirmed,
-   and what result would make us stop?
-3. Validation ordering: proxy ensemble now, physicians later. Acceptable? When can
-   clinicians realistically be looped in?
-4. Transfer target: HealthBench Professional, or a non-health rubric benchmark?
-5. Scope and venue for the write-up.
