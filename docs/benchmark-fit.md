@@ -150,7 +150,7 @@ validation cost on the replacement. The §3.1 argument of the
 |---|---|---|---|
 | L0 | **Use as-is** | Fit test passes | Nothing |
 | L1 | **Reweight** — keep all items & criteria, change weights to *w* | Drift is confined to weight-sensitive aggregation | Nothing item-level. Direction A's weight-perturbation analysis tells you *in advance* whether L1 can work: if rankings are robust to weight jitter, reweighting cannot fix a rank-level drift and you skip to L2. |
-| L2 | **Mutate criteria** — Direction B's operator: moot / induced / urgency per criterion | Drift localizes to criteria with inverted or missing regime assumptions | **Only the delta**: the changed criteria per item, not the benchmark. |
+| L2 | **Mutate criteria** — Direction B's operator: moot / induced / urgency per criterion (generalized to many task dimensions in [`counterfactual-mutation.md`](counterfactual-mutation.md), which makes the "only the delta" locality claim self-validating) | Drift localizes to criteria with inverted or missing regime assumptions | **Only the delta**: the changed criteria per item, not the benchmark. |
 | L3 | **Augment items** — generate new items (+rubrics) for the uncovered mass of F1/F3, keep the rest | Coverage holes, not criterion inversions | New items only, certified against the retained set (§6). |
 | L4 | **New benchmark** — from-scratch generation (Direction A §3 machinery; AutoBencher/BenchAgents patterns) | The product is genuinely outside the registry (no benchmark within useful edit distance) | Full validation — the case where from-scratch was the right call all along. |
 

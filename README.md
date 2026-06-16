@@ -58,6 +58,10 @@ Generating a **data-conditioned rubric** — one that adapts to the patient's re
 exactly the intersection of A and B: *auto-generate a good rubric* (A) applied to *the
 data changes the right answer* (B). The data-grounded experiment already prototypes this
 via automatic rubric **mutation**; a dedicated rubric-generation track will generalize it.
+[`docs/counterfactual-mutation.md`](docs/counterfactual-mutation.md) pushes the mutation
+idea further: edit a single *task dimension* (age, acuity, how a fact is disclosed) whose
+rubric footprint is small and predictable, mutate only that delta, and inherit the rest of
+the expert rubric — with the locality claim made self-validating.
 
 ## Repository layout
 

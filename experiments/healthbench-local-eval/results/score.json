@@ -1,0 +1,25 @@
+{
+  "split": "full",
+  "model": "Qwen/Qwen3-4B",
+  "judge": "Qwen/Qwen3-4B",
+  "n_examples": 25,
+  "n_scored": 25,
+  "n_complete": 25,
+  "overall_score": 0.6477799297404068,
+  "per_axis": {
+    "accuracy": 0.7504601411965526,
+    "communication_quality": 0.6,
+    "completeness": 0.6344477343575811,
+    "context_awareness": 0.538418319229839,
+    "instruction_following": 0.9047619047619048
+  },
+  "per_theme": {
+    "communication": 0.7115953726123218,
+    "complex_responses": 0.6060090702947846,
+    "context_seeking": 0.6923076923076924,
+    "emergency_referrals": 0.85,
+    "global_health": 0.6090030481336596,
+    "health_data_tasks": 0.5,
+    "hedging": 0.6153927958892769
+  }
+}

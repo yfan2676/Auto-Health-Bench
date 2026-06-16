@@ -22,6 +22,12 @@ experiments/*/results/**/cases_all.json
 experiments/*/results/**/shortlist.jsonl
 experiments/*/results/**/responses/*
 experiments/*/results/**/grades.jsonl
+# counterfactual-mutation: bulk per-item files carry HealthBench prompt/rubric text.
+# (report.md / metrics.json / noise_floor.json are aggregate-only and DO sync.)
+experiments/*/results/**/variants/*
+experiments/*/results/**/footprint/*
+experiments/*/results/**/answers/*
+experiments/*/results/**/grades/*
 *.log
 
 # ---- Python ----------------------------------------------------------------

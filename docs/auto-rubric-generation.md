@@ -56,7 +56,9 @@ HealthBench's — at the same quality — without yet adding user data?** Staged
 
 1. **Augment / modify existing HealthBench items effectively** — can we edit or extend an
    item *and its rubric* without degrading quality? (This step is shared with Direction B,
-   which augments items with patient data.)
+   which augments items with patient data; the **dimensional-mutation** operator in
+   [`counterfactual-mutation.md`](counterfactual-mutation.md) is the concrete, locality-bounded
+   way to do this edit cheaply while preserving expert quality.)
 2. **Generate genuinely new tasks** — conversations + rubrics that match HealthBench's
    quality bar, judged by the metrics in §2.
 
