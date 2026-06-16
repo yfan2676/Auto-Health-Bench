@@ -17,6 +17,7 @@ Experiments are tagged by the project's research **directions** (see the
 | Folder | Direction | Status | One line |
 |---|---|---|---|
 | [`data-grounded-healthbench/`](data-grounded-healthbench/) | B (+ A∩B via rubric mutation) | active — Phase 1 & 2 (PoC) done | Turn HealthBench items into functions of patient data; measure how rubrics and scores shift once the record is present. |
+| [`healthbench-local-eval/`](healthbench-local-eval/) | baseline / infra | active — harness built | Standard HealthBench eval with a local target and local judge (Qwen3-4B via Ollama or vLLM); generate responses, then grade each rubric item. |
 | _rubric-generation_ (not created yet) | A | planned | Define a rubric quality metric (rank-preservation); hold out part of HealthBench, auto-generate rubrics for it, and check they preserve the original rubrics' model ranking. See [`../docs/auto-rubric-generation.md`](../docs/auto-rubric-generation.md) §4. |
 
 *(Add a row per new experiment.)*
