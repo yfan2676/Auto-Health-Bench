@@ -20,6 +20,8 @@ experiments/*/results/**/rubric_*.json
 experiments/*/results/**/dep_*.json
 experiments/*/results/**/cases_all.json
 experiments/*/results/**/shortlist.jsonl
+experiments/*/results/**/responses/*
+experiments/*/results/**/grades.jsonl
 *.log
 
 # ---- Python ----------------------------------------------------------------
