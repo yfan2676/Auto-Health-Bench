@@ -17,9 +17,11 @@ Run every script from this experiment's directory (paths are relative to it):
     python3 src/pick.py --limit 30
     ...
 """
+import difflib
 import json
 import os
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 # --- bridge to the sibling healthbench-local-eval harness --------------------
@@ -44,13 +46,26 @@ CM_JUDGE_THINK = os.environ.get("CM_JUDGE_THINK", "0") == "1"
 CM_AUTHOR_THINK = os.environ.get("CM_AUTHOR_THINK", "1") == "1"
 CM_AUTHOR_TEMP = float(os.environ.get("CM_AUTHOR_TEMP", "0.6"))
 
+# Per-endpoint grading concurrency. The grader calls are independent and stateless
+# (one POST each, see llm.chat), so we fan them across the judge endpoints with a
+# thread pool to saturate every GPU instead of the ~1 req/s serial baseline. The
+# total worker count is len(JUDGE_EPS) * CM_JUDGE_CONCURRENCY. Concurrency does not
+# change any call's inputs, so a temperature-0 judge stays deterministic per call.
+CM_JUDGE_CONCURRENCY = int(os.environ.get("CM_JUDGE_CONCURRENCY", "8"))
+
+# All judge endpoints (one per GPU when HB_JUDGE_BASE_URLS lists several). Computed
+# once; pmap round-robins work across them.
+JUDGE_EPS = config.judge_endpoints()
+
 # --- paths -------------------------------------------------------------------
 RESULTS = _EXP / "results"
 SHORTLIST = RESULTS / "shortlist.jsonl"
-VARIANTS = RESULTS / "variants"     # per-item edited conversation V'
+VARIANTS = RESULTS / "variants"     # per-item edited conversation V' (single-edit path)
 FOOTPRINT = RESULTS / "footprint"   # per-item a-priori per-criterion prediction
 ANSWERS = RESULTS / "answers"       # per-item fixed model answer to V (and optionally V')
-GRADES = RESULTS / "grades"         # per-item paired grades (orig vs variant)
+GRADES = RESULTS / "grades"         # per-item paired grades (orig vs variant, single-edit path)
+SWEEP = RESULTS / "sweep"           # per-item K-value sweep of edited conversations
+SWEEP_GRADES = RESULTS / "sweep_grades"  # per-item K-way grades (orig + each swept value)
 
 
 # --- data loading (resolve the HealthBench split flexibly) -------------------
@@ -119,17 +134,57 @@ def convo_string(messages, answer):
     return "\n\n".join(f"{m['role']}: {m['content']}" for m in convo)
 
 
-def judge_criterion(convo_str, rubric, *, temperature=None, think=None):
-    """One HealthBench grader call for a single criterion. Returns (criteria_met, explanation)."""
+def judge_criterion(convo_str, rubric, *, endpoint=None, temperature=None, think=None):
+    """One HealthBench grader call for a single criterion. Returns (criteria_met, explanation).
+
+    `endpoint` lets a pmap worker pin a specific judge server (GPU); defaults to the
+    single configured judge endpoint for serial callers.
+    """
+    endpoint = endpoint or config.judge_endpoint()
     temperature = CM_JUDGE_TEMP if temperature is None else temperature
     think = CM_JUDGE_THINK if think is None else think
     rubric_str = f"[{rubric['points']}] {rubric['criterion']}"
     prompt = GRADER_TEMPLATE.replace("<<conversation>>", convo_str).replace("<<rubric_item>>", rubric_str)
-    text = llm.chat([{"role": "user", "content": prompt}], config.judge_endpoint(),
+    text = llm.chat([{"role": "user", "content": prompt}], endpoint,
                     temperature=temperature, top_p=config.TOP_P,
                     max_tokens=config.MAX_TOKENS, think=think)
     obj = llm.extract_json(text)
     return bool(obj["criteria_met"]), obj.get("explanation", "")
+
+
+def pmap(fn, items, *, workers=None):
+    """Run `fn(item, endpoint)` over `items` concurrently, round-robining the judge
+    endpoints so the work spreads across every GPU. Results are returned in input
+    order. A call that raises is caught and its slot becomes an Exception instance —
+    the caller decides what to do (skip + log) so one bad grade can't abort a run of
+    thousands. With one endpoint this is still a useful within-GPU concurrency layer.
+    """
+    items = list(items)
+    if not items:
+        return []
+    n_eps = len(JUDGE_EPS)
+    workers = workers or max(1, n_eps * CM_JUDGE_CONCURRENCY)
+
+    def _call(i_item):
+        i, item = i_item
+        ep = JUDGE_EPS[i % n_eps]
+        try:
+            return fn(item, ep)
+        except Exception as e:  # noqa: BLE001 — return it so the run continues
+            return e
+
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        return list(pool.map(_call, enumerate(items)))
+
+
+def diff_chars(orig_msgs, new_msgs):
+    """Characters changed between two conversations (insert/replace/delete). Used by
+    the edit guards to flag edits that touch too much text."""
+    o = "\n".join(m.get("content", "") for m in orig_msgs)
+    n = "\n".join(m.get("content", "") for m in new_msgs)
+    sm = difflib.SequenceMatcher(a=o, b=n)
+    changed = sum(max(i2 - i1, j2 - j1) for tag, i1, i2, j1, j2 in sm.get_opcodes() if tag != "equal")
+    return changed, max(len(o), len(n))
 
 
 def author_chat(prompt, *, think=None, temperature=None, max_tokens=None):
@@ -160,6 +215,8 @@ def atomic_write_json(path, obj):
 
 
 def endpoints_banner(split, n):
-    t, j = config.target_endpoint(), config.judge_endpoint()
-    print(f"target={t.model}@{t.base_url}  judge={j.model}@{j.base_url}  "
-          f"judge_temp={CM_JUDGE_TEMP} judge_think={CM_JUDGE_THINK}  split={split}  items={n}")
+    t = config.target_endpoint()
+    judge_urls = ",".join(ep.base_url for ep in JUDGE_EPS)
+    print(f"target={t.model}@{t.base_url}  judge={JUDGE_EPS[0].model}@[{judge_urls}]  "
+          f"judge_temp={CM_JUDGE_TEMP} judge_think={CM_JUDGE_THINK} "
+          f"concurrency={len(JUDGE_EPS)}x{CM_JUDGE_CONCURRENCY}  split={split}  items={n}")

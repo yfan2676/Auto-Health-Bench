@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counterfactual-mutation viewer</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#161922; --panel2:#1d2230; --line:#2a3040; --fg:#e6e9ef;
+    --muted:#9aa3b2; --accent:#5b9dff;
+    --tp:#1f7a3d; --tp-bg:#13311f; --fp:#c0392b; --fp-bg:#3a1714;
+    --fn:#b9770e; --fn-bg:#3a2c10; --tn:#3a4150; --tn-bg:#171b24;
+    --ins-bg:#16432a; --ins-fg:#7ee2a0; --del-bg:#4a1d1a; --del-fg:#ff9b91;
+    --pass:#3ddc84; --fail:#ff6b6b;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13.5px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--fg); }
+  a { color:var(--accent); }
+  #app { display:grid; grid-template-columns:340px 1fr; height:100vh; }
+  /* ---- sidebar ---- */
+  #side { border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+  #side header { padding:12px 14px; border-bottom:1px solid var(--line); }
+  #side h1 { font-size:14px; margin:0 0 8px; }
+  .globals { font-size:11.5px; color:var(--muted); line-height:1.7; }
+  .globals b { color:var(--fg); }
+  .controls { padding:10px 14px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:8px; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .chipbtn { padding:3px 9px; border:1px solid var(--line); border-radius:12px; background:var(--panel2);
+             color:var(--muted); cursor:pointer; font-size:11.5px; }
+  .chipbtn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .controls input, .controls select { background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+             border-radius:6px; padding:5px 8px; font-size:12px; }
+  #list { overflow-y:auto; flex:1; min-height:0; }
+  .item { padding:9px 14px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .item:hover { background:var(--panel); }
+  .item.sel { background:var(--panel2); border-left:3px solid var(--accent); padding-left:11px; }
+  .item .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .item .eid { font-size:11px; color:var(--muted); font-family:ui-monospace,monospace; }
+  .item .lbl { font-size:12.5px; margin-top:2px; }
+  .badge { font-size:10px; padding:1px 6px; border-radius:8px; background:var(--panel2);
+           border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+  .badge.age { color:#9ecbff; border-color:#2c4a73; }
+  .badge.disclosure { color:#ffce9e; border-color:#73512c; }
+  .pr { font-size:10.5px; color:var(--muted); margin-top:3px; }
+  /* ---- detail ---- */
+  #detail { overflow-y:auto; min-height:0; padding:0 0 60px; }
+  .empty { color:var(--muted); padding:40px; text-align:center; }
+  section { border-bottom:1px solid var(--line); padding:16px 22px; }
+  section h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+               margin:0 0 12px; }
+  .dhead { padding:16px 22px; background:var(--panel); border-bottom:1px solid var(--line); }
+  .dhead .eid { font-family:ui-monospace,monospace; color:var(--muted); font-size:11.5px; }
+  .dhead h2 { font-size:16px; margin:4px 0 10px; text-transform:none; letter-spacing:0; color:var(--fg); }
+  .metricrow { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; }
+  .metricrow .m b { color:var(--fg); } .metricrow .m { color:var(--muted); }
+  /* chat */
+  .msg { border:1px solid var(--line); border-radius:8px; margin-bottom:8px; overflow:hidden; }
+  .msg .role { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+               background:var(--panel2); padding:3px 10px; }
+  .msg .content { padding:9px 11px; white-space:pre-wrap; }
+  .msg.user .role { color:#9ecbff; } .msg.assistant .role { color:#ffce9e; }
+  details.answer { margin-top:6px; } details.answer summary { cursor:pointer; color:var(--muted); }
+  /* diff */
+  .tabs { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .tab { padding:4px 11px; border:1px solid var(--line); border-radius:14px; background:var(--panel2);
+         color:var(--muted); cursor:pointer; font-size:12px; }
+  .tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .tab .flag { color:var(--fail); margin-left:4px; }
+  .diff .content { white-space:pre-wrap; }
+  ins { background:var(--ins-bg); color:var(--ins-fg); text-decoration:none; border-radius:2px; }
+  del { background:var(--del-bg); color:var(--del-fg); border-radius:2px; }
+  .diffmeta { color:var(--muted); font-size:11.5px; margin-bottom:8px; }
+  /* rubric table */
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; font-size:12.5px; }
+  th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  tr.conf-TP { background:var(--tp-bg); } tr.conf-FP { background:var(--fp-bg); }
+  tr.conf-FN { background:var(--fn-bg); } tr.conf-TN { background:var(--tn-bg); }
+  .cell-axis { color:var(--muted); font-size:11px; white-space:nowrap; }
+  .pts { font-family:ui-monospace,monospace; }
+  .bk { font-size:10.5px; padding:1px 7px; border-radius:8px; white-space:nowrap; }
+  .bk-kept { background:var(--tn-bg); color:var(--muted); border:1px solid var(--line); }
+  .bk-foot { background:#3a2c10; color:#ffce9e; border:1px solid #73512c; }
+  .conf-tag { font-size:10px; font-weight:700; padding:1px 6px; border-radius:6px; }
+  .conf-tag.TP{background:var(--tp);color:#fff;} .conf-tag.FP{background:var(--fp);color:#fff;}
+  .conf-tag.FN{background:var(--fn);color:#fff;} .conf-tag.TN{background:var(--tn);color:#cfd6e4;}
+  .vverdict { display:inline-flex; gap:3px; align-items:center; }
+  .vcell { width:18px; height:18px; border-radius:4px; display:inline-flex; align-items:center;
+           justify-content:center; font-size:11px; font-weight:700; }
+  .vcell.pass { background:#143a26; color:var(--pass); } .vcell.fail { background:#3a1a1a; color:var(--fail); }
+  .vcell.flip { outline:2px solid var(--accent); }
+  .vhdr { font-size:9.5px; color:var(--muted); text-align:center; width:18px; }
+  .crit { max-width:520px; }
+  details.expl summary { cursor:pointer; color:var(--muted); font-size:11.5px; margin-top:4px; }
+  .expl-block { margin:6px 0 2px; padding:7px 9px; background:var(--panel2); border-radius:6px; font-size:12px; }
+  .expl-block .lbl { color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; }
+  .induced li { color:#ffce9e; }
+  .bars { display:flex; flex-direction:column; gap:6px; max-width:560px; }
+  .bar { display:grid; grid-template-columns:160px 1fr 46px; align-items:center; gap:8px; font-size:12px; }
+  .bar .track { background:var(--panel2); border-radius:5px; height:14px; overflow:hidden; }
+  .bar .fill { background:var(--accent); height:100%; }
+  .legend { font-size:11px; color:var(--muted); margin-top:10px; display:flex; gap:14px; flex-wrap:wrap; }
+  .legend span b { padding:1px 6px; border-radius:5px; }
+  .muted { color:var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header>
+      <h1>Counterfactual dimensional mutation</h1>
+      <div class="globals" id="globals"></div>
+    </header>
+    <div class="controls">
+      <div class="filters" id="dimFilters"></div>
+      <select id="sort">
+        <option value="off">sort: off-target rate ↓</option>
+        <option value="prec">sort: precision ↓</option>
+        <option value="id">sort: id</option>
+      </select>
+      <input id="search" placeholder="filter by id…" autocomplete="off">
+    </div>
+    <div id="list"></div>
+  </aside>
+  <main id="detail"><div class="empty">Loading…</div></main>
+</div>
+<script>
+const S = { data:null, sel:null, dim:"all", sort:"off", q:"", tab:{} };
+
+function el(tag, props, kids) {
+  const n = document.createElement(tag);
+  if (props) for (const k in props) {
+    if (k === "class") n.className = props[k];
+    else if (k === "text") n.textContent = props[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), props[k]);
+    else n.setAttribute(k, props[k]);
+  }
+  for (const c of (kids || [])) if (c != null) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+}
+const pct = x => (x == null ? "n/a" : (x*100).toFixed(0) + "%");
+const num = x => (x == null ? "n/a" : (+x).toFixed(2));
+
+function load() {
+  fetch("./data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { S.data = d; initFilters(); renderGlobals(); renderList();
+                 if (d.samples[0]) select(d.samples[0].example_id); })
+    .catch(e => {
+      document.getElementById("detail").innerHTML =
+        '<div class="empty">Could not load data.json ('+e+').<br>Run <code>python3 src/build_viewer.py</code>, '+
+        'then serve with <code>python3 -m http.server -d viewer 8080</code> and open http://localhost:8080</div>';
+    });
+}
+
+function renderGlobals() {
+  const m = S.data.metrics, nf = S.data.noise_floor, g = document.getElementById("globals");
+  g.innerHTML = "";
+  const rows = [
+    ["items", S.data.meta.n_items + " · judge T=" + S.data.meta.judge_temp],
+  ];
+  if (m) rows.push(
+    ["off-target", "<b>"+pct(m.off_target_change_rate)+"</b> vs floor "+pct(m.judge_noise_floor != null ? m.judge_noise_floor : (nf&&nf.flip_rate))],
+    ["on-target", "<b>"+pct(m.on_target_change_rate)+"</b>"],
+    ["precision / recall", "<b>"+pct(m.footprint_precision)+"</b> / <b>"+pct(m.footprint_recall)+"</b>"],
+    ["source", m.source]);
+  g.innerHTML = rows.map(r => r[0]+": "+r[1]).join("<br>");
+}
+
+function initFilters() {
+  const dims = ["all", ...S.data.meta.dimensions];
+  const c = document.getElementById("dimFilters"); c.innerHTML = "";
+  dims.forEach(d => c.append(el("span", {
+    class:"chipbtn"+(S.dim===d?" active":""), text:(d==="all"?"All":d),
+    onclick:()=>{ S.dim=d; [...c.children].forEach(x=>x.classList.remove("active")); event.target.classList.add("active"); renderList(); }
+  })));
+  document.getElementById("sort").addEventListener("change", e=>{ S.sort=e.target.value; renderList(); });
+  document.getElementById("search").addEventListener("input", e=>{ S.q=e.target.value.toLowerCase(); renderList(); });
+}
+
+function visibleSamples() {
+  let xs = S.data.samples.filter(s => S.dim==="all" || s.dimension===S.dim);
+  if (S.q) xs = xs.filter(s => s.example_id.toLowerCase().includes(S.q));
+  const off = s => s.sample_metrics.off_target_rate == null ? -1 : s.sample_metrics.off_target_rate;
+  const prec = s => s.sample_metrics.precision == null ? -1 : s.sample_metrics.precision;
+  if (S.sort==="off") xs.sort((a,b)=>off(b)-off(a));
+  else if (S.sort==="prec") xs.sort((a,b)=>prec(b)-prec(a));
+  else xs.sort((a,b)=>a.example_id.localeCompare(b.example_id));
+  return xs;
+}
+
+function renderList() {
+  const list = document.getElementById("list"); list.innerHTML = "";
+  visibleSamples().forEach(s => {
+    const m = s.sample_metrics;
+    list.append(el("div", { class:"item"+(s.example_id===S.sel?" sel":""), onclick:()=>select(s.example_id) }, [
+      el("div",{class:"top"},[
+        el("span",{class:"eid",text:s.example_id.slice(0,8)+"…"}),
+        el("span",{class:"badge "+s.dimension,text:s.dimension}),
+      ]),
+      el("div",{class:"lbl",text:s.label}),
+      el("div",{class:"pr",text:`P ${pct(m.precision)} · R ${pct(m.recall)} · off ${pct(m.off_target_rate)} · n=${m.n_criteria}`}),
+    ]));
+  });
+  if (!list.children.length) list.append(el("div",{class:"empty",text:"no samples"}));
+}
+
+function verdictCell(v, flip) {
+  if (v == null) return el("span",{class:"vcell",text:"·"});
+  return el("span",{class:"vcell "+(v?"pass":"fail")+(flip?" flip":""), text:v?"✓":"✗"});
+}
+
+function select(id) {
+  S.sel = id; renderList();
+  const s = S.data.samples.find(x=>x.example_id===id);
+  const d = document.getElementById("detail"); d.innerHTML = ""; d.scrollTop = 0;
+  if (!s) { d.append(el("div",{class:"empty",text:"not found"})); return; }
+  const m = s.sample_metrics;
+
+  // header
+  d.append(el("div",{class:"dhead"},[
+    el("div",{class:"eid",text:s.example_id}),
+    el("h2",{text:s.label}),
+    el("div",{class:"metricrow"},[
+      el("span",{class:"m"},[el("b",{text:pct(m.precision)})," precision"]),
+      el("span",{class:"m"},[el("b",{text:pct(m.recall)})," recall"]),
+      el("span",{class:"m"},[el("b",{text:pct(m.off_target_rate)})," off-target"]),
+      el("span",{class:"m"},[el("b",{text:`${m.tp}/${m.fp}/${m.fn}/${m.tn}`})," TP/FP/FN/TN"]),
+    ]),
+  ]));
+
+  // 1. original input
+  const chat = el("section",{},[el("h2",{text:"1 · Original input"})]);
+  s.messages_orig.forEach(msg => chat.append(el("div",{class:"msg "+(msg.role||"")},[
+    el("div",{class:"role",text:msg.role||""}), el("div",{class:"content",text:msg.content||""})])));
+  if (s.answer) chat.append(el("details",{class:"answer"},[
+    el("summary",{text:"fixed model answer graded under every variant"}),
+    el("div",{class:"msg assistant"},[el("div",{class:"role",text:"assistant (fixed answer)"}),
+      el("div",{class:"content",text:s.answer})])]));
+  d.append(chat);
+
+  // 3. edited inputs with highlighted changes (tabbed per swept value)
+  const sec3 = el("section",{},[el("h2",{text:"2 · Edited input(s) — highlighted changes"})]);
+  if (!s.variants.length) sec3.append(el("div",{class:"muted",text:"no variants"}));
+  else {
+    const tabs = el("div",{class:"tabs"}); const body = el("div",{class:"diff"});
+    const cur = S.tab[id] ?? 0;
+    s.variants.forEach((v,i)=>{
+      const warn = v.ok===false || v.fact_preserved===false;
+      tabs.append(el("span",{class:"tab"+(i===cur?" active":""), onclick:()=>{ S.tab[id]=i; select(id); }},[
+        v.label + " ", warn ? el("span",{class:"flag",text:"⚠"}) : null]));
+    });
+    const v = s.variants[cur];
+    let meta = `change ${pct(v.change_frac)}`;
+    if (v.ok===false) meta += "  ⚠ flagged (no/large change)";
+    if (v.fact_preserved===false) meta += "  ⚠ fact not clearly preserved (advisory)";
+    if (v.data_phrase) meta += `   ·  data: "${v.data_phrase}"`;
+    body.append(el("div",{class:"diffmeta",text:meta}));
+    v.messages_diff.forEach(md=>{
+      const content = el("div",{class:"content"});
+      md.spans.forEach(sp=>{
+        if (sp.op==="insert") content.append(el("ins",{text:sp.text}));
+        else if (sp.op==="delete") content.append(el("del",{text:sp.text}));
+        else content.append(document.createTextNode(sp.text));
+      });
+      body.append(el("div",{class:"msg "+(md.role||"")},[el("div",{class:"role",text:md.role||""}),content]));
+    });
+    sec3.append(tabs, body);
+  }
+  d.append(sec3);
+
+  // 4+5. rubric footprint: predicted vs actual, per-value verdicts, explanations
+  const sec = el("section",{},[el("h2",{text:"3 · Rubric footprint — predicted vs. actually changed"})]);
+  const valHdrs = (s.values||[]).map(v=>el("th",{class:"vhdr",text:String(v)}));
+  const table = el("table",{},[el("thead",{},[el("tr",{},[
+    el("th",{text:"axis"}), el("th",{text:"pts"}), el("th",{text:"criterion"}),
+    el("th",{text:"predicted"}), el("th",{text:"orig"}), ...valHdrs, el("th",{text:""})])])]);
+  const tb = el("tbody");
+  s.rubrics.forEach(r=>{
+    const isFoot = r.predicted_sensitive;
+    const tr = el("tr",{class:r.confusion?("conf-"+r.confusion):""});
+    const predBadge = el("span",{class:"bk "+(isFoot?"bk-foot":"bk-kept"),
+      text:r.predicted_bucket}, );
+    const vcells = (s.values||[]).map((val,i)=>{
+      const cell = (r.sweep&&r.sweep[i]) ? r.sweep[i].verdict : null;
+      const flip = (r.flip_values||[]).includes(val);
+      return el("td",{class:"vhdr"},[verdictCell(cell, flip)]);
+    });
+    const detail = el("details",{class:"expl"},[el("summary",{text:"why"})]);
+    if (r.predicted_reason) detail.append(el("div",{class:"expl-block"},[
+      el("div",{class:"lbl",text:"predicted ("+r.predicted_bucket+")"}), r.predicted_reason]));
+    if (r.explanation_orig) detail.append(el("div",{class:"expl-block"},[
+      el("div",{class:"lbl",text:"judge @ original → "+(r.verdict_orig?"met":"not met")}), r.explanation_orig]));
+    (r.sweep||[]).forEach(c=> c.explanation && detail.append(el("div",{class:"expl-block"},[
+      el("div",{class:"lbl",text:"judge @ "+c.label+" → "+(c.verdict?"met":"not met")}), c.explanation])));
+
+    tr.append(
+      el("td",{class:"cell-axis",text:r.axis||"—"}),
+      el("td",{class:"pts",text:(r.points>0?"+":"")+r.points}),
+      el("td",{class:"crit"},[r.criterion]),
+      el("td",{},[predBadge]),
+      el("td",{class:"vhdr"},[verdictCell(r.verdict_orig,false)]),
+      ...vcells,
+      el("td",{},[r.confusion?el("span",{class:"conf-tag "+r.confusion,text:r.confusion}):"" ]),
+    );
+    tb.append(tr);
+    const dr = el("tr",{}); const dtd = el("td",{colspan:String(6+(s.values||[]).length)}); dtd.append(detail); dr.append(dtd); tb.append(dr);
+  });
+  table.append(tb); sec.append(table);
+  sec.append(el("div",{class:"legend"},[
+    el("span",{},[el("b",{class:"conf-tag TP",text:"TP"})," predicted+moved"]),
+    el("span",{},[el("b",{class:"conf-tag FP",text:"FP"})," bridge leaked (off-target)"]),
+    el("span",{},[el("b",{class:"conf-tag FN",text:"FN"})," footprint missed"]),
+    el("span",{},[el("b",{class:"conf-tag TN",text:"TN"})," predicted+held"]),
+    el("span",{class:"muted",text:"value cells: ✓ met / ✗ not met; blue outline = flipped vs original"}),
+  ]));
+  if ((s.proposed_induced||[]).length) {
+    const ul = el("ul",{class:"induced"}); s.proposed_induced.forEach(x=>ul.append(el("li",{text:x})));
+    sec.append(el("h2",{text:"Proposed induced criteria (a-priori)",style:"margin-top:18px"}), ul);
+  }
+  d.append(sec);
+
+  // metrics: sample vs global vs floor + by-axis
+  const gm = S.data.metrics || {};
+  const msec = el("section",{},[el("h2",{text:"4 · Metric comparison"})]);
+  msec.append(el("div",{class:"metricrow",style:"margin-bottom:14px"},[
+    el("span",{class:"m"},["this sample off-target ",el("b",{text:pct(m.off_target_rate)})]),
+    el("span",{class:"m"},["global off-target ",el("b",{text:pct(gm.off_target_change_rate)})]),
+    el("span",{class:"m"},["noise floor ",el("b",{text:pct(gm.judge_noise_floor)})]),
+    el("span",{class:"m"},["this sample on-target/recall ",el("b",{text:pct(m.recall)})]),
+  ]));
+  const axes = gm.actual_change_rate_by_axis || {};
+  if (Object.keys(axes).length) {
+    msec.append(el("div",{class:"muted",style:"margin-bottom:6px",text:"global actual-change rate by rubric axis"}));
+    const bars = el("div",{class:"bars"});
+    Object.entries(axes).forEach(([ax,v])=>{
+      bars.append(el("div",{class:"bar"},[
+        el("span",{text:ax}),
+        el("div",{class:"track"},[el("div",{class:"fill",style:`width:${(v.rate||0)*100}%`})]),
+        el("span",{class:"muted",text:pct(v.rate)}),
+      ]));
+    });
+    msec.append(bars);
+  }
+  d.append(msec);
+}
+load();
+</script>
+</body>
+</html>

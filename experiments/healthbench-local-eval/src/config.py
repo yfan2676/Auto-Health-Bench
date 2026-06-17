@@ -81,3 +81,24 @@ def judge_endpoint():
         backend=BACKEND,
         api_key=os.environ.get("HB_API_KEY", "EMPTY"),
     )
+
+
+def judge_endpoints():
+    """All judge endpoints, for fanning grading across several GPUs.
+
+    `HB_JUDGE_BASE_URLS` (comma-separated) lists one base URL per judge server —
+    e.g. two vLLM servers on :8000 and :8001, one per GPU — and lets a caller
+    round-robin the many independent grader calls across them. Falls back to the
+    single `judge_endpoint()` when the plural var is unset, so existing single-URL
+    runs are unaffected. The judge model id is shared across servers.
+    """
+    urls = os.environ.get("HB_JUDGE_BASE_URLS", "").strip()
+    if not urls:
+        return [judge_endpoint()]
+    model = os.environ.get("HB_JUDGE_MODEL", _backend_default("model"))
+    api_key = os.environ.get("HB_API_KEY", "EMPTY")
+    return [
+        Endpoint(base_url=u.strip(), model=model, backend=BACKEND, api_key=api_key)
+        for u in urls.split(",")
+        if u.strip()
+    ]

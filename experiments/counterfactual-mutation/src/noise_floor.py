@@ -42,12 +42,18 @@ def main():
         answer = json.loads(ans_p.read_text())["answer"]
         convo = common.convo_string(ex["messages"], answer)
         used.append(eid)
-        for r in ex["rubrics"][:args.max_criteria]:
-            verdicts = [common.judge_criterion(convo, r)[0] for _ in range(args.k)]
+        rubrics = ex["rubrics"][:args.max_criteria]
+        # Fan the (criterion x K repeats) identical-input gradings across both GPUs.
+        work = [r for r in rubrics for _ in range(args.k)]
+        results = common.pmap(lambda r, ep: common.judge_criterion(convo, r, endpoint=ep)[0], work)
+        for i, r in enumerate(rubrics):
+            verdicts = [v for v in results[i * args.k:(i + 1) * args.k] if not isinstance(v, Exception)]
+            if not verdicts:
+                continue
             n_criteria += 1
             if len(set(verdicts)) > 1:
                 n_unstable += 1
-        print(f"{eid}: sampled {min(len(ex['rubrics']), args.max_criteria)} criteria x{args.k}")
+        print(f"{eid}: sampled {len(rubrics)} criteria x{args.k}")
 
     flip_rate = (n_unstable / n_criteria) if n_criteria else 0.0
     rec = {"k": args.k, "judge_temp": common.CM_JUDGE_TEMP, "judge_think": common.CM_JUDGE_THINK,
