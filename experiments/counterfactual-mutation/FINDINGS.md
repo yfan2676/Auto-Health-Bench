@@ -1,6 +1,6 @@
 # Counterfactual Dimensional Mutation — findings
 
-*Run: 2026-06-17. 60 items (30 D1 age, 30 D2 disclosure), Qwen3-4B for all roles. Live numbers:
+*Run: 2026-06-17. 171 items (100 D1 age, 71 D2 disclosure), Qwen3-4B for all roles. Live numbers:
 [`results/report.md`](results/report.md) + the viewer. Method: [`OVERVIEW.md`](OVERVIEW.md).
 This file is the narrative.*
 
@@ -8,7 +8,7 @@ This file is the narrative.*
 
 - **D1 (age):** swap the patient's age across a life-stage grid (e.g. 8 / 30 / 50 / 72).
 - **D2 (mode of disclosure):** re-encode a stated fact as data, holding the fact constant
-  ("I have hypertension" → "a blood pressure of 150/95 mmHg"). The 30 D2 edits were authored by
+  ("I have hypertension" → "a blood pressure of 150/95 mmHg"). The D2 edits were authored by
   a capable model (per-style `find`/`data_phrase` overrides in `results/edits_override/`):
   exact-substring `find`, in-range diagnostic values, the same value across the 3 styles so only
   the *form* of disclosure varies.
@@ -18,44 +18,57 @@ This file is the narrative.*
 
 ## Reading the change rate: subtract the same-input floor
 
-The raw fraction of criteria that move is **~31–32%**, but a 4B model at temperature gives
+The raw fraction of criteria that move is **~30%**, but a 4B model at temperature gives
 materially different (often equally valid) answers to the *same* input, and the answers to `V`
 and each `V_k` are sampled independently — so the raw rate contains the model's own answer
 variance. The baseline that isolates the dimension is the **same-input floor**: regenerate K
-answers to one *unchanged* input and measure the flip rate (`noise_floor.py`). It is **~24%**.
+answers to one *unchanged* input and measure the flip rate (`noise_floor.py`). It is **~27%**.
 
 **Net dimension effect = change rate − same-input floor** (a delta of two rates, shown as %):
 
-| dimension | change rate | same-input floor | **net effect (Δ)** |
-|---|---|---|---|
-| age (D1)        | 31.0% | 24.7% | **+6.2%** |
-| disclosure (D2) | 32.4% | 23.8% | **+8.6%** |
+| dimension | items | change rate | same-input floor | **net effect (Δ)** |
+|---|---|---|---|---|
+| age (D1)        | 100 | 28.4% | 27.0% | **+1.4%** |
+| disclosure (D2) | 71  | 32.4% | 26.8% | **+5.7%** |
 
-(floors estimated on a ~20-item subset). So the attributable effect of changing one dimension
-is **modest (~6–9%)** — much smaller than the raw rate alone implies.
+(floors estimated on a ~20-item subset per dimension.) So once its own sampling noise is
+removed, **age has essentially no attributable effect** — at n=100 the model adapts to an age
+swap about as much as it varies run-to-run on the *same* input, i.e. age behaves almost like a
+pure bridge for this 4B model. **Disclosure stays clearly positive (~4× age).**
 
 ## What the signal looks like
 
-- **The footprint pattern holds for both dimensions.** Change concentrates in
-  **completeness/accuracy** (~38–40%) and is lowest on **communication_quality** (~15–18%) —
-  i.e. the communication/management **bridge is the most invariant**, as the locality hypothesis
-  predicts. (D2 by-axis: completeness 40%, accuracy 30%, context 29%, instruction 22%,
-  communication 18%.)
-- **Disclosure moves the model *more* than age** (+8.6% vs +6.2%). This is a **numeracy gap**:
-  Qwen3-4B does not reliably read a bare value (`HbA1c 8.1%`, `BP 150/95`) as the diagnosis it
-  stated in prose, so its graded behavior shifts — strongest on completeness (it gives less
-  complete management advice when it must infer the diagnosis from a number). The same case is
-  genuinely harder for the model when the fact is shown as data — a useful capability finding.
+- **Disclosure moves the model materially more than age** (+5.7% vs +1.4%). This is a
+  **numeracy gap**: Qwen3-4B does not reliably read a bare value (`HbA1c 8.1%`, `BP 150/95`) as
+  the diagnosis it stated in prose, so its graded behavior shifts — even though the underlying
+  clinical fact is identical. The same case is genuinely harder for the model when the fact is
+  shown as data — a useful capability finding.
+- **The footprint pattern holds.** Change concentrates in **completeness** (38.4%) and
+  **accuracy** (28.0%) and is lowest on **communication_quality** (16.4%) — i.e. the
+  communication/management **bridge is the most invariant**, as the locality hypothesis predicts.
+- **Earlier small-n caveat borne out.** A first pass at n=30/30 read age +6.2% / disclosure
+  +8.6%; scaling to n=100/71 shrank both toward their floors and pulled age down to noise. The
+  larger run is the reliable one: **disclosure is the robust effect; age is not.**
+
+## D2 eligibility: the clean pool is smaller than it looks
+
+The disclosure picker's regex prefilter yields **193 hits** in the 5,000-item split, but most are
+**not re-encodable self-disclosures**: topic/class mentions ("diabetic foot ulcers", "managing
+type 1 diabetes"), third-party/clinician-patient cases ("my patient has hypertension"), questions
+("is that stage 1 hypertension?"), or items that already show a value. When capable models author
+the edits, ~40% of regex+confirm "fits" are flagged unsuitable. The clean self-disclosure pool is
+**~71**, the cap for this run. (D1 age is regex-deterministic: **478** eligible.) To push D2 nearer
+100, relax to include clinician/third-party *specific-instance* cases (a valid disclosure-mode
+contrast, at the cost of mixing self- and third-party disclosure in one bucket).
 
 ## Caveats / how to sharpen
 
-- **The a-priori footprint classifier is degenerate on Qwen3-4B** — it predicts ~0 sensitive
-  criteria, so footprint precision/recall collapse. The usable footprint signal is the measured
-  **per-axis change rate** and the by-value flip distribution, not the predicted buckets. A
-  stronger model on the classifier would make predicted-vs-measured meaningful.
-- **The ~24% floor is the dominant noise source.** To raise signal-to-noise: lower the answer
+- **The ~27% floor is the dominant noise source.** To raise signal-to-noise: lower the answer
   temperature, or **average several answers per input** and take the majority verdict before
-  comparing. Either shrinks the floor and tightens the net effect.
-- Two D2 samples are weak by construction (a bare `"Type 2 diabetes-"` fragment; a
-  clinician-to-clinician prompt about a *class* of patients); both still produced valid edits
-  and are kept, flagged in their override `note`.
+  comparing. Either shrinks the floor and tightens the net effect — important given age now sits
+  inside the floor.
+- **The a-priori footprint classifier is degenerate on Qwen3-4B** — it predicts ~0 sensitive
+  criteria, so footprint precision/recall collapse and the step is skippable (the change-rate /
+  net-effect headline does not use it). The usable footprint signal is the measured **per-axis
+  change rate** and the by-value flip distribution. A stronger classifier model would make
+  predicted-vs-measured meaningful.

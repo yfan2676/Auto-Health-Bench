@@ -1,51 +1,51 @@
 # Counterfactual dimensional locality — results
 
-- items: **60**, criterion-pairs graded: **715**
-- same-input floor (per dimension): age **24.7%**, disclosure **23.8%**
+- items: **171**, criterion-pairs graded: **2060**
+- same-input floor (per dimension): age **27.0%**, disclosure **26.8%**
 
 ## Headline
 
 > Answers to V and to each V_k are sampled independently, so the raw change rate includes the model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input floor** (per dimension). See the by-dimension table.
 
-- **raw change rate** (any criterion whose verdict moved across the sweep): **31.7%**
+- **raw change rate** (any criterion whose verdict moved across the sweep): **30.2%**
 - footprint precision **0.0%**, recall **n/a** (the a-priori Qwen-4B classifier predicts ~0 sensitive — see caveat below).
 
 ## By dimension (net effect vs the same-input floor)
 
 | dimension | items | raw change rate | same-input floor | **net effect (Δ)** |
 |---|---|---|---|---|
-| age | 30 | 31.0% | 24.7% | **+6.2%** |
-| disclosure | 30 | 32.4% | 23.8% | **+8.6%** |
+| age | 100 | 28.4% | 27.0% | **+1.4%** |
+| disclosure | 71 | 32.4% | 26.8% | **+5.7%** |
 
 ## Change rate by rubric axis
 
 | axis | change rate | n |
 |---|---|---|
-| accuracy | 32.0% | 222 |
-| communication_quality | 14.9% | 67 |
-| completeness | 38.9% | 262 |
-| context_awareness | 26.1% | 111 |
-| instruction_following | 28.3% | 53 |
+| accuracy | 28.0% | 665 |
+| communication_quality | 16.4% | 177 |
+| completeness | 38.4% | 735 |
+| context_awareness | 26.8% | 325 |
+| instruction_following | 24.7% | 158 |
 
 ## Sweep flip-point distribution (criteria that flipped, by value)
 
 | value | # criteria flipped |
 |---|---|
-| 8 | 28 |
-| 30 | 44 |
-| 50 | 30 |
-| 72 | 58 |
-| an LDL value | 7 |
-| an HbA1c value | 35 |
-| two BP readings | 22 |
-| a flagged lab line | 39 |
-| a lipid-panel line | 8 |
-| a single BP reading | 23 |
-| a medication-list line | 10 |
-| a structured med block | 7 |
-| a vitals line (BP, HR) | 24 |
-| a fasting glucose value | 33 |
-| a med-reconciliation row | 9 |
+| 8 | 119 |
+| 30 | 138 |
+| 50 | 113 |
+| 72 | 169 |
+| an LDL value | 17 |
+| an HbA1c value | 93 |
+| two BP readings | 42 |
+| a flagged lab line | 110 |
+| a lipid-panel line | 14 |
+| a single BP reading | 46 |
+| a medication-list line | 14 |
+| a structured med block | 16 |
+| a vitals line (BP, HR) | 50 |
+| a fasting glucose value | 105 |
+| a med-reconciliation row | 16 |
 
 ## Caveats
 

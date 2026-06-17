@@ -23,7 +23,7 @@ Output: results/sweep_grades/<example_id>.jsonl, one line per criterion:
 Resumable: skips (item, idx) pairs already graded.
 
 Usage:
-    python3 src/sweep_grade.py            # all items that have sweep + footprint + answers
+    python3 src/sweep_grade.py            # all items that have sweep + answers (footprint optional)
     python3 src/sweep_grade.py --limit 2
 """
 import argparse
@@ -63,15 +63,20 @@ def main():
         sweep_p = common.SWEEP / f"{eid}.json"
         fp_p = common.FOOTPRINT / f"{eid}.json"
         ans_p = common.ANSWERS / f"{eid}.json"
-        if not (sweep_p.exists() and fp_p.exists() and ans_p.exists()):
-            print(f"skip {eid}: needs sweep.py + footprint.py + answers.py first")
+        if not (sweep_p.exists() and ans_p.exists()):
+            print(f"skip {eid}: needs sweep.py + answers.py first")
             continue
         ex = by_id.get(eid)
         if not ex:
             continue
 
         sweep = json.loads(sweep_p.read_text())
-        fp = {p["idx"]: p for p in json.loads(fp_p.read_text())["predictions"]}
+        # The a-priori footprint prediction is OPTIONAL. When the footprint file is absent
+        # (e.g. the footprint step was skipped), every criterion defaults to predicted
+        # "kept"/not-sensitive below, so the change-rate and net-effect headline are unaffected;
+        # only footprint precision/recall (already degenerate on a 4B classifier) go to n/a.
+        fp = ({p["idx"]: p for p in json.loads(fp_p.read_text())["predictions"]}
+              if fp_p.exists() else {})
         ans = json.loads(ans_p.read_text())
         answer_orig = ans.get("answer")
         var_answer = {va["value"]: va["answer"] for va in ans.get("variant_answers", [])}

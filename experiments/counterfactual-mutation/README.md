@@ -128,24 +128,28 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
 
 ## Status
 
-- **Run end-to-end on Qwen3-4B at n=30 per dimension (D1 age + D2 disclosure).** The full sweep
-  pipeline + the 2-GPU concurrent grader + the static viewer produce `results/report.md`,
-  `results/metrics.json`, and `viewer/data.json`; the viewer renders all five views (original
-  input, original rubrics, edited-input diffs per swept value, predicted footprint,
-  actually-changed footprint) plus the qualitative + metric panels, for both dimensions.
-- **Net dimension effect (Δ change rate vs the same-input floor): age ≈ +6%, disclosure ≈ +9%** — see
-  [`FINDINGS.md`](FINDINGS.md). The footprint concentrates in completeness/accuracy; the
-  communication/management bridge is the most invariant axis.
-- **Predicted vs. measured footprint:** `footprint.py` is the *a-priori* (LLM) estimator;
-  Qwen3-4B predicts *0* sensitive criteria — so the behavioral **sweep** (`sweep_grade.py`) is
-  the ground truth and the usable footprint signal is the measured per-axis change rate. A
-  stronger model on the classifier would make predicted-vs-measured meaningful.
-- **D2 edits:** authored by a capable model into `results/edits_override/` (above); the 4B
-  prose→data render remains as a fallback with an *advisory* `fact_preserved` check and a diff
-  guard. D2 works best on facts that map to an unambiguous out-of-range value.
-- **Next:** lower the answer temperature or average several answers per input to shrink the
-  ~24% floor and sharpen the net effect; a stronger classifier on the second GPU; then add D3
-  (severity) per idea doc §5.
+- **Run end-to-end on Qwen3-4B at n=100 age + n=71 disclosure.** The full sweep pipeline + the
+  2-GPU concurrent grader + the static viewer produce `results/report.md`, `results/metrics.json`,
+  and `viewer/data.json`; the viewer renders the input/rubric/edited-diff/measured-footprint views
+  plus the qualitative + metric panels, for both dimensions. (Full run ≈ 54 min, footprint skipped.)
+- **Net dimension effect (Δ change rate vs the same-input floor): age ≈ +1.4%, disclosure ≈ +5.7%** —
+  see [`FINDINGS.md`](FINDINGS.md). At scale **age collapses near its noise floor** (the earlier
+  n=30 +6% was largely small-sample noise); **disclosure is the robust effect (~4× age)**, a 4B
+  numeracy gap. Change concentrates in completeness/accuracy; the communication/management bridge is
+  the most invariant axis.
+- **Footprint is optional / skippable.** `footprint.py` is the *a-priori* (LLM) estimator, but
+  Qwen3-4B predicts *0* sensitive criteria, so it only feeds the (collapsed) precision/recall — not
+  the change-rate/net-effect headline. `sweep_grade.py` tolerates a missing footprint file
+  (defaults every criterion to predicted "kept"), so the step can be skipped to roughly halve
+  wall-clock. The behavioral **sweep** (`sweep_grade.py`) is the ground-truth footprint signal.
+- **D2 eligibility ceiling ≈ 71 (not 100).** The regex prefilter gives 193 hits in the 5k split,
+  but most are topic/class mentions, third-party/clinician cases, or questions — not re-encodable
+  self-disclosures; capable authors flag ~40% unsuitable. D1 age is regex-deterministic (478
+  eligible). D2 edits are authored into `results/edits_override/` (above); the 4B prose→data render
+  remains a fallback with an *advisory* `fact_preserved` check + diff guard.
+- **Next:** lower the answer temperature or average several answers per input to shrink the ~27%
+  floor and sharpen the net effect (important now that age sits inside the floor); to push D2 nearer
+  100 include clinician/third-party specific-instance cases; then add D3 (severity) per idea doc §5.
 
 ## Findings
 
