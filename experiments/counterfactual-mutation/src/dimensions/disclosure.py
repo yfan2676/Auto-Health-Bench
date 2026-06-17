@@ -17,10 +17,35 @@ prose->data. Guarded by a deterministic span replacement, an LLM `fact_preserved
 (-> ok=False, excluded), and the diff guard; and the sweep itself flags leakage — if the
 management bridge moves, the dimension isn't local (demote it).
 """
+import json
 import re
 
 import common
 from dimensions.base import Dimension
+
+# Subagent-authored edits (results/edits_override/<eid>.json) take precedence over the small
+# model's prose->data rendering. Re-encoding a stated fact as a clinically faithful, in-range,
+# grammatically clean data value is the demanding step where a 4B model is weakest, so when a
+# capable agent has authored the renderings we use those verbatim. Schema:
+#   {"example_id", "encoding_kind", "fact",
+#    "renderings": [{"style": <one of values()>, "find": <substring to replace,
+#                    defaults to stated_span>, "data_phrase": <replacement text>}, ...]}
+# Missing file / missing style -> fall back to the LLM render below.
+_OVERRIDE_CACHE = {}
+
+
+def _load_override(eid):
+    if eid in _OVERRIDE_CACHE:
+        return _OVERRIDE_CACHE[eid]
+    path = common.EDITS_OVERRIDE / f"{eid}.json"
+    obj = None
+    if path.exists():
+        try:
+            obj = json.loads(path.read_text())
+        except (json.JSONDecodeError, OSError):
+            obj = None
+    _OVERRIDE_CACHE[eid] = obj
+    return obj
 
 # Each entry: (encoding_kind, compiled regex over user text). The regex match is the exact
 # stated_span we delete; the LLM confirm supplies the canonical fact. A leading severity
@@ -167,10 +192,25 @@ class DisclosureDimension(Dimension):
     def values(self, s):
         return list(_STYLES.get(s.get("encoding_kind"), _STYLES["bp"]))
 
-    def edit_one(self, messages, s, value):
-        span, fact = s["stated_span"], s["fact"]
-        # Render deterministically (temp 0); if the small model returns no parseable phrase,
-        # retry once at a higher temperature to break out of the empty deterministic output.
+    def _override_rendering(self, s, value):
+        """Return (find_span, data_phrase) from a subagent override for this style, or None.
+        Matches by exact style string, then by the style's position in values() as a fallback."""
+        ov = _load_override(s["example_id"])
+        if not ov:
+            return None
+        rends = ov.get("renderings", [])
+        match = next((r for r in rends if r.get("style") == value), None)
+        if match is None:
+            vals = self.values(s)
+            if value in vals and vals.index(value) < len(rends):
+                match = rends[vals.index(value)]
+        if not match or not str(match.get("data_phrase", "")).strip():
+            return None
+        return (match.get("find") or s["stated_span"], str(match["data_phrase"]).strip())
+
+    def _render_llm(self, fact, span, value):
+        """Small-model prose->data rendering (temp 0, retry at 0.7) + advisory fact-preserved
+        check. Used only when no subagent override covers this style."""
         block = ""
         for temp in (0, 0.7):
             try:
@@ -180,13 +220,6 @@ class DisclosureDimension(Dimension):
                 block = ""
             if block:
                 break
-        new_msgs, applied = [], 0
-        for m in messages:
-            c = m.get("content", "")
-            if block and span in c:
-                c = c.replace(span, block, 1)
-                applied += 1
-            new_msgs.append({**m, "content": c})
         fact_preserved = True
         if block:
             try:
@@ -195,10 +228,30 @@ class DisclosureDimension(Dimension):
                     temperature=0).get("fact_preserved", True))
             except Exception:  # noqa: BLE001 — treat an unparseable check as a soft pass
                 fact_preserved = True
+        return span, block, fact_preserved, "llm"
+
+    def edit_one(self, messages, s, value):
+        fact = s["fact"]
+        # Prefer a subagent-authored edit; its faithfulness is vetted by the author, so
+        # fact_preserved is True and the (advisory) small-model verify is skipped.
+        ov = self._override_rendering(s, value)
+        if ov is not None:
+            span, block, fact_preserved, source = ov[0], ov[1], True, "subagent"
+        else:
+            span, block, fact_preserved, source = self._render_llm(fact, s["stated_span"], value)
+
+        new_msgs, applied = [], 0
+        for m in messages:
+            c = m.get("content", "")
+            if block and span in c:
+                c = c.replace(span, block, 1)
+                applied += 1
+            new_msgs.append({**m, "content": c})
         return {"messages_var": new_msgs,
                 "replacements": [{"find": span, "replace": block}],
                 "n_applied": applied,
-                "extra": {"fact_preserved": fact_preserved, "data_phrase": block, "style": value}}
+                "extra": {"fact_preserved": fact_preserved, "data_phrase": block,
+                          "style": value, "source": source}}
 
     def footprint_prompt(self, ex, s, values):
         convo = "\n\n".join(f"{m['role']}: {m['content']}" for m in ex["messages"])

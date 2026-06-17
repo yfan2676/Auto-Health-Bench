@@ -3,8 +3,8 @@
 
 A dimension knows how to (1) DETECT items it can edit, (2) generate the K sweep VALUES,
 (3) EDIT a conversation to one value (the single-dimension counterfactual), and (4) write
-the a-priori FOOTPRINT-classifier prompt keyed to itself. Everything downstream — the fixed
-answer (answers.py), the K-way grading (sweep_grade.py), the metrics (analyze.py), and the
+the a-priori FOOTPRINT-classifier prompt keyed to itself. Everything downstream — the fresh
+answers (answers.py), the K-way grading (sweep_grade.py), the metrics (analyze.py), and the
 viewer — is dimension-agnostic and works off the shortlist's `dimension` field.
 
 Methods operate on the shortlist row `s` (so each dimension stashes whatever fields it needs

@@ -1,25 +1,21 @@
 #!/usr/bin/env python3
-"""Step 7 — score the locality test: footprint precision/recall + off-target rate.
+"""Step 7 — score the locality test: change rate, net dimension effect, footprint P/R.
 
-Joins the a-priori footprint prediction with the measured paired/sweep verdicts and
-reports, over all (item, criterion) pairs:
+Joins the a-priori footprint prediction with the measured K-value sweep verdicts
+(results/sweep_grades/, src/sweep_grade.py) and reports, over all (item, criterion) pairs:
 
   Confusion matrix    predicted (footprint vs kept)  x  actual (changed vs unchanged)
   Footprint precision = TP / (TP + FP)   (of criteria we predicted would move, how many did)
   Footprint recall    = TP / (TP + FN)   (of criteria that moved, how many we predicted)
-  OFF-TARGET rate     = FP / (FP + TN)   (bridge criteria that moved — compare to noise floor)
-  ON-TARGET  rate     = recall           (footprint criteria that actually moved)
 
-where "positive" = predicted dimension-sensitive (in the footprint), "actual change" = the
-fixed answer's verdict differs between V and the edited conversation(s). A clean, local
-dimension shows OFF-TARGET ~ the judge-noise floor and a high ON-TARGET rate.
+where "positive" = predicted dimension-sensitive (in the footprint) and "actual change" = the
+model's fresh answer to V_k satisfies the criterion differently than its fresh answer to V.
 
-Input preference: the K-value SWEEP (results/sweep_grades/, src/sweep_grade.py) — the
-behavioral footprint — if present; else the legacy single-edit paired grades
-(results/grades/, src/paired_grade.py). Breakdowns: actual change rate by rubric axis, by
-predicted bucket, by DIMENSION (D1 age / D2 disclosure), and the sweep flip-point
-distribution. The predicted-vs-measured agreement (precision/recall + accuracy) is E1b's
-headline: does the cheap a-priori classifier match the behavioral truth?
+Because the answers to V and each V_k are independently sampled, the raw change rate includes
+the model's roll-to-roll answer variance. The honest signal is the NET effect:
+`net = change rate − same-input floor` (the floor is measured per dimension by
+src/noise_floor.py). Breakdowns: change rate by rubric axis, by predicted bucket, by DIMENSION
+(D1 age / D2 disclosure), and the sweep flip-point distribution.
 
 Output: results/metrics.json + results/report.md
 
@@ -34,7 +30,7 @@ import common
 
 
 def _normalize(rec):
-    """Map a sweep or legacy grade row to a common shape used by the metrics below."""
+    """Map a sweep grade row to a common shape used by the metrics below."""
     bucket = rec.get("predicted_bucket", "kept")
     sensitive = rec.get("predicted_sensitive", rec.get("age_sensitive", bucket != "kept"))
     return {
@@ -66,14 +62,11 @@ def _load_dir(path):
 
 
 def load_rows():
-    """Prefer the sweep grades (behavioral footprint); fall back to legacy paired grades."""
+    """Load the measured sweep grades (the behavioral footprint)."""
     if common.SWEEP_GRADES.exists() and any(common.SWEEP_GRADES.glob("*.jsonl")):
         return _load_dir(common.SWEEP_GRADES), "sweep_grades"
-    if common.GRADES.exists() and any(common.GRADES.glob("*.jsonl")):
-        return _load_dir(common.GRADES), "grades"
     raise FileNotFoundError(
-        f"no grades found — run src/sweep_grade.py (or src/paired_grade.py) first "
-        f"(looked in {common.SWEEP_GRADES} and {common.GRADES})")
+        f"no grades found — run src/sweep_grade.py first (looked in {common.SWEEP_GRADES})")
 
 
 def _safe(a, b):
@@ -90,6 +83,7 @@ def confusion_metrics(rows):
     f1 = _safe(2 * precision * recall, precision + recall) if precision and recall else None
     return {
         "confusion": {"tp": tp, "fp": fp, "fn": fn, "tn": tn},
+        "change_rate": _safe(tp + fp, tp + fp + fn + tn),  # any criterion whose verdict moved
         "footprint_precision": precision, "footprint_recall": recall, "footprint_f1": f1,
         "off_target_change_rate": _safe(fp, fp + tn),  # bridge criteria that moved
         "on_target_change_rate": recall,               # footprint criteria that moved
@@ -133,15 +127,26 @@ def main():
                         "n_items": len({x['example_id'] for x in rs})}
                     for d, rs in sorted(rows_by_dim.items())}
 
-    floor = None
+    # Same-input floor (per dimension, src/noise_floor.py): the flip rate from re-sampling the
+    # model's answer to the SAME input. The change rate compares independently sampled answers
+    # to V vs V_k, so this baseline — the model's own roll-to-roll answer variance — is
+    # subtracted to get the net dimension effect = change rate − floor.
+    floor_by_dim = {}
     floor_p = common.RESULTS / "noise_floor.json"
     if floor_p.exists():
-        floor = json.loads(floor_p.read_text()).get("flip_rate")
+        for d, rec in (json.loads(floor_p.read_text()).get("by_dimension") or {}).items():
+            floor_by_dim[d] = rec.get("flip_rate")
+
+    for d, m in by_dimension.items():
+        f_d = floor_by_dim.get(d)
+        raw = m["change_rate"]
+        m["same_input_floor"] = f_d
+        m["net_dimension_effect"] = (raw - f_d) if (raw is not None and f_d is not None) else None
 
     metrics = {
         "source": source, "n_items": n_items, "n_criteria_pairs": n,
         **overall,
-        "judge_noise_floor": floor,
+        "same_input_floor_by_dimension": floor_by_dim,
         "by_dimension": by_dimension,
         "actual_change_rate_by_axis": {k: {"rate": _safe(v[0], v[1]), "n": v[1]} for k, v in sorted(by_axis.items())},
         "actual_change_rate_by_predicted_bucket": {k: {"rate": _safe(v[0], v[1]), "n": v[1]} for k, v in sorted(by_bucket.items())},
@@ -152,57 +157,57 @@ def main():
     def pct(x):
         return "n/a" if x is None else f"{x:.1%}"
 
-    c = overall["confusion"]
+    def ppts(x):
+        return "n/a" if x is None else f"{x*100:+.1f} pts"
+
+    floor_line = ", ".join(f"{d} **{pct(v)}**" for d, v in sorted(floor_by_dim.items())) or "n/a"
     lines = [
         "# Counterfactual dimensional locality — results", "",
-        f"- source: **{source}**  (sweep = behavioral K-value footprint; grades = single edit)",
         f"- items: **{n_items}**, criterion-pairs graded: **{n}**",
-        f"- judge-noise floor (identical-input flip rate): **{pct(floor)}**",
+        f"- same-input floor (per dimension): {floor_line}",
         "",
-        "## Locality (the headline)", "",
-        f"- **OFF-TARGET change rate** (bridge criteria that moved): **{pct(overall['off_target_change_rate'])}**  "
-        f"← compare to noise floor {pct(floor)}; near it ⇒ the bridge holds.",
-        f"- **ON-TARGET change rate** (footprint criteria that moved): **{pct(overall['on_target_change_rate'])}**",
-        f"- footprint precision **{pct(overall['footprint_precision'])}**, recall **{pct(overall['footprint_recall'])}**, "
-        f"F1 **{pct(overall['footprint_f1'])}**",
-        f"- predicted-vs-measured agreement (accuracy): **{pct(overall['predicted_vs_measured_accuracy'])}**",
+        "## Headline", "",
+        "> Answers to V and to each V_k are sampled independently, so the raw change rate includes the"
+        " model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input"
+        " floor** (per dimension). See the by-dimension table.",
         "",
-        "## Confusion matrix (predicted × actual)", "",
-        "| | actual: changed | actual: unchanged |",
-        "|---|---|---|",
-        f"| predicted footprint | {c['tp']} (TP) | {c['fn']} (FN) |",
-        f"| predicted kept (bridge) | {c['fp']} (FP) | {c['tn']} (TN) |",
+        f"- **raw change rate** (any criterion whose verdict moved across the sweep): **{pct(overall['change_rate'])}**",
+        f"- footprint precision **{pct(overall['footprint_precision'])}**, recall **{pct(overall['footprint_recall'])}** "
+        f"(the a-priori Qwen-4B classifier predicts ~0 sensitive — see caveat below).",
         "",
-        "## By dimension", "",
-        "| dimension | items | off-target | on-target | precision | recall |",
-        "|---|---|---|---|---|---|",
+        "## By dimension (net effect vs the same-input floor)", "",
+        "| dimension | items | raw change rate | same-input floor | **net effect** |",
+        "|---|---|---|---|---|",
     ]
     for d, m in by_dimension.items():
-        lines.append(f"| {d} | {m['n_items']} | {pct(m['off_target_change_rate'])} | "
-                     f"{pct(m['on_target_change_rate'])} | {pct(m['footprint_precision'])} | "
-                     f"{pct(m['footprint_recall'])} |")
-    lines += ["", "## Actual change rate by rubric axis", "",
+        lines.append(f"| {d} | {m['n_items']} | {pct(m['change_rate'])} | "
+                     f"{pct(m.get('same_input_floor'))} | **{ppts(m.get('net_dimension_effect'))}** |")
+    lines += ["", "## Change rate by rubric axis", "",
               "| axis | change rate | n |", "|---|---|---|"]
     for k, v in metrics["actual_change_rate_by_axis"].items():
-        lines.append(f"| {k} | {pct(v['rate'])} | {v['n']} |")
-    lines += ["", "## Actual change rate by predicted bucket", "",
-              "| predicted bucket | change rate | n |", "|---|---|---|"]
-    for k, v in metrics["actual_change_rate_by_predicted_bucket"].items():
         lines.append(f"| {k} | {pct(v['rate'])} | {v['n']} |")
     if metrics["flip_point_distribution"]:
         lines += ["", "## Sweep flip-point distribution (criteria that flipped, by value)", "",
                   "| value | # criteria flipped |", "|---|---|"]
         for k, v in metrics["flip_point_distribution"].items():
             lines.append(f"| {k} | {v} |")
-    lines += ["", "_Generated by src/analyze.py. Interpretation: a clean, local dimension has "
-              "OFF-TARGET ≈ noise floor and a high ON-TARGET rate; a high OFF-TARGET rate means "
-              "the edit rippled beyond the predicted footprint (or the prediction was poor)._"]
+    lines += ["", "## Caveats", "",
+              "- **The a-priori footprint classifier is degenerate on Qwen3-4B** (predicts ~0 sensitive "
+              "criteria), so footprint precision/recall collapse. The usable footprint signal is the "
+              "measured per-axis change rate and the by-value flip distribution, not the predicted buckets.",
+              "- **The same-input floor is high (~24%)** because a 4B answer model at temperature varies "
+              "a lot run-to-run; with it subtracted the net dimension effect is modest. Lower answer "
+              "temperature or averaging several answers per input would raise signal-to-noise.",
+              "",
+              "_Generated by src/analyze.py. Interpretation: net effect = change rate − same-input floor. "
+              "A clean, local dimension shows a small positive net concentrated in the dimension-relevant "
+              "criteria; ≈0 net means the bridge holds (the edit did not change the model's "
+              "clinically-graded behavior beyond its own sampling noise)._"]
     (common.RESULTS / "report.md").write_text("\n".join(lines) + "\n")
 
+    net_str = ", ".join(f"{d} {ppts(m.get('net_dimension_effect'))}" for d, m in by_dimension.items())
     print(f"source={source} items={n_items} pairs={n}  "
-          f"off_target={pct(overall['off_target_change_rate'])} (floor {pct(floor)})  "
-          f"on_target={pct(overall['on_target_change_rate'])}  "
-          f"precision={pct(overall['footprint_precision'])} recall={pct(overall['footprint_recall'])}")
+          f"raw_change={pct(overall['change_rate'])}  net[{net_str}]")
     print(f"-> {common.RESULTS/'metrics.json'}  and  {common.RESULTS/'report.md'}")
 
 

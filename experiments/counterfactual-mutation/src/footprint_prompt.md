@@ -3,7 +3,7 @@
 Given a HealthBench conversation and its physician rubric, and a single-dimension edit
 (patient age `age_from` → `age_to`), predict — **before any model answer is graded** —
 whether each existing criterion's correct verdict changes, and how. This is the
-counterfactual-locality *prediction*; `src/paired_grade.py` + `src/analyze.py` then *test*
+counterfactual-locality *prediction*; `src/sweep_grade.py` + `src/analyze.py` then *test*
 it (predicted-`kept` = bridge, should not move; the rest = footprint, should move).
 
 The exact prompt sent to the model is embedded in

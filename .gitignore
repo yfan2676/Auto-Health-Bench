@@ -24,12 +24,11 @@ experiments/*/results/**/responses/*
 experiments/*/results/**/grades.jsonl
 # counterfactual-mutation: bulk per-item files carry HealthBench prompt/rubric text.
 # (report.md / metrics.json / noise_floor.json are aggregate-only and DO sync.)
-experiments/*/results/**/variants/*
 experiments/*/results/**/footprint/*
 experiments/*/results/**/answers/*
-experiments/*/results/**/grades/*
 experiments/*/results/**/sweep/*
 experiments/*/results/**/sweep_grades/*
+experiments/*/results/**/edits_override/*
 # Aggregated viewer bundle embeds prompt/rubric/judge-explanation text — never commit.
 # (viewer/index.html and src/build_viewer.py are code and DO sync.)
 experiments/*/viewer/data.json

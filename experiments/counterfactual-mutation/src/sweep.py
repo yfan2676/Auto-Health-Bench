@@ -2,10 +2,10 @@
 """Step 2' — produce the K-value SWEEP of edited conversations (generalizes edit.py).
 
 Instead of a single A->B edit, instantiate the dimension at K~3 values and make one minimal
-single-dimension edit per value (delegated to the dimension's editor). Grading a fixed answer
-under the original V and each swept V_k (src/sweep_grade.py) then tells us, behaviorally,
-which criteria are dimension-DEPENDENT (verdict flips at some value -> footprint) vs
-dimension-INDEPENDENT (invariant across the whole sweep -> bridge). This is the "sweep test"
+single-dimension edit per value (delegated to the dimension's editor). Grading the model's
+fresh answer to the original V and to each swept V_k (src/sweep_grade.py) then tells us,
+behaviorally, which criteria are dimension-DEPENDENT (verdict flips at some value -> footprint)
+vs dimension-INDEPENDENT (invariant across the whole sweep -> bridge). This is the "sweep test"
 of the idea doc (docs/counterfactual-mutation.md §4.1) — the measured footprint, a stronger
 ground truth than a single edit or the a-priori classifier.
 
@@ -70,7 +70,12 @@ def main():
             # A dimension's fact-preservation signal (e.g. disclosure) is ADVISORY and kept in
             # `extra` for the viewer — a noisy small-model check shouldn't silently drop data;
             # the bridge-invariance sweep is the real check on whether the edit leaked.
-            ok = res["n_applied"] > 0 and frac <= args.max_change_frac
+            # A subagent-authored edit is fact-vetted by its (capable) author, so for it the
+            # char-diff guard is advisory too: a clinically clean clause-level rewrite (e.g.
+            # dropping "without specific readings" when injecting a reading) legitimately exceeds
+            # the fraction. change_frac stays recorded/shown; for LLM-rendered edits it still gates.
+            vetted = extra.get("source") == "subagent"
+            ok = res["n_applied"] > 0 and (vetted or frac <= args.max_change_frac)
             label = f"age {v}" if dim_name == "age" else str(v)
             variants.append({
                 "value": v, "label": label, "messages_var": new_msgs,

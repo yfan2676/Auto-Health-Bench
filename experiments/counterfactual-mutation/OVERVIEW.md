@@ -1,6 +1,6 @@
 # Counterfactual Dimensional Mutation — overview
 
-*A 2-3 minute read. Full run instructions: [`README.md`](README.md). Motivation: [`../../docs/counterfactual-mutation.md`](../../docs/counterfactual-mutation.md).*
+*A 2-3 minute read. Results & the key methodological lesson: [`FINDINGS.md`](FINDINGS.md). Full run instructions: [`README.md`](README.md). Motivation: [`../../docs/counterfactual-mutation.md`](../../docs/counterfactual-mutation.md).*
 
 ## The question
 
@@ -23,11 +23,10 @@ so a new variant reuses most of the expert rubric at *edit-distance* cost. This 
 ## The core idea (probe the answer model, keep the judge simple)
 
 We **change the input, get a fresh answer from the answer model, and grade that answer against
-the original rubric** — item by item. We do **not** hold one answer fixed and ask the judge to
-re-grade it under the new input: the judge cannot be trusted to infer *how the correct verdict
-should change* when the input changes — the **rubric**, not the judge, holds that ground truth.
-So the judge only does the simple thing it is good at ("does this answer satisfy this item?"),
-and the **answer model's own adaptation** is what we observe.
+the original rubric** — item by item. The **rubric**, curated for the input, holds the ground
+truth for *how the correct verdict should change* when the input changes. So we probe the
+**answer model** on each input and let the judge do only the simple thing it is good at ("does
+this answer satisfy this item?"), and the **answer model's own adaptation** is what we observe.
 
 ```
    input V  (original)                 input V_k  (one variable changed, e.g. age 70 → 20)
@@ -51,8 +50,9 @@ age-dependent**, and simultaneously seen the model correctly adapt. A bridge ite
 
 We do this over a **sweep** of K≈3 values (e.g. ages 8 / 50 / 72), one fresh answer per input.
 A criterion that holds across the whole sweep is bridge; one that flips at any value is
-footprint. *(One answer per input means a flip can include some generation randomness — read
-the off-target rate against the noise floor, never against zero.)*
+footprint. *(Answers to V and each V_k are sampled independently, so a flip can include some
+generation randomness — the reported signal is the **net effect**: change rate minus the
+same-input floor, the flip rate from re-sampling the answer to one unchanged input.)*
 
 ## Pipeline & data flow
 
@@ -79,11 +79,11 @@ the off-target rate against the noise floor, never against zero.)*
  │  sweep_grade.py│  changed = verdict flips vs the original answer ─► results/sweep_grades/<id>.jsonl
  └──────┬─────────┘
         │
- ┌──────▼─────────┐  judge flip-rate on identical input (the comparison baseline)
+ ┌──────▼─────────┐  same-input floor per dimension: re-sample K answers to one unchanged input
  │  noise_floor.py│ ───────────────────────────────────────► results/noise_floor.json
  └──────┬─────────┘
         │
- ┌──────▼─────────┐  join predicted vs. measured → precision/recall, off-target vs. floor
+ ┌──────▼─────────┐  change rate, net effect vs. the same-input floor, by dimension & axis
  │  analyze.py    │ ───────────────────────────────────────► results/{metrics.json, report.md}
  └──────┬─────────┘
         │
@@ -102,10 +102,10 @@ fan their independent calls across two vLLM servers (`HB_TARGET_BASE_URLS`, `HB_
 
 | Metric | Reads as |
 |---|---|
-| **off-target change rate** | bridge criteria that flipped — should sit near the **noise floor**; if so the bridge holds (the model answers them consistently across inputs) |
-| **on-target rate / recall** | footprint criteria that actually flipped (the model adapted on the input-dependent items) |
+| **change rate** | fraction of criteria whose verdict moved across the sweep (includes answer-sampling noise) |
+| **same-input floor** | flip rate from re-sampling the answer to one *unchanged* input — the baseline to subtract (measured per dimension) |
+| **net effect** | change rate − same-input floor: the honest dimension signal. ≈0 ⇒ the bridge holds; a small positive concentrated in dimension-relevant criteria ⇒ a real footprint |
 | **footprint precision / recall** | did the a-priori LLM prediction match what the model's fresh answers actually changed? |
-| **judge-noise floor** | how often the T=0 judge flips on *identical* input — the baseline we compare against (fresh answers add some generation noise on top) |
 
 Per-criterion confusion (predicted-sensitive × actually-flipped) drives the viewer's coloring:
 **TP** predicted+flipped · **FP** bridge flipped (off-target) · **FN** footprint missed · **TN** held.

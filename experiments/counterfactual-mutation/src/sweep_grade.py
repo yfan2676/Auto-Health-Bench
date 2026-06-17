@@ -9,9 +9,8 @@ temperature-0 judge — which only does the simple "does this answer satisfy thi
 A criterion "changed" when the verdict of A_k under V_k differs from the verdict of A under V.
 That flip means the model's answer to the mutated input satisfies the criterion differently —
 which both identifies an input-dependent (footprint) criterion and shows whether the model
-adapts. We do NOT reuse one fixed answer: the rubric (curated for the input) holds the ground
-truth, so we change the input, let the model answer, and let the flips fall out — rather than
-asking the judge to infer how a fixed answer's verdict should change.
+adapts. The rubric (curated for the input) holds the ground truth, so we change the input, let
+the model answer, and let the flips fall out of the simple per-item judge check.
 
 The many independent grader calls — (criterion x {V + each V_k}) per item — are fanned across
 the judge endpoints with common.pmap so both GPUs stay busy. Judge explanations are stored.

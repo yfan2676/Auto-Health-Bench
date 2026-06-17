@@ -7,8 +7,9 @@ generate one answer per input — the original conversation V *and* each swept v
 (from src/sweep.py) — with the target model (thinking on, same as the baseline harness).
 A criterion later "flips" when the model's answer to V_k satisfies it differently than its
 answer to V; that flip is what identifies an input-dependent (footprint) criterion and shows
-whether the model adapts. We deliberately do NOT reuse one fixed answer — the rubric, not the
-judge, holds the ground truth for how a good answer should change with the input.
+whether the model adapts. The rubric — curated for the input — holds the ground truth for how a
+good answer should change, so we probe the answer model on each input and let the judge do only
+the simple per-item check.
 
 Generation is the slow step, so all answers (across items and inputs) are produced
 concurrently, round-robined across the answer-model endpoints (HB_TARGET_BASE_URLS) so both

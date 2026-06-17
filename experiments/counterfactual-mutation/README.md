@@ -20,10 +20,9 @@ client and the vendored HealthBench grader (no re-implementation of grading).
 
 **Change the input, get a fresh answer from the answer model, and grade that answer against
 the original rubric** — item by item. The rubric is curated for the *input* and holds the
-ground truth; we therefore do **not** hold one answer fixed and ask the judge to infer how the
-verdict should change under the new input (the judge can't be trusted to do that). Instead the
-answer model responds to each input and the judge only checks "does this answer satisfy this
-item?". A criterion whose verdict **flips** between `model(V)` and `model(V′)` is one whose
+ground truth for how a good answer should change, so we probe the **answer model** on each
+input and the judge only does the simple thing it is reliable at: "does this answer satisfy
+this item?". A criterion whose verdict **flips** between `model(V)` and `model(V′)` is one whose
 satisfaction *depends on* the changed variable — that both **identifies** input-dependent
 criteria and **measures** whether the model adapts.
 
@@ -39,8 +38,9 @@ Compared against an a-priori footprint prediction:
 - **footprint:** criteria predicted **sensitive** *should* flip when the model adapts.
 
 Together → a confusion matrix and **footprint precision/recall**. The judge runs at
-**temperature 0**; one fresh answer per input adds some generation noise, so off-target is read
-against the noise floor, never zero.
+**temperature 0**; because the answers to `V` and each `V_k` are sampled independently, the raw
+change rate includes the model's own answer variance, so the reported signal is **net = change
+rate − the same-input floor** (per dimension; see [`FINDINGS.md`](FINDINGS.md)).
 
 ## Pipeline
 
@@ -57,22 +57,19 @@ src/answers.py       Step 4  fresh answer to EACH input — V and every V_k (con
                                                                          -> results/answers/<id>.json
 src/sweep_grade.py   Step 5  grade each fresh answer vs the original rubric (T=0, concurrent across GPUs)
                                                                          -> results/sweep_grades/<id>.jsonl
-src/noise_floor.py   Step 6  identical-input judge flip rate              -> results/noise_floor.json
-src/analyze.py       Step 7  footprint P/R + off-target vs floor (+by-dim) -> results/{metrics.json,report.md}
+src/noise_floor.py   Step 6  same-input answer-resampling flip rate / dim  -> results/noise_floor.json
+src/analyze.py       Step 7  change rate + net effect vs floor (+by-dim)   -> results/{metrics.json,report.md}
 src/build_viewer.py  Step 8  aggregate everything (+difflib spans)        -> viewer/data.json
 viewer/index.html    dependency-free static viewer (serve with python -m http.server)
 ```
 
 A criterion is in the **measured footprint** iff the model's answer flips its verdict between
 the original input `V` and *any* swept input `V_k`; held across the whole sweep ⇒ bridge.
-`analyze.py` scores the a-priori footprint classifier against this measured footprint
-(precision/recall, off-target vs. noise floor), broken down by dimension and rubric axis. Each
-step is resumable (per-item files / appended jsonl, skip-existing).
-
-> The original single-edit path (`src/edit.py` → `results/variants/`, `src/paired_grade.py` →
-> `results/grades/`) is a legacy *fixed-answer* probe (grades one answer under both inputs) and
-> is superseded by the fresh-answer sweep above; `analyze.py` reads `sweep_grades/` if present,
-> else falls back to `grades/`.
+`analyze.py` scores the a-priori footprint classifier against this measured footprint, reports
+the per-dimension **net effect** (change rate − same-input floor), and breaks change rate down
+by dimension and rubric axis. Each step is resumable (per-item files / appended jsonl,
+skip-existing). `src/edit.py` is the deterministic age-edit primitive reused by
+`src/dimensions/age.py`.
 
 ## How to run
 
@@ -100,8 +97,8 @@ python3 src/sweep.py                     # K~3-value sweep of edited inputs per 
 python3 src/footprint.py                 # predict the footprint a priori
 python3 src/answers.py                   # fresh answer to EACH input (V and every V_k)
 python3 src/sweep_grade.py               # grade each fresh answer vs the original rubric
-python3 src/noise_floor.py  --k 5 --items 5   # judge-noise floor
-python3 src/analyze.py                   # -> results/report.md (off-target vs floor, by dimension)
+python3 src/noise_floor.py               # same-input floor, per dimension (K answers to the same input)
+python3 src/analyze.py                   # -> results/report.md (change rate, net effect vs floor, by dimension)
 python3 src/build_viewer.py              # -> viewer/data.json
 python3 -m http.server -d viewer 8080    # open http://localhost:8080
 ```
@@ -112,8 +109,16 @@ shortlist, keeping the D1 rows), then run the shared steps once for both dimensi
 ```bash
 python3 src/pick.py --dimension disclosure --limit 30   # re-encodable stated facts (regex + LLM confirm)
 python3 src/sweep.py && python3 src/footprint.py && python3 src/answers.py && python3 src/sweep_grade.py
+python3 src/noise_floor.py                               # adds the disclosure same-input floor
 python3 src/analyze.py && python3 src/build_viewer.py    # one report + viewer covering D1 and D2
 ```
+
+Re-encoding a stated fact as a clinically faithful, in-range data value is the demanding step.
+For the best edits, author them with a capable model into
+`results/edits_override/<example_id>.json` — a per-style `{find, data_phrase}` written before
+`sweep.py` (`DisclosureDimension.edit_one` prefers these and falls back to the 4B render).
+`find` must be an exact substring of a user message; the same value is used across the styles so
+only the *form* of disclosure varies.
 
 Config knobs (env): `HB_JUDGE_BASE_URLS` (comma-separated judge URLs, one per GPU),
 `CM_JUDGE_CONCURRENCY` (grading threads per endpoint, default 8), `HB_MAX_TOKENS`
@@ -123,33 +128,35 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
 
 ## Status
 
-- **Implemented & smoke-tested (D1 + D2):** the full sweep pipeline + the 2-GPU concurrent
-  grader + the static viewer run end-to-end on Qwen3-4B. A 2-per-dimension smoke run produced
-  `results/report.md`, `results/metrics.json`, and `viewer/data.json`; the viewer renders all
-  five views (original input, original rubrics, edited-input diffs per swept value, predicted
-  footprint, actually-changed footprint) plus the qualitative + metric panels, for both D1 and
-  D2. The full **30 D1 + 30 D2** run is the handed-off step (commands above).
-- **Predicted vs. measured footprint:** `footprint.py` is the *a-priori* (LLM) estimator; on
-  the smoke run Qwen3-4B again predicted *0* sensitive criteria — exactly why the behavioral
-  **sweep** (`sweep_grade.py`) is the ground truth and `analyze.py` scores the classifier
-  against it (predicted-vs-measured agreement, off-target vs. noise floor).
-- **D2 caveats (small model):** rendering prose→data with a 4B model is imperfect — it can pick
-  a borderline value or emit no value. Guards: a deterministic span delete, an *advisory*
-  `fact_preserved` check (surfaced in the viewer, **not** auto-excluding — the bridge-invariance
-  sweep is the real leak test), and the diff guard. D2 works best on facts that map to an
-  unambiguous out-of-range value; "well-controlled"/qualified facts are weaker candidates.
-- **Next:** run E1 at n≈30 per dimension; read `results/report.md` (kill-shot: off-target ≈
-  noise floor and footprint moves); consider a stronger judge/classifier on the second GPU;
-  then add D3 (severity) per idea doc §5.
+- **Run end-to-end on Qwen3-4B at n=30 per dimension (D1 age + D2 disclosure).** The full sweep
+  pipeline + the 2-GPU concurrent grader + the static viewer produce `results/report.md`,
+  `results/metrics.json`, and `viewer/data.json`; the viewer renders all five views (original
+  input, original rubrics, edited-input diffs per swept value, predicted footprint,
+  actually-changed footprint) plus the qualitative + metric panels, for both dimensions.
+- **Net dimension effect (vs the same-input floor): age ≈ +6 pts, disclosure ≈ +9 pts** — see
+  [`FINDINGS.md`](FINDINGS.md). The footprint concentrates in completeness/accuracy; the
+  communication/management bridge is the most invariant axis.
+- **Predicted vs. measured footprint:** `footprint.py` is the *a-priori* (LLM) estimator;
+  Qwen3-4B predicts *0* sensitive criteria — so the behavioral **sweep** (`sweep_grade.py`) is
+  the ground truth and the usable footprint signal is the measured per-axis change rate. A
+  stronger model on the classifier would make predicted-vs-measured meaningful.
+- **D2 edits:** authored by a capable model into `results/edits_override/` (above); the 4B
+  prose→data render remains as a fallback with an *advisory* `fact_preserved` check and a diff
+  guard. D2 works best on facts that map to an unambiguous out-of-range value.
+- **Next:** lower the answer temperature or average several answers per input to shrink the
+  ~24% floor and sharpen the net effect; a stronger classifier on the second GPU; then add D3
+  (severity) per idea doc §5.
 
 ## Findings
 
-None written up yet — run the full 30+30 and summarize `results/report.md` into `reports/`.
+See [`FINDINGS.md`](FINDINGS.md) — the narrative + the per-dimension net effects. Live numbers
+regenerate into `results/report.md` on each `analyze.py` run.
 
 ## Data & results conventions
 
 `data/` is git-ignored and shared with the baseline harness (see `data/README.md`). Under
 `results/`, the small `report.md` / `metrics.json` / `noise_floor.json` are committable; bulk
-per-item files (`shortlist.jsonl`, `variants/`, `footprint/`, `answers/`, `grades/`, `sweep/`,
-`sweep_grades/`) and `viewer/data.json` are git-ignored — they contain HealthBench prompt/rubric
-text, which must not be shared. `viewer/index.html` and `src/build_viewer.py` are code and sync.
+per-item files (`shortlist.jsonl`, `footprint/`, `answers/`, `sweep/`, `sweep_grades/`,
+`edits_override/`) and `viewer/data.json` are git-ignored — they contain HealthBench
+prompt/rubric text, which must not be shared. `viewer/index.html` and `src/build_viewer.py` are
+code and sync.

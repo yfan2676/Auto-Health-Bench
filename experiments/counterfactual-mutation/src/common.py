@@ -61,12 +61,11 @@ GEN_EPS = config.target_endpoints()
 # --- paths -------------------------------------------------------------------
 RESULTS = _EXP / "results"
 SHORTLIST = RESULTS / "shortlist.jsonl"
-VARIANTS = RESULTS / "variants"     # per-item edited conversation V' (single-edit path)
 FOOTPRINT = RESULTS / "footprint"   # per-item a-priori per-criterion prediction
-ANSWERS = RESULTS / "answers"       # per-item fixed model answer to V (and optionally V')
-GRADES = RESULTS / "grades"         # per-item paired grades (orig vs variant, single-edit path)
+ANSWERS = RESULTS / "answers"       # per-item fresh model answers (to V and each swept variant)
 SWEEP = RESULTS / "sweep"           # per-item K-value sweep of edited conversations
 SWEEP_GRADES = RESULTS / "sweep_grades"  # per-item K-way grades (orig + each swept value)
+EDITS_OVERRIDE = RESULTS / "edits_override"  # optional subagent-authored edits (D2 prose->data)
 
 
 # --- data loading (resolve the HealthBench split flexibly) -------------------
@@ -130,7 +129,7 @@ def examples_by_id(ids, split="full"):
 
 # --- LLM helpers (all routed through the sibling client) ---------------------
 def convo_string(messages, answer):
-    """Render conversation + a fixed assistant answer the way the grader expects."""
+    """Render a conversation + the assistant's answer the way the grader expects."""
     convo = list(messages) + [{"role": "assistant", "content": answer}]
     return "\n\n".join(f"{m['role']}: {m['content']}" for m in convo)
 

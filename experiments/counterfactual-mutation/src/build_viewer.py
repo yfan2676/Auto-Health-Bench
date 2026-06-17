@@ -5,8 +5,8 @@ time the results change.
 
 For each tested sample it joins: the shortlist (dimension, base value), the K-value sweep
 (src/sweep.py — original + edited conversations), the a-priori footprint prediction
-(src/footprint.py), the fixed answer (src/answers.py), and the measured per-criterion sweep
-verdicts (src/sweep_grade.py). Diff-highlight spans between the original and each edited
+(src/footprint.py), the model's fresh answer to each input (src/answers.py), and the measured
+per-criterion sweep verdicts (src/sweep_grade.py). Diff-highlight spans between the original and each edited
 conversation are precomputed here with difflib (word granularity) so the HTML stays
 dependency-free — it just paints spans tagged equal/insert/delete.
 
