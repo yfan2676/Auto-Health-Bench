@@ -133,7 +133,7 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
   `results/metrics.json`, and `viewer/data.json`; the viewer renders all five views (original
   input, original rubrics, edited-input diffs per swept value, predicted footprint,
   actually-changed footprint) plus the qualitative + metric panels, for both dimensions.
-- **Net dimension effect (vs the same-input floor): age ≈ +6 pts, disclosure ≈ +9 pts** — see
+- **Net dimension effect (Δ change rate vs the same-input floor): age ≈ +6%, disclosure ≈ +9%** — see
   [`FINDINGS.md`](FINDINGS.md). The footprint concentrates in completeness/accuracy; the
   communication/management bridge is the most invariant axis.
 - **Predicted vs. measured footprint:** `footprint.py` is the *a-priori* (LLM) estimator;

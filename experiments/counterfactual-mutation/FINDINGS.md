@@ -24,15 +24,15 @@ and each `V_k` are sampled independently — so the raw rate contains the model'
 variance. The baseline that isolates the dimension is the **same-input floor**: regenerate K
 answers to one *unchanged* input and measure the flip rate (`noise_floor.py`). It is **~24%**.
 
-**Net dimension effect = change rate − same-input floor:**
+**Net dimension effect = change rate − same-input floor** (a delta of two rates, shown as %):
 
-| dimension | change rate | same-input floor | **net effect** |
+| dimension | change rate | same-input floor | **net effect (Δ)** |
 |---|---|---|---|
-| age (D1)        | 31.0% | 24.7% | **+6.2 pts** |
-| disclosure (D2) | 32.4% | 23.8% | **+8.6 pts** |
+| age (D1)        | 31.0% | 24.7% | **+6.2%** |
+| disclosure (D2) | 32.4% | 23.8% | **+8.6%** |
 
 (floors estimated on a ~20-item subset). So the attributable effect of changing one dimension
-is **modest (~6–9 pts)** — much smaller than the raw rate alone implies.
+is **modest (~6–9%)** — much smaller than the raw rate alone implies.
 
 ## What the signal looks like
 
@@ -41,7 +41,7 @@ is **modest (~6–9 pts)** — much smaller than the raw rate alone implies.
   i.e. the communication/management **bridge is the most invariant**, as the locality hypothesis
   predicts. (D2 by-axis: completeness 40%, accuracy 30%, context 29%, instruction 22%,
   communication 18%.)
-- **Disclosure moves the model *more* than age** (+8.6 vs +6.2 pts). This is a **numeracy gap**:
+- **Disclosure moves the model *more* than age** (+8.6% vs +6.2%). This is a **numeracy gap**:
   Qwen3-4B does not reliably read a bare value (`HbA1c 8.1%`, `BP 150/95`) as the diagnosis it
   stated in prose, so its graded behavior shifts — strongest on completeness (it gives less
   complete management advice when it must infer the diagnosis from a number). The same case is

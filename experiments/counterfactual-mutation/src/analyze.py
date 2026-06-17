@@ -157,8 +157,8 @@ def main():
     def pct(x):
         return "n/a" if x is None else f"{x:.1%}"
 
-    def ppts(x):
-        return "n/a" if x is None else f"{x*100:+.1f} pts"
+    def pdelta(x):  # net effect is a delta of two rates; show as a signed %
+        return "n/a" if x is None else f"{x*100:+.1f}%"
 
     floor_line = ", ".join(f"{d} **{pct(v)}**" for d, v in sorted(floor_by_dim.items())) or "n/a"
     lines = [
@@ -176,12 +176,12 @@ def main():
         f"(the a-priori Qwen-4B classifier predicts ~0 sensitive — see caveat below).",
         "",
         "## By dimension (net effect vs the same-input floor)", "",
-        "| dimension | items | raw change rate | same-input floor | **net effect** |",
+        "| dimension | items | raw change rate | same-input floor | **net effect (Δ)** |",
         "|---|---|---|---|---|",
     ]
     for d, m in by_dimension.items():
         lines.append(f"| {d} | {m['n_items']} | {pct(m['change_rate'])} | "
-                     f"{pct(m.get('same_input_floor'))} | **{ppts(m.get('net_dimension_effect'))}** |")
+                     f"{pct(m.get('same_input_floor'))} | **{pdelta(m.get('net_dimension_effect'))}** |")
     lines += ["", "## Change rate by rubric axis", "",
               "| axis | change rate | n |", "|---|---|---|"]
     for k, v in metrics["actual_change_rate_by_axis"].items():
@@ -205,7 +205,7 @@ def main():
               "clinically-graded behavior beyond its own sampling noise)._"]
     (common.RESULTS / "report.md").write_text("\n".join(lines) + "\n")
 
-    net_str = ", ".join(f"{d} {ppts(m.get('net_dimension_effect'))}" for d, m in by_dimension.items())
+    net_str = ", ".join(f"{d} {pdelta(m.get('net_dimension_effect'))}" for d, m in by_dimension.items())
     print(f"source={source} items={n_items} pairs={n}  "
           f"raw_change={pct(overall['change_rate'])}  net[{net_str}]")
     print(f"-> {common.RESULTS/'metrics.json'}  and  {common.RESULTS/'report.md'}")

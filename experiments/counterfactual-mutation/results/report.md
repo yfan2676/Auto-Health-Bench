@@ -12,10 +12,10 @@
 
 ## By dimension (net effect vs the same-input floor)
 
-| dimension | items | raw change rate | same-input floor | **net effect** |
+| dimension | items | raw change rate | same-input floor | **net effect (Δ)** |
 |---|---|---|---|---|
-| age | 30 | 31.0% | 24.7% | **+6.2 pts** |
-| disclosure | 30 | 32.4% | 23.8% | **+8.6 pts** |
+| age | 30 | 31.0% | 24.7% | **+6.2%** |
+| disclosure | 30 | 32.4% | 23.8% | **+8.6%** |
 
 ## Change rate by rubric axis
 
