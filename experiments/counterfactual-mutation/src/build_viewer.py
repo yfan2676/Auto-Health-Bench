@@ -94,14 +94,16 @@ def build_sample(s, ex):
 
     messages_orig = sweep.get("messages_orig", ex["messages"])
     answer = answer_rec.get("answer", "")
+    var_answer = {va["value"]: va["answer"] for va in answer_rec.get("variant_answers", [])}
 
-    # Variants (edited inputs) with precomputed diff spans.
+    # Variants (edited inputs) with precomputed diff spans + the model's fresh answer to each.
     variants = [{
         "value": vr["value"], "label": vr["label"],
         "messages_diff": messages_diff(messages_orig, vr["messages_var"]),
         "change_frac": vr.get("change_frac"), "ok": vr.get("ok", True),
         "fact_preserved": vr.get("extra", {}).get("fact_preserved"),
         "data_phrase": vr.get("extra", {}).get("data_phrase"),
+        "answer": var_answer.get(vr["value"], ""),
     } for vr in sweep.get("variants", [])]
 
     # Unified rubric list: criterion text + a-priori prediction + measured sweep verdicts.

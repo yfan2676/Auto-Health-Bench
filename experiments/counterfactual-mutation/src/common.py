@@ -53,9 +53,10 @@ CM_AUTHOR_TEMP = float(os.environ.get("CM_AUTHOR_TEMP", "0.6"))
 # change any call's inputs, so a temperature-0 judge stays deterministic per call.
 CM_JUDGE_CONCURRENCY = int(os.environ.get("CM_JUDGE_CONCURRENCY", "8"))
 
-# All judge endpoints (one per GPU when HB_JUDGE_BASE_URLS lists several). Computed
-# once; pmap round-robins work across them.
+# All judge endpoints (one per GPU when HB_JUDGE_BASE_URLS lists several) and all answer-model
+# endpoints (HB_TARGET_BASE_URLS). Computed once; pmap round-robins work across them.
 JUDGE_EPS = config.judge_endpoints()
+GEN_EPS = config.target_endpoints()
 
 # --- paths -------------------------------------------------------------------
 RESULTS = _EXP / "results"
@@ -152,22 +153,24 @@ def judge_criterion(convo_str, rubric, *, endpoint=None, temperature=None, think
     return bool(obj["criteria_met"]), obj.get("explanation", "")
 
 
-def pmap(fn, items, *, workers=None):
-    """Run `fn(item, endpoint)` over `items` concurrently, round-robining the judge
-    endpoints so the work spreads across every GPU. Results are returned in input
-    order. A call that raises is caught and its slot becomes an Exception instance —
-    the caller decides what to do (skip + log) so one bad grade can't abort a run of
-    thousands. With one endpoint this is still a useful within-GPU concurrency layer.
+def pmap(fn, items, *, endpoints=None, workers=None):
+    """Run `fn(item, endpoint)` over `items` concurrently, round-robining `endpoints` so the
+    work spreads across every GPU. Defaults to the judge endpoints (grading); pass
+    `endpoints=GEN_EPS` for answer generation. Results are returned in input order. A call
+    that raises is caught and its slot becomes an Exception instance — the caller decides what
+    to do (skip + log) so one bad call can't abort a run of thousands. With one endpoint this
+    is still a useful within-GPU concurrency layer.
     """
     items = list(items)
     if not items:
         return []
-    n_eps = len(JUDGE_EPS)
+    eps = endpoints or JUDGE_EPS
+    n_eps = len(eps)
     workers = workers or max(1, n_eps * CM_JUDGE_CONCURRENCY)
 
     def _call(i_item):
         i, item = i_item
-        ep = JUDGE_EPS[i % n_eps]
+        ep = eps[i % n_eps]
         try:
             return fn(item, ep)
         except Exception as e:  # noqa: BLE001 — return it so the run continues
@@ -200,9 +203,10 @@ def author_json(prompt, **kw):
     return llm.extract_json(author_chat(prompt, **kw))
 
 
-def target_answer(messages):
-    """Generate the model-under-test's answer to a conversation (target endpoint, thinking on)."""
-    ep = config.target_endpoint()
+def target_answer(messages, *, endpoint=None):
+    """Generate the model-under-test's answer to a conversation (thinking on). `endpoint` lets
+    a pmap worker pin a specific answer-model server (GPU); defaults to the single target."""
+    ep = endpoint or config.target_endpoint()
     return llm.chat(messages, ep, temperature=config.TEMPERATURE, top_p=config.TOP_P,
                     max_tokens=config.MAX_TOKENS, think=config.THINK_TARGET)
 

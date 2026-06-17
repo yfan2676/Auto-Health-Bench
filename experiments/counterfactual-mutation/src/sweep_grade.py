@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Step 5' — the sweep locality test (generalizes paired_grade.py to K values).
+"""Step 5 — grade the model's FRESH answer to each input against the original rubric.
 
-For each item we take the FIXED answer to the original conversation and grade it, per
-criterion, under the original conversation V and under each of the K swept variants V_k
-(src/sweep.py), with the temperature-0 judge. Because the answer is identical everywhere,
-any verdict change is caused by the dimension edit, not by a different answer. A criterion
-is in the MEASURED FOOTPRINT iff its verdict differs from the original at ANY swept value;
-otherwise it is in the bridge (invariant across the whole sweep). `flip_values` records
-*where* it flips (e.g. a screening cutoff near a certain age) — a clinically readable bonus.
+The answer model produced a response to every input (src/answers.py): A to the original
+conversation V, and A_k to each swept variant V_k (src/sweep.py). Here we grade each
+(input, its-own-answer) pair, per criterion, against the SAME original rubric, with the
+temperature-0 judge — which only does the simple "does this answer satisfy this item?" check.
 
-This is the behavioral footprint of the idea doc §4.1 — the stronger ground truth that the
-a-priori footprint classifier (src/footprint.py) is then scored against in src/analyze.py.
+A criterion "changed" when the verdict of A_k under V_k differs from the verdict of A under V.
+That flip means the model's answer to the mutated input satisfies the criterion differently —
+which both identifies an input-dependent (footprint) criterion and shows whether the model
+adapts. We do NOT reuse one fixed answer: the rubric (curated for the input) holds the ground
+truth, so we change the input, let the model answer, and let the flips fall out — rather than
+asking the judge to infer how a fixed answer's verdict should change.
 
-The many independent grader calls — (criterion x {orig + K values}) for every item — are
-fanned across the judge endpoints with common.pmap so both GPUs stay busy (vs the ~1 req/s
-serial baseline). Judge explanations are stored (the viewer shows them side by side).
+The many independent grader calls — (criterion x {V + each V_k}) per item — are fanned across
+the judge endpoints with common.pmap so both GPUs stay busy. Judge explanations are stored.
 
 Output: results/sweep_grades/<example_id>.jsonl, one line per criterion:
     {idx, points, axis, predicted_bucket, predicted_sensitive,
@@ -24,7 +24,7 @@ Output: results/sweep_grades/<example_id>.jsonl, one line per criterion:
 Resumable: skips (item, idx) pairs already graded.
 
 Usage:
-    python3 src/sweep_grade.py            # all items that have sweep + footprint + answer
+    python3 src/sweep_grade.py            # all items that have sweep + footprint + answers
     python3 src/sweep_grade.py --limit 2
 """
 import argparse
@@ -73,12 +73,22 @@ def main():
 
         sweep = json.loads(sweep_p.read_text())
         fp = {p["idx"]: p for p in json.loads(fp_p.read_text())["predictions"]}
-        answer = json.loads(ans_p.read_text())["answer"]
-        variants = sweep["variants"]
+        ans = json.loads(ans_p.read_text())
+        answer_orig = ans.get("answer")
+        var_answer = {va["value"]: va["answer"] for va in ans.get("variant_answers", [])}
+
+        # Only grade variants whose own fresh answer exists; keep them in sweep `values` order.
+        variants = [vr for vr in sweep["variants"] if var_answer.get(vr["value"])]
+        if answer_orig is None or not variants:
+            print(f"skip {eid}: missing fresh answers (run answers.py) — orig={answer_orig is not None}, "
+                  f"variants={len(variants)}/{len(sweep['variants'])}")
+            continue
         values = [vr["value"] for vr in variants]
 
-        convo_orig = common.convo_string(sweep["messages_orig"], answer)
-        convo_by_value = {vr["value"]: common.convo_string(vr["messages_var"], answer) for vr in variants}
+        # Each input is graded with ITS OWN answer: V+A for the baseline, V_k+A_k per variant.
+        convo_orig = common.convo_string(sweep["messages_orig"], answer_orig)
+        convo_by_value = {vr["value"]: common.convo_string(vr["messages_var"], var_answer[vr["value"]])
+                          for vr in variants}
 
         out = common.SWEEP_GRADES / f"{eid}.jsonl"
         done = graded_idxs(out)
@@ -86,8 +96,6 @@ def main():
         if not todo:
             continue
 
-        # One flat work list across this item's remaining criteria x {orig + K values};
-        # pmap round-robins it across the judge GPUs. slot = "orig" or a swept value.
         work = []
         for r in todo:
             work.append((r["idx"], "orig", convo_orig, r))
@@ -95,7 +103,6 @@ def main():
                 work.append((r["idx"], v, convo_by_value[v], r))
         results = common.pmap(lambda item, ep: common.judge_criterion(item[2], item[3], endpoint=ep), work)
 
-        # Regroup by criterion idx: {idx: {"orig": (met, expl), value: (met, expl), ...}}.
         graded_by_idx = {}
         for (idx, slot, _convo, _r), res in zip(work, results):
             graded_by_idx.setdefault(idx, {})[slot] = res
@@ -119,7 +126,7 @@ def main():
                 ]
                 verdict_vector = [v_orig] + [c["verdict"] for c in sweep_cells]
                 flip_values = [c["value"] for c in sweep_cells if c["verdict"] != v_orig]
-                pred = fp.get(idx, {"bucket": "kept", "age_sensitive": False})
+                pred = fp.get(idx, {"bucket": "kept", "predicted_sensitive": False})
                 bucket = pred.get("bucket", "kept")
                 predicted_sensitive = pred.get(
                     "predicted_sensitive", pred.get("age_sensitive", bucket != "kept"))
@@ -135,7 +142,7 @@ def main():
                 }) + "\n")
                 f.flush()
                 graded += 1
-        print(f"graded {eid} ({len(todo)} new criteria x {len(values)} values, "
+        print(f"graded {eid} ({len(todo)} new criteria x {len(values)} variant answers, "
               f"{sweep['base_value']} -> {values})")
 
     print(f"done: graded {graded} criteria, {errored} deferred on error -> {common.SWEEP_GRADES}/")

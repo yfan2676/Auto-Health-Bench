@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
-"""Step 4 — generate the fixed model answer used for the locality test.
+"""Step 4 — generate a FRESH answer from the answer model for EVERY input.
 
-The V1/V2 test holds ONE answer fixed and re-grades it under the original and the
-age-edited conversation, so that any verdict change is caused by the edit, not by a
-different answer. We generate that answer to the ORIGINAL conversation V (target model,
-thinking on — same as the baseline harness's generate.py).
+The experiment probes the answer model: we change the input and let the model respond, then
+grade that fresh response against the original rubric (src/sweep_grade.py). So here we
+generate one answer per input — the original conversation V *and* each swept variant V_k
+(from src/sweep.py) — with the target model (thinking on, same as the baseline harness).
+A criterion later "flips" when the model's answer to V_k satisfies it differently than its
+answer to V; that flip is what identifies an input-dependent (footprint) criterion and shows
+whether the model adapts. We deliberately do NOT reuse one fixed answer — the rubric, not the
+judge, holds the ground truth for how a good answer should change with the input.
 
-Optionally (--also-variant) we also generate a *fresh* answer to V', for the adaptation
-test (does the model change its answer appropriately when only the age changes?). That is
-the optional E1 step 5; the kill-shot V1/V2 only needs the original answer.
+Generation is the slow step, so all answers (across items and inputs) are produced
+concurrently, round-robined across the answer-model endpoints (HB_TARGET_BASE_URLS) so both
+GPUs stay busy.
 
 Output: results/answers/<example_id>.json
-    {example_id, model, think, answer, answer_var (optional)}
-Resumable: skips items already answered (re-runs only to add a missing answer_var).
+    {example_id, model, think, answer, variant_answers: [{value, answer}, ...]}
+Resumable: skips items already fully answered (fills only missing inputs).
 
 Usage:
-    python3 src/answers.py                  # answer to V for every shortlisted item
-    python3 src/answers.py --also-variant   # also answer to V' (adaptation test)
+    python3 src/answers.py            # answer V and every V_k for all shortlisted items
+    python3 src/answers.py --limit 2
 """
 import argparse
 import json
@@ -27,8 +31,6 @@ import common
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0, help="first N shortlisted items (0 = all)")
-    ap.add_argument("--also-variant", action="store_true",
-                    help="also generate an answer to the edited conversation V' (adaptation test)")
     args = ap.parse_args()
 
     shortlist = common.load_shortlist()
@@ -36,37 +38,62 @@ def main():
         shortlist = shortlist[:args.limit]
     by_id = common.examples_by_id([s["example_id"] for s in shortlist])
     common.ANSWERS.mkdir(parents=True, exist_ok=True)
-    ep = common.config.target_endpoint()
-    common.endpoints_banner("(answers)", len(shortlist))
+    gen_model = common.GEN_EPS[0].model
+    print(f"answer-model={gen_model}@{[e.base_url for e in common.GEN_EPS]}  "
+          f"think={common.config.THINK_TARGET}  items={len(shortlist)}")
 
-    done = skipped = 0
+    # Build one flat work list of (eid, slot, messages) across all items, skipping any input
+    # already answered, then generate them all concurrently across the answer-model GPUs.
+    recs = {}          # eid -> the answers record we are assembling
+    work = []          # list of (eid, slot)  where slot is "orig" or a variant value
+    work_msgs = []     # aligned messages to answer
     for s in shortlist:
-        out = common.ANSWERS / f"{s['example_id']}.json"
-        rec = json.loads(out.read_text()) if out.exists() else None
-        need_orig = rec is None
-        need_var = args.also_variant and (rec is None or "answer_var" not in rec)
-        if not need_orig and not need_var:
-            skipped += 1
-            continue
-        ex = by_id.get(s["example_id"])
+        eid = s["example_id"]
+        ex = by_id.get(eid)
         if not ex:
-            print(f"skip {s['example_id']}: not found in split")
             continue
-        rec = rec or {"example_id": s["example_id"], "model": ep.model, "think": common.config.THINK_TARGET}
-        if need_orig:
-            rec["answer"] = common.target_answer(ex["messages"])
-        if need_var:
-            var = common.VARIANTS / f"{s['example_id']}.json"
-            if not var.exists():
-                print(f"skip variant for {s['example_id']}: run src/edit.py first")
-            else:
-                rec["answer_var"] = common.target_answer(json.loads(var.read_text())["messages_var"])
-        common.atomic_write_json(out, rec)
-        done += 1
-        tag = "orig" + ("+var" if need_var else "")
-        print(f"[{done}] {s['example_id']}  generated {tag}  ({len(rec.get('answer',''))} chars)")
+        sweep_p = common.SWEEP / f"{eid}.json"
+        sweep = json.loads(sweep_p.read_text()) if sweep_p.exists() else None
+        ans_p = common.ANSWERS / f"{eid}.json"
+        rec = json.loads(ans_p.read_text()) if ans_p.exists() else {
+            "example_id": eid, "model": gen_model, "think": common.config.THINK_TARGET,
+            "answer": None, "variant_answers": []}
+        rec.setdefault("variant_answers", [])
+        recs[eid] = rec
 
-    print(f"done: generated {done}, skipped {skipped} -> {common.ANSWERS}/")
+        if not rec.get("answer"):
+            work.append((eid, "orig")); work_msgs.append(ex["messages"])
+        have = {va["value"] for va in rec["variant_answers"]}
+        for vr in (sweep["variants"] if sweep else []):
+            if vr["value"] not in have:
+                work.append((eid, vr["value"])); work_msgs.append(vr["messages_var"])
+
+    if not work:
+        print("nothing to do: all inputs already answered")
+        return
+
+    print(f"generating {len(work)} answers concurrently across {len(common.GEN_EPS)} endpoint(s)...")
+    results = common.pmap(lambda msgs, ep: common.target_answer(msgs, endpoint=ep),
+                          work_msgs, endpoints=common.GEN_EPS)
+
+    # Fold results back into each item's record and write.
+    errors = 0
+    for (eid, slot), res in zip(work, results):
+        if isinstance(res, Exception) or res is None:
+            errors += 1
+            print(f"  ! {eid} [{slot}]: generation error ({type(res).__name__ if res else 'none'}), will retry on resume")
+            continue
+        rec = recs[eid]
+        if slot == "orig":
+            rec["answer"] = res
+        else:
+            rec["variant_answers"] = [va for va in rec["variant_answers"] if va["value"] != slot]
+            rec["variant_answers"].append({"value": slot, "answer": res})
+    for eid, rec in recs.items():
+        common.atomic_write_json(common.ANSWERS / f"{eid}.json", rec)
+
+    done = sum(1 for (_, _), r in zip(work, results) if not (isinstance(r, Exception) or r is None))
+    print(f"done: generated {done} answers ({errors} deferred on error) -> {common.ANSWERS}/")
 
 
 if __name__ == "__main__":

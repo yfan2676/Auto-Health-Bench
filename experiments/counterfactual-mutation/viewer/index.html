@@ -234,8 +234,8 @@ function select(id) {
   s.messages_orig.forEach(msg => chat.append(el("div",{class:"msg "+(msg.role||"")},[
     el("div",{class:"role",text:msg.role||""}), el("div",{class:"content",text:msg.content||""})])));
   if (s.answer) chat.append(el("details",{class:"answer"},[
-    el("summary",{text:"fixed model answer graded under every variant"}),
-    el("div",{class:"msg assistant"},[el("div",{class:"role",text:"assistant (fixed answer)"}),
+    el("summary",{text:"model's answer to the original input (graded vs the rubric)"}),
+    el("div",{class:"msg assistant"},[el("div",{class:"role",text:"assistant — answer to original"}),
       el("div",{class:"content",text:s.answer})])]));
   d.append(chat);
 
@@ -265,6 +265,10 @@ function select(id) {
       });
       body.append(el("div",{class:"msg "+(md.role||"")},[el("div",{class:"role",text:md.role||""}),content]));
     });
+    if (v.answer) body.append(el("details",{class:"answer"},[
+      el("summary",{text:"model's fresh answer to THIS input (graded vs the original rubric)"}),
+      el("div",{class:"msg assistant"},[el("div",{class:"role",text:"assistant — answer to "+v.label}),
+        el("div",{class:"content",text:v.answer})])]));
     sec3.append(tabs, body);
   }
   d.append(sec3);
@@ -290,9 +294,9 @@ function select(id) {
     if (r.predicted_reason) detail.append(el("div",{class:"expl-block"},[
       el("div",{class:"lbl",text:"predicted ("+r.predicted_bucket+")"}), r.predicted_reason]));
     if (r.explanation_orig) detail.append(el("div",{class:"expl-block"},[
-      el("div",{class:"lbl",text:"judge @ original → "+(r.verdict_orig?"met":"not met")}), r.explanation_orig]));
+      el("div",{class:"lbl",text:"answer→original → "+(r.verdict_orig?"met":"not met")}), r.explanation_orig]));
     (r.sweep||[]).forEach(c=> c.explanation && detail.append(el("div",{class:"expl-block"},[
-      el("div",{class:"lbl",text:"judge @ "+c.label+" → "+(c.verdict?"met":"not met")}), c.explanation])));
+      el("div",{class:"lbl",text:"answer→"+c.label+" → "+(c.verdict?"met":"not met")}), c.explanation])));
 
     tr.append(
       el("td",{class:"cell-axis",text:r.axis||"—"}),

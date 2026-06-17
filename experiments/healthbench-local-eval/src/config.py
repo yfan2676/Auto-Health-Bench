@@ -67,6 +67,24 @@ def target_endpoint():
     )
 
 
+def target_endpoints():
+    """All answer-model endpoints, for fanning answer generation across several GPUs.
+
+    `HB_TARGET_BASE_URLS` (comma-separated) lists one base URL per server (both run the same
+    answer model); falls back to the single `target_endpoint()`. Mirrors `judge_endpoints()`.
+    """
+    urls = os.environ.get("HB_TARGET_BASE_URLS", "").strip()
+    if not urls:
+        return [target_endpoint()]
+    model = os.environ.get("HB_TARGET_MODEL", _backend_default("model"))
+    api_key = os.environ.get("HB_API_KEY", "EMPTY")
+    return [
+        Endpoint(base_url=u.strip(), model=model, backend=BACKEND, api_key=api_key)
+        for u in urls.split(",")
+        if u.strip()
+    ]
+
+
 def judge_endpoint():
     # Ollama: judge shares the target server unless overridden. vLLM: a second
     # server on :8001 by default, so target and judge can sit on different GPUs.

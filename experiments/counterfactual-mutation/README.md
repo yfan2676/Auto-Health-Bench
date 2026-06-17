@@ -16,19 +16,31 @@ data synthesis), at small scale — the make-or-break check before scaling or ad
 dimensions. It reuses the [`../healthbench-local-eval`](../healthbench-local-eval/) LLM
 client and the vendored HealthBench grader (no re-implementation of grading).
 
-## Method (the locality test)
+## Method (probe the answer model, keep the judge simple)
 
-Hold one model answer fixed and re-grade it under the original conversation `V` and the
-age-edited `V′`. Because the **answer is identical**, any per-criterion verdict change is
-caused by the edit. Compared against an a-priori footprint prediction:
+**Change the input, get a fresh answer from the answer model, and grade that answer against
+the original rubric** — item by item. The rubric is curated for the *input* and holds the
+ground truth; we therefore do **not** hold one answer fixed and ask the judge to infer how the
+verdict should change under the new input (the judge can't be trusted to do that). Instead the
+answer model responds to each input and the judge only checks "does this answer satisfy this
+item?". A criterion whose verdict **flips** between `model(V)` and `model(V′)` is one whose
+satisfaction *depends on* the changed variable — that both **identifies** input-dependent
+criteria and **measures** whether the model adapts.
 
-- **V1 — bridge invariance:** criteria predicted **kept** should *not* change. The
-  **off-target change rate** should sit at the **judge-noise floor** (measured separately).
-- **V2 — on-target sensitivity:** criteria predicted in the **footprint** *should* change.
+> *Example.* Original states age 70; rubric item "raise concern about age-related
+> complications" → a good answer at 70 meets it. Change the input to age 20 and re-ask: the
+> fresh answer appropriately omits old-age concerns, so against the **same** rubric that item
+> flips to not-met — identifying it as age-dependent and showing the model adapt correctly.
 
-Together → a confusion matrix and **footprint precision/recall**. A clean, local dimension
-shows off-target ≈ noise floor and a high on-target rate. The judge runs at **temperature 0**
-so the edit is the only varying input.
+Compared against an a-priori footprint prediction:
+
+- **bridge:** criteria predicted **kept** should *not* flip across inputs (off-target rate near
+  the noise floor); a bridge criterion that drops is a model weakness (an equity signal).
+- **footprint:** criteria predicted **sensitive** *should* flip when the model adapts.
+
+Together → a confusion matrix and **footprint precision/recall**. The judge runs at
+**temperature 0**; one fresh answer per input adds some generation noise, so off-target is read
+against the noise floor, never zero.
 
 ## Pipeline
 
@@ -41,8 +53,9 @@ src/common.py        bridge to healthbench-local-eval (llm client + GRADER_TEMPL
 src/pick.py        Step 1  pick items that state a patient age        -> results/shortlist.jsonl
 src/sweep.py         Step 2  K~3-value sweep of minimal edits (+guard)   -> results/sweep/<id>.json
 src/footprint.py     Step 3  a-priori per-criterion footprint prediction -> results/footprint/<id>.json
-src/answers.py       Step 4  fixed target answer to V                    -> results/answers/<id>.json
-src/sweep_grade.py   Step 5  grade fixed answer under V + each value (T=0, concurrent across GPUs)
+src/answers.py       Step 4  fresh answer to EACH input — V and every V_k (concurrent across GPUs)
+                                                                         -> results/answers/<id>.json
+src/sweep_grade.py   Step 5  grade each fresh answer vs the original rubric (T=0, concurrent across GPUs)
                                                                          -> results/sweep_grades/<id>.jsonl
 src/noise_floor.py   Step 6  identical-input judge flip rate              -> results/noise_floor.json
 src/analyze.py       Step 7  footprint P/R + off-target vs floor (+by-dim) -> results/{metrics.json,report.md}
@@ -50,15 +63,16 @@ src/build_viewer.py  Step 8  aggregate everything (+difflib spans)        -> vie
 viewer/index.html    dependency-free static viewer (serve with python -m http.server)
 ```
 
-A criterion is in the **measured footprint** iff its verdict (of the *fixed* answer) flips
-vs. the original at *any* swept value; invariant across the whole sweep ⇒ bridge. `analyze.py`
-scores the a-priori footprint classifier against this behavioral truth (precision/recall,
-off-target vs. noise floor), broken down by dimension and rubric axis. Each step is resumable
-(per-item files / appended jsonl, skip-existing).
+A criterion is in the **measured footprint** iff the model's answer flips its verdict between
+the original input `V` and *any* swept input `V_k`; held across the whole sweep ⇒ bridge.
+`analyze.py` scores the a-priori footprint classifier against this measured footprint
+(precision/recall, off-target vs. noise floor), broken down by dimension and rubric axis. Each
+step is resumable (per-item files / appended jsonl, skip-existing).
 
-> The original single-edit path (`src/edit.py` Step 2 → `results/variants/`,
-> `src/paired_grade.py` Step 5 → `results/grades/`) is kept for V1/V2 on one A→B edit;
-> `analyze.py` reads `sweep_grades/` if present, else falls back to `grades/`.
+> The original single-edit path (`src/edit.py` → `results/variants/`, `src/paired_grade.py` →
+> `results/grades/`) is a legacy *fixed-answer* probe (grades one answer under both inputs) and
+> is superseded by the fresh-answer sweep above; `analyze.py` reads `sweep_grades/` if present,
+> else falls back to `grades/`.
 
 ## How to run
 
@@ -73,17 +87,19 @@ CUDA_VISIBLE_DEVICES=1 vllm serve Qwen/Qwen3-4B --port 8001 --gpu-memory-utiliza
 Then **from this directory**:
 
 ```bash
-export HB_BACKEND=vllm
-export HB_TARGET_BASE_URL=http://localhost:8000/v1  HB_TARGET_MODEL=Qwen/Qwen3-4B
-export HB_JUDGE_BASE_URLS=http://localhost:8000/v1,http://localhost:8001/v1  HB_JUDGE_MODEL=Qwen/Qwen3-4B
+export HB_BACKEND=vllm HB_TARGET_MODEL=Qwen/Qwen3-4B HB_JUDGE_MODEL=Qwen/Qwen3-4B
+# fan BOTH answer generation and grading across the two servers (both run Qwen3-4B):
+export HB_TARGET_BASE_URLS=http://localhost:8000/v1,http://localhost:8001/v1
+export HB_JUDGE_BASE_URLS=http://localhost:8000/v1,http://localhost:8001/v1
 export HB_THINK_JUDGE=0   # non-thinking judge ≈ 10x faster grading
-# locality test wants a deterministic judge (default CM_JUDGE_TEMP=0, CM_JUDGE_THINK=0)
+export HB_MAX_TOKENS=16384 # thinking author/answer calls on long rubrics can exceed 8192
+# deterministic judge for clean per-item grading (default CM_JUDGE_TEMP=0, CM_JUDGE_THINK=0)
 
 python3 src/pick.py        --limit 30   # shortlist 30 age-stating items
-python3 src/sweep.py                     # K~3-value sweep per item
+python3 src/sweep.py                     # K~3-value sweep of edited inputs per item
 python3 src/footprint.py                 # predict the footprint a priori
-python3 src/answers.py                   # fixed answer to V
-python3 src/sweep_grade.py               # grade the fixed answer under V + each swept value
+python3 src/answers.py                   # fresh answer to EACH input (V and every V_k)
+python3 src/sweep_grade.py               # grade each fresh answer vs the original rubric
 python3 src/noise_floor.py  --k 5 --items 5   # judge-noise floor
 python3 src/analyze.py                   # -> results/report.md (off-target vs floor, by dimension)
 python3 src/build_viewer.py              # -> viewer/data.json
