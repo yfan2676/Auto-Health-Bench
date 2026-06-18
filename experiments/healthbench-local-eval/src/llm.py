@@ -24,26 +24,43 @@ def strip_think(text):
 
 
 def extract_json(text):
-    """Return the last balanced {…} JSON object in `text` (after stripping think).
+    """Return a balanced {…} JSON object from `text` (after stripping think).
+
+    Prefers the last *top-level* object — a '{' that is not nested inside another object — so a
+    payload like {"predictions": [{...}, {...}]} returns the OUTER object, not the last inner
+    array element. (The old "last balanced '{'" rule grabbed that inner element and silently
+    dropped the real keys.) Falls back to any balanced object if no top-level one parses.
 
     Raises ValueError if nothing parses — we let that surface rather than guess.
     """
     cleaned = strip_think(text)
     # Drop a ```json … ``` fence if present, then scan for balanced braces.
     cleaned = re.sub(r"```(?:json)?|```", "", cleaned)
-    starts = [i for i, c in enumerate(cleaned) if c == "{"]
-    for start in reversed(starts):  # prefer the last object the model emitted
-        depth = 0
-        for j in range(start, len(cleaned)):
-            if cleaned[j] == "{":
-                depth += 1
-            elif cleaned[j] == "}":
-                depth -= 1
-                if depth == 0:
-                    try:
-                        return json.loads(cleaned[start : j + 1])
-                    except json.JSONDecodeError:
-                        break  # malformed; try an earlier '{'
+    # Classify each '{' by nesting depth: top-level ones (depth 0) are the object boundaries we
+    # want; keep every '{' as a fallback for malformed input. Both lists stay in document order.
+    top_level, all_starts = [], []
+    depth = 0
+    for i, c in enumerate(cleaned):
+        if c == "{":
+            all_starts.append(i)
+            if depth == 0:
+                top_level.append(i)
+            depth += 1
+        elif c == "}" and depth > 0:
+            depth -= 1
+    for starts in (top_level, all_starts):
+        for start in reversed(starts):  # prefer the last object the model emitted
+            depth = 0
+            for j in range(start, len(cleaned)):
+                if cleaned[j] == "{":
+                    depth += 1
+                elif cleaned[j] == "}":
+                    depth -= 1
+                    if depth == 0:
+                        try:
+                            return json.loads(cleaned[start : j + 1])
+                        except json.JSONDecodeError:
+                            break  # malformed; try an earlier '{'
     raise ValueError(f"no parseable JSON object in model output:\n{text}")
 
 

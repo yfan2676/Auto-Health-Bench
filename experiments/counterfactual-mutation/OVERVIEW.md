@@ -107,8 +107,9 @@ fan their independent calls across two vLLM servers (`HB_TARGET_BASE_URLS`, `HB_
 | **net effect** | change rate − same-input floor: the honest dimension signal. ≈0 ⇒ the bridge holds; a small positive concentrated in dimension-relevant criteria ⇒ a real footprint |
 | **footprint precision / recall** | did the a-priori LLM prediction match what the model's fresh answers actually changed? |
 
-Per-criterion confusion (predicted-sensitive × actually-flipped) drives the viewer's coloring:
-**TP** predicted+flipped · **FP** bridge flipped (off-target) · **FN** footprint missed · **TN** held.
+Per-criterion confusion (predicted-sensitive × actually-flipped) drives the viewer's coloring
+(standard orientation): **TP** predicted+flipped · **FP** predicted but held (false alarm) ·
+**FN** flipped but predicted bridge (off-target leak) · **TN** held.
 
 ## The two dimensions
 

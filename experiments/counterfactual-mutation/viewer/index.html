@@ -312,10 +312,10 @@ function select(id) {
   });
   table.append(tb); sec.append(table);
   sec.append(el("div",{class:"legend"},[
-    el("span",{},[el("b",{class:"conf-tag TP",text:"TP"})," predicted+moved"]),
-    el("span",{},[el("b",{class:"conf-tag FP",text:"FP"})," bridge leaked (off-target)"]),
-    el("span",{},[el("b",{class:"conf-tag FN",text:"FN"})," footprint missed"]),
-    el("span",{},[el("b",{class:"conf-tag TN",text:"TN"})," predicted+held"]),
+    el("span",{},[el("b",{class:"conf-tag TP",text:"TP"})," predicted footprint + moved"]),
+    el("span",{},[el("b",{class:"conf-tag FP",text:"FP"})," predicted footprint + held (false alarm)"]),
+    el("span",{},[el("b",{class:"conf-tag FN",text:"FN"})," moved, predicted bridge (off-target leak)"]),
+    el("span",{},[el("b",{class:"conf-tag TN",text:"TN"})," predicted bridge + held"]),
     el("span",{class:"muted",text:"value cells: ✓ met / ✗ not met; blue outline = flipped vs original"}),
   ]));
   if ((s.proposed_induced||[]).length) {
@@ -331,7 +331,7 @@ function select(id) {
     el("span",{class:"m"},["this sample off-target ",el("b",{text:pct(m.off_target_rate)})]),
     el("span",{class:"m"},["global off-target ",el("b",{text:pct(gm.off_target_change_rate)})]),
     el("span",{class:"m"},["noise floor ",el("b",{text:pct(gm.judge_noise_floor)})]),
-    el("span",{class:"m"},["this sample on-target/recall ",el("b",{text:pct(m.recall)})]),
+    el("span",{class:"m"},["this sample on-target ",el("b",{text:pct(m.precision)})]),
   ]));
   const axes = gm.actual_change_rate_by_axis || {};
   if (Object.keys(axes).length) {

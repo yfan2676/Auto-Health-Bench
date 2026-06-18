@@ -44,10 +44,31 @@ def _normalize(rec):
     }
 
 
-def _load_dir(path):
+def _load_footprint_preds():
+    """{example_id: {idx: prediction}} from results/footprint/*.json.
+
+    The a-priori footprint prediction is the SOURCE OF TRUTH for predicted_bucket /
+    predicted_sensitive (same as src/build_viewer.py reads). sweep_grade.py snapshots a copy
+    into each grade row, but that snapshot is "kept" whenever the footprint step had not yet run
+    at grade time — so we re-join the live footprint files here and let it win, which lets the
+    footprint step be run (or re-run) after grading without re-grading anything.
+    """
+    out = {}
+    if common.FOOTPRINT.exists():
+        for fp in common.FOOTPRINT.glob("*.json"):
+            try:
+                rec = json.loads(fp.read_text())
+            except json.JSONDecodeError:
+                continue
+            out[fp.stem] = {p["idx"]: p for p in rec.get("predictions", [])}
+    return out
+
+
+def _load_dir(path, fp_preds):
     rows = []
     for fp in sorted(path.glob("*.jsonl")):
         eid = fp.stem
+        preds = fp_preds.get(eid, {})
         for line in fp.read_text().splitlines():
             line = line.strip()
             if not line:
@@ -57,14 +78,21 @@ def _load_dir(path):
             except json.JSONDecodeError:
                 continue
             rec["example_id"] = eid
+            # Prefer the live footprint prediction over the snapshot baked into the grade row.
+            p = preds.get(rec.get("idx"))
+            if p is not None:
+                rec["predicted_bucket"] = p.get("bucket", "kept")
+                rec["predicted_sensitive"] = bool(
+                    p.get("predicted_sensitive", p.get("bucket", "kept") != "kept"))
             rows.append(_normalize(rec))
     return rows
 
 
 def load_rows():
-    """Load the measured sweep grades (the behavioral footprint)."""
+    """Load the measured sweep grades (the behavioral footprint), joined with the live
+    a-priori footprint predictions (results/footprint/)."""
     if common.SWEEP_GRADES.exists() and any(common.SWEEP_GRADES.glob("*.jsonl")):
-        return _load_dir(common.SWEEP_GRADES), "sweep_grades"
+        return _load_dir(common.SWEEP_GRADES, _load_footprint_preds()), "sweep_grades"
     raise FileNotFoundError(
         f"no grades found — run src/sweep_grade.py first (looked in {common.SWEEP_GRADES})")
 
@@ -74,19 +102,21 @@ def _safe(a, b):
 
 
 def confusion_metrics(rows):
-    tp = sum(1 for r in rows if r["predicted_sensitive"] and r["changed"])
-    fn = sum(1 for r in rows if r["predicted_sensitive"] and not r["changed"])
-    fp = sum(1 for r in rows if not r["predicted_sensitive"] and r["changed"])
+    # Positive = predicted dimension-sensitive (in the footprint); actual positive = the
+    # criterion's verdict actually moved across the sweep. Standard confusion orientation.
+    tp = sum(1 for r in rows if r["predicted_sensitive"] and r["changed"])        # predicted move, moved
+    fp = sum(1 for r in rows if r["predicted_sensitive"] and not r["changed"])    # predicted move, held (false alarm)
+    fn = sum(1 for r in rows if not r["predicted_sensitive"] and r["changed"])    # moved, predicted bridge (off-target)
     tn = sum(1 for r in rows if not r["predicted_sensitive"] and not r["changed"])
-    precision = _safe(tp, tp + fp)
-    recall = _safe(tp, tp + fn)
+    precision = _safe(tp, tp + fp)   # of criteria predicted to move, how many did = on-target change rate
+    recall = _safe(tp, tp + fn)      # of criteria that moved, how many we predicted
     f1 = _safe(2 * precision * recall, precision + recall) if precision and recall else None
     return {
         "confusion": {"tp": tp, "fp": fp, "fn": fn, "tn": tn},
-        "change_rate": _safe(tp + fp, tp + fp + fn + tn),  # any criterion whose verdict moved
+        "change_rate": _safe(tp + fn, tp + fp + fn + tn),  # any criterion whose verdict moved
         "footprint_precision": precision, "footprint_recall": recall, "footprint_f1": f1,
-        "off_target_change_rate": _safe(fp, fp + tn),  # bridge criteria that moved
-        "on_target_change_rate": recall,               # footprint criteria that moved
+        "off_target_change_rate": _safe(fn, fn + tn),  # bridge (predicted-kept) criteria that moved
+        "on_target_change_rate": precision,            # footprint (predicted-sensitive) criteria that moved
         "predicted_vs_measured_accuracy": _safe(tp + tn, tp + fp + fn + tn),
     }
 
@@ -172,8 +202,10 @@ def main():
         " floor** (per dimension). See the by-dimension table.",
         "",
         f"- **raw change rate** (any criterion whose verdict moved across the sweep): **{pct(overall['change_rate'])}**",
-        f"- footprint precision **{pct(overall['footprint_precision'])}**, recall **{pct(overall['footprint_recall'])}** "
-        f"(the a-priori Qwen-4B classifier predicts ~0 sensitive — see caveat below).",
+        f"- **footprint discrimination is weak**: predicted-sensitive criteria moved **{pct(overall['on_target_change_rate'])}** "
+        f"(on-target) vs predicted-bridge **{pct(overall['off_target_change_rate'])}** (off-target) — the a-priori "
+        f"classifier barely matches (here slightly trails) chance. Footprint precision **{pct(overall['footprint_precision'])}**, "
+        f"recall **{pct(overall['footprint_recall'])}** (see caveat below).",
         "",
         "## By dimension (net effect vs the same-input floor)", "",
         "| dimension | items | raw change rate | same-input floor | **net effect (Δ)** |",
@@ -182,6 +214,13 @@ def main():
     for d, m in by_dimension.items():
         lines.append(f"| {d} | {m['n_items']} | {pct(m['change_rate'])} | "
                      f"{pct(m.get('same_input_floor'))} | **{pdelta(m.get('net_dimension_effect'))}** |")
+    lines += ["", "## Footprint discrimination by dimension "
+              "(does predicted-sensitive move more than the predicted bridge?)", "",
+              "| dimension | on-target (pred-sensitive moved) | off-target (bridge moved) | recall (of moved, predicted) |",
+              "|---|---|---|---|"]
+    for d, m in by_dimension.items():
+        lines.append(f"| {d} | {pct(m['on_target_change_rate'])} | {pct(m['off_target_change_rate'])} | "
+                     f"{pct(m['footprint_recall'])} |")
     lines += ["", "## Change rate by rubric axis", "",
               "| axis | change rate | n |", "|---|---|---|"]
     for k, v in metrics["actual_change_rate_by_axis"].items():
@@ -192,9 +231,13 @@ def main():
         for k, v in metrics["flip_point_distribution"].items():
             lines.append(f"| {k} | {v} |")
     lines += ["", "## Caveats", "",
-              "- **The a-priori footprint classifier is degenerate on Qwen3-4B** (predicts ~0 sensitive "
-              "criteria), so footprint precision/recall collapse. The usable footprint signal is the "
-              "measured per-axis change rate and the by-value flip distribution, not the predicted buckets.",
+              "- **The a-priori footprint classifier has little discriminative power on Qwen3-4B.** It does emit "
+              "real predictions (~23% of criteria flagged sensitive, across buckets), but predicted-sensitive "
+              "criteria move at about the same rate as the predicted bridge (on-target ≈ off-target above) — weakly "
+              "positive for age, inverted for disclosure — so predicted-vs-measured agreement is near chance. The "
+              "reliable footprint signal is the measured per-axis change rate and the by-value flip distribution, "
+              "not the predicted buckets; a stronger classifier model would be needed to make the a-priori "
+              "prediction useful.",
               "- **The same-input floor is high (~24%)** because a 4B answer model at temperature varies "
               "a lot run-to-run; with it subtracted the net dimension effect is modest. Lower answer "
               "temperature or averaging several answers per input would raise signal-to-noise.",

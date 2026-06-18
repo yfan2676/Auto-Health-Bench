@@ -189,11 +189,17 @@ def diff_chars(orig_msgs, new_msgs):
     return changed, max(len(o), len(n))
 
 
-def author_chat(prompt, *, think=None, temperature=None, max_tokens=None):
-    """An authoring call (criterion-footprint classification, age edit) on the judge model."""
+def author_chat(prompt, *, think=None, temperature=None, max_tokens=None, endpoint=None):
+    """An authoring call (criterion-footprint classification, age edit) on the judge model.
+
+    `endpoint` lets a pmap worker pin a specific server (GPU) so independent authoring calls
+    (e.g. the per-item footprint classification) fan across every GPU; defaults to the single
+    judge endpoint for serial callers.
+    """
     think = CM_AUTHOR_THINK if think is None else think
     temperature = CM_AUTHOR_TEMP if temperature is None else temperature
-    return llm.chat([{"role": "user", "content": prompt}], config.judge_endpoint(),
+    ep = endpoint or config.judge_endpoint()
+    return llm.chat([{"role": "user", "content": prompt}], ep,
                     temperature=temperature, top_p=config.TOP_P,
                     max_tokens=max_tokens or config.MAX_TOKENS, think=think)
 

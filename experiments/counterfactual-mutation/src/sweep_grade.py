@@ -71,10 +71,12 @@ def main():
             continue
 
         sweep = json.loads(sweep_p.read_text())
-        # The a-priori footprint prediction is OPTIONAL. When the footprint file is absent
-        # (e.g. the footprint step was skipped), every criterion defaults to predicted
+        # The a-priori footprint prediction is OPTIONAL here. When the footprint file is absent
+        # (e.g. the footprint step has not run yet), every criterion defaults to predicted
         # "kept"/not-sensitive below, so the change-rate and net-effect headline are unaffected;
-        # only footprint precision/recall (already degenerate on a 4B classifier) go to n/a.
+        # only footprint precision/recall would be unavailable. analyze.py and build_viewer.py
+        # re-join the live results/footprint/ files, so running footprint AFTER grading fills in
+        # the precision/recall without re-grading anything.
         fp = ({p["idx"]: p for p in json.loads(fp_p.read_text())["predictions"]}
               if fp_p.exists() else {})
         ans = json.loads(ans_p.read_text())

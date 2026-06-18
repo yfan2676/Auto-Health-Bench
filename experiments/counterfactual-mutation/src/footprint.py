@@ -27,19 +27,24 @@ Usage:
 """
 import argparse
 import json
+import os
 
 import common
 import dimensions
 
+# Per-endpoint concurrency for the (long, thinking-on) footprint author calls. Smaller than the
+# grading default because each generation is heavy; len(JUDGE_EPS) * this many run at once.
+CM_AUTHOR_CONCURRENCY = int(os.environ.get("CM_AUTHOR_CONCURRENCY", "4"))
 
-def classify(dim, ex, s, values):
+
+def classify(dim, ex, s, values, endpoint=None):
     prompt = dim.footprint_prompt(ex, s, values)
     try:
-        obj = common.author_json(prompt)
+        obj = common.author_json(prompt, endpoint=endpoint)
     except RuntimeError:
         # The thinking trace on a long rubric list can exceed HB_MAX_TOKENS; retry without
         # thinking so the run doesn't crash (raise HB_MAX_TOKENS=16384 for better predictions).
-        obj = common.author_json(prompt, think=False)
+        obj = common.author_json(prompt, think=False, endpoint=endpoint)
     allowed = dim.buckets()
     preds = {}
     for p in obj.get("predictions", []):
@@ -72,8 +77,12 @@ def main():
     common.FOOTPRINT.mkdir(parents=True, exist_ok=True)
     common.endpoints_banner("(footprint)", len(shortlist))
 
-    done = skipped = 0
+    # Resume: count already-classified items, queue only the missing ones. The author calls are
+    # independent, so we fan them across every judge endpoint (GPU) with common.pmap instead of
+    # the old one-at-a-time loop.
+    skipped = 0
     n_sensitive = n_total = 0
+    todo = []
     for s in shortlist:
         out = common.FOOTPRINT / f"{s['example_id']}.json"
         if out.exists():
@@ -86,9 +95,29 @@ def main():
         if not ex:
             print(f"skip {s['example_id']}: not found in split")
             continue
+        todo.append((s, ex))
+
+    def work(item, ep):
+        s, ex = item
         dim = dimensions.get(s.get("dimension", "age"))
         values = dim.values(s)
-        preds, induced = classify(dim, ex, s, values)
+        preds, induced = classify(dim, ex, s, values, endpoint=ep)
+        return values, preds, induced
+
+    workers = max(1, len(common.JUDGE_EPS) * CM_AUTHOR_CONCURRENCY)
+    print(f"classifying {len(todo)} missing items across {len(common.JUDGE_EPS)} endpoint(s), "
+          f"{workers} workers ({len(shortlist) - len(todo)} already done)")
+    results = common.pmap(work, todo, workers=workers)
+
+    done = errored = 0
+    for (s, _ex), res in zip(todo, results):
+        if isinstance(res, Exception):
+            print(f"  ! {s['example_id']}: footprint error ({type(res).__name__}: {res}); "
+                  f"will retry on resume")
+            errored += 1
+            continue
+        values, preds, induced = res
+        out = common.FOOTPRINT / f"{s['example_id']}.json"
         common.atomic_write_json(out, {
             "example_id": s["example_id"], "dimension": s.get("dimension", "age"),
             "base_value": s.get("base_value", s.get("age_from")), "values": values,
@@ -98,11 +127,11 @@ def main():
         n_sensitive += sens
         n_total += len(preds)
         done += 1
-        print(f"[{done}] {s['example_id']}  ({s.get('dimension','age')})  "
+        print(f"[{done}/{len(todo)}] {s['example_id']}  ({s.get('dimension','age')})  "
               f"{sens}/{len(preds)} criteria predicted sensitive; +{len(induced)} induced")
 
     frac = (n_sensitive / n_total) if n_total else 0.0
-    print(f"done: classified {done}, skipped {skipped}. "
+    print(f"done: classified {done}, skipped {skipped}, errored {errored}. "
           f"Predicted footprint = {n_sensitive}/{n_total} criteria ({frac:.1%}) -> {common.FOOTPRINT}/")
 
 

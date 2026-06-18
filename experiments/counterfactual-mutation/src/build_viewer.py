@@ -34,7 +34,9 @@ _TOKEN_RE = re.compile(r"\S+|\s+")
 
 
 def _confusion(predicted_sensitive, changed):
-    return ("TP" if changed else "FN") if predicted_sensitive else ("FP" if changed else "TN")
+    # Standard orientation: predicted-sensitive -> TP if it moved else FP (false alarm);
+    # predicted-kept -> FN if it moved (off-target / bridge leak) else TN.
+    return ("TP" if changed else "FP") if predicted_sensitive else ("FN" if changed else "TN")
 
 
 def word_spans(a, b):
@@ -151,7 +153,8 @@ def build_sample(s, ex):
         "sample_metrics": {
             "tp": tp, "fp": fp, "fn": fn, "tn": tn,
             "precision": safe(tp, tp + fp), "recall": safe(tp, tp + fn),
-            "off_target_rate": safe(fp, fp + tn), "n_criteria": tp + fp + fn + tn,
+            "off_target_rate": safe(fn, fn + tn),  # bridge (predicted-kept) criteria that moved
+            "n_criteria": tp + fp + fn + tn,
         },
     }
 

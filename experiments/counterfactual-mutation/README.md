@@ -131,17 +131,22 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
 - **Run end-to-end on Qwen3-4B at n=100 age + n=71 disclosure.** The full sweep pipeline + the
   2-GPU concurrent grader + the static viewer produce `results/report.md`, `results/metrics.json`,
   and `viewer/data.json`; the viewer renders the input/rubric/edited-diff/measured-footprint views
-  plus the qualitative + metric panels, for both dimensions. (Full run ≈ 54 min, footprint skipped.)
+  plus the qualitative + metric panels, for both dimensions. (Full sweep+grade run ≈ 54 min; the
+  a-priori footprint was then classified for all 171 items, fanned across both GPUs.)
 - **Net dimension effect (Δ change rate vs the same-input floor): age ≈ +1.4%, disclosure ≈ +5.7%** —
   see [`FINDINGS.md`](FINDINGS.md). At scale **age collapses near its noise floor** (the earlier
   n=30 +6% was largely small-sample noise); **disclosure is the robust effect (~4× age)**, a 4B
   numeracy gap. Change concentrates in completeness/accuracy; the communication/management bridge is
   the most invariant axis.
-- **Footprint is optional / skippable.** `footprint.py` is the *a-priori* (LLM) estimator, but
-  Qwen3-4B predicts *0* sensitive criteria, so it only feeds the (collapsed) precision/recall — not
-  the change-rate/net-effect headline. `sweep_grade.py` tolerates a missing footprint file
-  (defaults every criterion to predicted "kept"), so the step can be skipped to roughly halve
-  wall-clock. The behavioral **sweep** (`sweep_grade.py`) is the ground-truth footprint signal.
+- **A-priori footprint: run for all 171, but weak discrimination.** `footprint.py` (the LLM
+  estimator) now fans its per-item calls across both GPUs and classifies every item — flagging
+  ~23% of criteria as sensitive. But predicted-sensitive criteria move at ~the same rate as the
+  predicted bridge (**on-target 28.6% vs off-target 30.7%**; weakly + for age, *inverted* for
+  disclosure), so it adds little over the behavioral sweep and predicted-vs-measured is near
+  chance. It feeds only footprint precision/recall — not the change-rate/net-effect headline — so
+  `sweep_grade.py` still tolerates a missing footprint file and the step stays optional for the
+  headline. *(The earlier "predicts 0 sensitive" was a JSON-extraction bug in `llm.extract_json`,
+  now fixed; the behavioral **sweep** remains the ground-truth footprint signal.)*
 - **D2 eligibility ceiling ≈ 71 (not 100).** The regex prefilter gives 193 hits in the 5k split,
   but most are topic/class mentions, third-party/clinician cases, or questions — not re-encodable
   self-disclosures; capable authors flag ~40% unsuitable. D1 age is regex-deterministic (478

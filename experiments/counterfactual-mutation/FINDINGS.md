@@ -67,8 +67,19 @@ contrast, at the cost of mixing self- and third-party disclosure in one bucket).
   temperature, or **average several answers per input** and take the majority verdict before
   comparing. Either shrinks the floor and tightens the net effect — important given age now sits
   inside the floor.
-- **The a-priori footprint classifier is degenerate on Qwen3-4B** — it predicts ~0 sensitive
-  criteria, so footprint precision/recall collapse and the step is skippable (the change-rate /
-  net-effect headline does not use it). The usable footprint signal is the measured **per-axis
-  change rate** and the by-value flip distribution. A stronger classifier model would make
-  predicted-vs-measured meaningful.
+- **The a-priori footprint classifier has little discriminative power on Qwen3-4B.** Run on all
+  171 items it flags **~23%** of criteria as sensitive (real predictions, spread across the
+  dimension buckets), but predicted-sensitive criteria move at **about the same rate as the
+  predicted bridge** — on-target **28.6%** vs off-target **30.7%** overall (weakly positive for
+  age: 29.8% vs 27.7%; *inverted* for disclosure: 24.5% vs 33.5%). So predicted-vs-measured
+  agreement is near chance and the reliable footprint signal remains the measured **per-axis change
+  rate** + the by-value flip distribution, not the predicted buckets. A stronger classifier model
+  would be needed to make the a-priori prediction useful. *(An earlier pass reported "predicts ~0
+  sensitive" — that was a JSON-extraction bug in `llm.extract_json` that returned the last inner
+  object and dropped every prediction; now fixed.)*
+- **Age edits currently carry only the deterministic age-number swap.** That same extraction bug
+  also suppressed `edit.py`'s optional LLM *entailed-phrasing* extras, so all 300 age variants
+  swap just the age number ("72-year-old" → "8-year-old") without co-varying descriptors
+  ("retired" → "in school"). The primary swap is correct and disclosure edits (subagent overrides)
+  are unaffected, but the **age net effect (+1.4%) is measured on less-thorough edits** — re-running
+  `sweep.py` with the fixed parser would refresh the age variants and could move that number.
