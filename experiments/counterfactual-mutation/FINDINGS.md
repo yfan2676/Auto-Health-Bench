@@ -115,7 +115,15 @@ way). Metamorphic fairness testing and recent medical-counterfactual work (DeVis
 MedPerturb, MedEqualQA, FairMedQA; 2025) perturb demographics or vitals and measure whether
 the *answer* shifts, almost always expecting invariance on a protected attribute.
 
-Two things here are new:
+**First, what we are *not* claiming.** HealthBench already scores every answer across ~10
+rubric **axes** — accuracy, completeness, communication / empathy, conciseness,
+context-awareness, and so on — so "we surface behavior along many axes" is not a contribution;
+the benchmark gives that already. A **dimension** is a different object: a variable we change in
+the *input* (the patient's age, how a fact is disclosed, symptom severity), not a category we
+read off the output. The contribution is the **operator that adds a new such dimension cheaply**
+— a new controlled question bolted onto an existing validated benchmark without rebuilding it —
+plus the validation that makes the inherited rubric trustworthy (next subsection). The *number*
+of dimensions is not the point; the cheap **extensibility** is. Two mechanisms make it work:
 
 1. **The expected change is read off a physician rubric, per criterion.** Prior work
    hand-writes one invariance/directional expectation per input. Here one edit yields a
@@ -132,6 +140,54 @@ A consequence the whole-answer bias metrics can't reach: we separate **appropria
 adaptation** (the footprint *should* move — age changes dosing) from **unwarranted variation**
 (the bridge *should* hold — empathy shouldn't depend on age) inside one framework, because the
 rubric says which is which. "It changed" becomes "it changed where it should / shouldn't."
+
+### Validating the bridge — a test, not an assumption
+
+The whole method rests on one claim: when we inherit the bridge criteria verbatim, they are
+still *correct* for the edited input. We don't ask anyone to take that on faith, and we don't
+have to — a bridge criterion makes a **falsifiable prediction** (*its correct verdict doesn't
+change under the edit*), and invariance is observable. Four checks, cheapest first; the first
+three need no clinician.
+
+1. **Fixed-answer invariance vs the judge-noise floor (the self-certifying core).** Hold *one
+   answer fixed* and grade it against each bridge criterion under the original input and again
+   under the edited input — change only the conversation, not the answer. A true bridge
+   criterion must return the same verdict both times; the only thing that could move it is the
+   edit disturbing how the criterion grades. Compare that off-target flip rate to the
+   **judge-noise floor** (grade the identical answer/criterion pair K times, or judge at
+   temperature 0). **Off-target ≈ floor ⇒ the inherited criteria grade identically before and
+   after the edit — the bridge is behaviorally certified, with no physician. Off-target ≫ floor
+   ⇒ the bridge leaked**; the prediction was wrong or the dimension isn't local — demote it.
+
+   > **This is distinct from the pilot's fresh-answer change rate**, which blends three things —
+   > the criterion's gradeability shifting, the model genuinely adapting, and sampling noise —
+   > and so cannot, on its own, separate "the bridge leaked" from "the model adapted." Certifying
+   > the bridge needs the *fixed-answer* test; measuring adaptation needs the *fresh-answer* one.
+   > We want both; the current pipeline runs only the second, so adding the fixed-answer
+   > invariance harness (the idea doc's V1) is the next methodological step.
+
+2. **The sweep bounds the false-bridge rate.** Invariance under one edit could be luck;
+   invariance held across a whole sweep of values, and across several fixed answers / models,
+   makes the chance that a truly dependent criterion stayed flat fall fast — so "bridge"
+   confidence is *quantifiable and grows with sweep width*, not a binary assertion. Movement is
+   near-proof of dependence; sustained invariance is increasingly strong evidence of independence.
+
+3. **Two independent estimators must agree.** The a-priori footprint prediction and the measured
+   invariance are independent, so their agreement (predicted-vs-measured precision/recall) is the
+   confidence number and their disagreement is the review queue. With a capable predictor this is
+   the cheap, scalable certificate; on the 4B it was near chance, which is why the prediction
+   isn't yet usable.
+
+4. **A bounded expert spot-check (the only clinician step).** Physicians review the changed
+   footprint criteria *plus a small calibration sample of bridge "kept" decisions*; report
+   auto-vs-human agreement. This catches the one thing invariance cannot — a bridge criterion
+   that stays pass/fail-stable but becomes subtly *less appropriate* for the edited case (the
+   binary verdict's blind spot). Crucially the human cost scales with the delta plus a sample,
+   not the benchmark size — which is also the whole economic argument.
+
+So "the bridge holds" is reported as a *measured* off-target-vs-floor rate and a
+predicted-vs-measured agreement per dimension, gated by a small human sample — never asserted. A
+dimension earns the right to be mutated-and-inherited by passing this, or it gets demoted.
 
 ### What the pilot settled, and what it can't
 

@@ -190,3 +190,39 @@ So a finished run leaves three durable things, useful beyond this paper:
 
 And the pipeline itself is a reusable instrument: any future model or benchmark can be run
 through it to get the same map.
+
+## 7. The two contributions, made precise
+
+Two points worth stating sharply, because both are easy to misread.
+
+**1. The contribution is a cheap new *dimension*, not a count of dimensions.** HealthBench
+already scores each answer across ~10 rubric **axes** (accuracy, completeness,
+communication / empathy, conciseness, context-awareness, …) — surfacing per-axis behavior is not
+new. A **dimension** is different: a variable we change in the *input* (age, how a fact is
+disclosed, severity), not a category read off the output. What we add is the **operator that
+introduces a new such dimension cheaply** — a new controlled question bolted onto a validated
+benchmark without rebuilding it. The value is the extensibility, not the number.
+
+**2. The bridge is tested, not assumed — and that test is the crux of credibility.** Inheriting
+the bridge criteria verbatim only works if they are still *correct* for the edited input. We
+don't ask anyone to believe that; a bridge criterion predicts *its verdict doesn't change under
+the edit*, and invariance is measurable. The ladder, cheapest first (the first three need no
+clinician):
+
+- **Fixed-answer invariance vs the judge-noise floor** — hold one answer fixed, grade it under
+  the original and the edited input, changing only the conversation. A real bridge criterion
+  returns the same verdict; off-target flip rate ≈ judge-noise floor **certifies** the bridge
+  with no physician, ≫ floor means it **leaked** → demote the dimension. *(This is distinct from
+  the pilot's fresh-answer change rate, which blends bridge-leak, real adaptation, and sampling
+  noise and can't separate them — certifying the bridge needs this fixed-answer test, which we
+  should add.)*
+- **The sweep bounds the false-bridge rate** — invariance held across K values and several
+  answers makes a missed dependence exponentially unlikely; confidence grows with sweep width.
+- **Predicted-vs-measured agreement** — the a-priori prediction and the behavioral invariance are
+  independent; their agreement is the confidence number, their disagreement the review queue.
+- **A bounded expert spot-check** — physicians review only the changed criteria plus a small
+  bridge calibration sample, catching the subtle "still-passes-but-less-appropriate" case the
+  binary verdict misses. Human cost scales with the delta, not the benchmark.
+
+So credibility comes from a *measured* off-target-vs-floor rate per dimension, not from conveying
+an assumption.
