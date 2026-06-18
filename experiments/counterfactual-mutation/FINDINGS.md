@@ -192,3 +192,48 @@ Stated up front, because the next experiment is meant to *find out*, not to conf
 A dimension's worth is its *measured* footprint precision/recall and net effect — reported per
 model, never assumed. That honesty is the point: the method earns trust dimension by dimension
 instead of asserting it.
+
+### Why this is useful in any case
+
+A fair question: what do we actually *get* when this is done — and is it worth it whether or
+not the locality hypothesis holds? The point is that the experiment doesn't bet on one outcome.
+It converts a benchmark **level** — "model M scores X on HealthBench" — into a **sensitivity
+map**: how M's graded behavior moves when one clinically-meaningful variable changes and
+nothing else does. The level tells you how good the model is; the sensitivity tells you **how
+much to trust that level, and where it breaks under the kind of framing shift that happens
+constantly in real use**. A single leaderboard point hides this — a model whose graded behavior
+swings on a one-line, clinically-irrelevant reframing is not as trustworthy as its score
+suggests.
+
+**Every outcome is informative — the design can't return "no signal."**
+
+| we observe | what it means | who it's for |
+|---|---|---|
+| bridge holds, footprint moves the right way | locality confirmed | the benchmark builder — cheap, certified expansion |
+| bridge holds, footprint stays flat | model fails to adapt where it should (same advice at 8 and 72) | model builders — a capability gap |
+| bridge breaks on a clinically-irrelevant change | unwarranted variation | fairness / equity — a clean bias finding |
+| bridge breaks because the edit really ripples | the dimension isn't local | us — demote it, don't mutate along it |
+
+**Three durable outputs, beyond this paper:**
+
+1. **A per-dimension locality ledger** — measured footprint precision/recall + net effect per
+   dimension. It tells the broader Auto-Health-Bench program which dimensions are cheap to
+   *mutate-and-inherit* and which need fresh rubric work — the repair-ladder cost model made
+   concrete (validation scales with edit distance, not benchmark size). A *negative* locality
+   result is just as useful: it says "don't expand cheaply along this axis."
+2. **A per-model counterfactual-consistency profile** — does a model track the variables it
+   *should* (age, severity, comorbidity, pregnancy) and stay invariant on the ones it
+   *shouldn't* (protected attributes; prose-vs-data framing of the same fact)? No current
+   leaderboard reports this, and it is actionable for model builders. The disclosure / numeracy
+   gap found here is the first worked instance — and it is deployment-relevant precisely because
+   real clinical data arrives as **values, not sentences**, so a model that reads a number worse
+   than the equivalent prose will underperform exactly where it is deployed.
+3. **A clean bias surface** — because the bridge is *supposed* to be invariant, any degradation
+   on it across a protected attribute is unwarranted variation, cleanly separated from the
+   *appropriate* change in the footprint. Most fairness metrics can only say "the output
+   changed"; this says "it changed where it shouldn't have."
+
+And the pipeline is a **reusable instrument**: a new model or a new benchmark can be run through
+it to get the same map. So even the weakest result — a dimension that turns out non-local, or a
+model that's flat where it should adapt — adds a row to a ledger that keeps its value after this
+experiment closes.

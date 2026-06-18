@@ -151,3 +151,42 @@ predictor and answer model, the locality hypothesis fails and the build half col
 footprint precision/recall stays near chance with a capable predictor, the cheap one-shot
 prediction is out (the measured sweep still works, but the edit-distance economics weaken). The
 next run is designed to find this out, not to assume it.
+
+## 6. What we learn either way (why finishing it is worth it)
+
+The reason to finish this isn't that we expect the locality hypothesis to hold. It's that the
+experiment turns a benchmark **level** — "model M scored X on HealthBench" — into a
+**sensitivity map**: how M's graded behavior moves when we change one clinically-meaningful
+variable and nothing else. A level tells you how good a model is; the sensitivity tells you
+**how much to trust that level and where it will break in deployment**. A single leaderboard
+point hides this — a model whose graded behavior swings on a one-line, clinically-irrelevant
+reframing is not as trustworthy as its score suggests. And every outcome of the map is
+informative; the design cannot return "no signal":
+
+- **Bridge holds, footprint moves the right way** → locality confirmed. We get cheap,
+  certified benchmark expansion (inherit the bridge, re-author the footprint) *and* a clean
+  measure of whether the model adapts.
+- **Bridge holds, footprint stays flat** → the model fails to adapt where it should — same
+  advice for an 8- and a 72-year-old, no change when severity escalates. A capability gap,
+  actionable for model builders.
+- **Bridge breaks** → either the model degrades on something that shouldn't depend on the
+  variable (an **equity/bias** finding — worse care for the older patient, not different care),
+  or the dimension simply isn't local (**demote it**). Both are real results.
+
+So a finished run leaves three durable things, useful beyond this paper:
+
+1. **A per-dimension locality ledger** (measured footprint precision/recall + net effect) — it
+   tells the broader project which dimensions are cheap to *mutate-and-inherit* and which need
+   fresh rubric work. That is the repair-ladder cost model made concrete; a *negative* result
+   is just as useful, since it says "don't expand cheaply along this axis."
+2. **A per-model counterfactual-consistency profile** — does a model track the variables it
+   should (age, severity, comorbidity) and stay invariant on the ones it shouldn't (protected
+   attributes, prose-vs-data framing of the same fact)? No leaderboard reports this. The
+   disclosure/numeracy gap is the first worked example, and it matters in deployment precisely
+   because real clinical data arrives as **values, not prose**.
+3. **A clean bias surface** — because the bridge is *supposed* to be invariant, any degradation
+   on it across a protected attribute is unwarranted variation, separated from appropriate
+   clinical adaptation. A fairness signal that is hard to argue with.
+
+And the pipeline itself is a reusable instrument: any future model or benchmark can be run
+through it to get the same map.
