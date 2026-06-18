@@ -161,6 +161,16 @@ regenerate into `results/report.md` on each `analyze.py` run.
 `data/` is git-ignored and shared with the baseline harness (see `data/README.md`). Under
 `results/`, the small `report.md` / `metrics.json` / `noise_floor.json` are committable; bulk
 per-item files (`shortlist.jsonl`, `footprint/`, `answers/`, `sweep/`, `sweep_grades/`,
-`edits_override/`) and `viewer/data.json` are git-ignored — they contain HealthBench
-prompt/rubric text, which must not be shared. `viewer/index.html` and `src/build_viewer.py` are
-code and sync.
+`edits_override/`) are git-ignored — they contain HealthBench prompt/rubric text.
+**Exception (owner-approved):** `viewer/data.json` *is* committed for this experiment so the
+static viewer renders on a fresh clone — be aware it embeds HealthBench prompt/rubric/judge text
+by design. The general `experiments/*/viewer/data.json` ignore still guards every other
+experiment. `viewer/index.html` and `src/build_viewer.py` are code and sync.
+
+To view after a clone (the viewer `fetch`es `./data.json`, so it must be *served*, not opened
+as a `file://`):
+
+```bash
+cd experiments/counterfactual-mutation
+python3 -m http.server -d viewer 8080   # open http://localhost:8080
+```
