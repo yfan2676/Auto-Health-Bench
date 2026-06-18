@@ -158,14 +158,15 @@ regenerate into `results/report.md` on each `analyze.py` run.
 
 ## Data & results conventions
 
-`data/` is git-ignored and shared with the baseline harness (see `data/README.md`). Under
-`results/`, the small `report.md` / `metrics.json` / `noise_floor.json` are committable; bulk
-per-item files (`shortlist.jsonl`, `footprint/`, `answers/`, `sweep/`, `sweep_grades/`,
-`edits_override/`) are git-ignored — they contain HealthBench prompt/rubric text.
-**Exception (owner-approved):** `viewer/data.json` *is* committed for this experiment so the
-static viewer renders on a fresh clone — be aware it embeds HealthBench prompt/rubric/judge text
-by design. The general `experiments/*/viewer/data.json` ignore still guards every other
-experiment. `viewer/index.html` and `src/build_viewer.py` are code and sync.
+`data/` is git-ignored and shared with the baseline harness (see `data/README.md`) — that holds the
+**full original** HealthBench download, which stays local. Under `results/`, the small `report.md` /
+`metrics.json` / `noise_floor.json` are committable; bulk per-item files (`shortlist.jsonl`,
+`footprint/`, `answers/`, `sweep/`, `sweep_grades/`, `edits_override/`) are git-ignored to keep the
+repo small. `viewer/data.json` **is committed for this experiment** so the static viewer renders on a
+fresh clone: it embeds verbatim prompt/rubric/judge text for the **tested ~171-item subset**, which the
+[repo-wide policy](../README.md) allows (only the full original dataset is restricted). The general
+`experiments/*/viewer/data.json` ignore still guards every other experiment. `viewer/index.html` and
+`src/build_viewer.py` are code and sync.
 
 To view after a clone (the viewer `fetch`es `./data.json`, so it must be *served*, not opened
 as a `file://`):

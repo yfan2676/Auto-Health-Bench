@@ -1,7 +1,10 @@
 # data/
 
-**The HealthBench `.jsonl` files in this directory are git-ignored and must not be committed or reposted.**
-The dataset carries a *"do not share examples online to prevent leakage"* notice. Keep raw prompts/rubrics local; our open artifacts publish only the synthetic (Synthea) data, the pipeline, and rubric **diffs/schemas** — never verbatim HealthBench text.
+**The full HealthBench `.jsonl` downloads in this directory are git-ignored and must not be committed or reposted.**
+The dataset carries a *"do not share examples online to prevent leakage"* notice, so the complete
+original benchmark stays local. (Modified, derived, or small-subset artifacts are fine to commit per
+the repo-wide policy; *this* experiment goes further by choice — its open artifacts publish only the
+synthetic (Synthea) data, the pipeline, and rubric **diffs/schemas**, never verbatim HealthBench text.)
 
 ## How to (re)download
 

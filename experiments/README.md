@@ -43,8 +43,13 @@ Experiments are tagged by the project's research **directions** (see the
   `.gitignore` (`experiments/*/data/*`, plus bulk patterns under `results/`).
 - **Commit the small reports.** Markdown method logs, score matrices, and shortlists go
   in `reports/` (or as small files in `results/`) so the findings are versioned.
-- **Respect the source-data license.** HealthBench text must not be reposted publicly;
-  keep verbatim prompts/rubrics out of committed files unless the repo is private.
+- **Respect the source-data license.** Don't commit the **full HealthBench dataset in its
+  original form** — the raw `data/*.jsonl` downloads. The upstream notice asks not to share the
+  examples *wholesale* online to prevent eval leakage, so the complete benchmark stays local.
+  **Modified, derived, or small-subset artifacts are fine to commit** — mutated/paraphrased
+  tasks, rubric diffs/schemas, aggregate metrics, and the small per-experiment analysis bundles
+  (e.g. a viewer over a few hundred tested items). Note a *verbatim* subset still exposes those
+  specific examples; prefer modified/derived text when leakage-sensitivity matters.
 
 ## Adding a new experiment
 

@@ -10,8 +10,10 @@ per-criterion sweep verdicts (src/sweep_grade.py). Diff-highlight spans between 
 conversation are precomputed here with difflib (word granularity) so the HTML stays
 dependency-free — it just paints spans tagged equal/insert/delete.
 
-Privacy: viewer/data.json embeds HealthBench prompt + rubric + judge-explanation text and
-is git-ignored (see root .gitignore). viewer/index.html and this script are code and sync.
+Privacy: viewer/data.json embeds verbatim HealthBench prompt/rubric/judge text for the tested
+subset only. Committing a small subset is allowed under the repo-wide policy (only the full
+original dataset must stay out), so THIS experiment's bundle IS committed (negation in root
+.gitignore) to render on a fresh clone. viewer/index.html and this script are code and sync.
 
 Output: viewer/data.json
 Usage:

@@ -10,7 +10,8 @@ needed. `src/common.py` resolves the data directory automatically, in order:
 
 So if you already downloaded the data for the baseline harness, **you don't need to do
 anything**. Otherwise, fetch it here (same source + the same do-not-share notice applies —
-keep raw prompts/rubrics local, never commit them):
+keep the **full raw dataset** local; committed subsets/derived artifacts are fine per the
+[repo-wide policy](../../README.md)):
 
 ```bash
 mkdir -p data

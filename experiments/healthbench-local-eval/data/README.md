@@ -1,7 +1,9 @@
 # data/
 
-**The HealthBench `.jsonl` files in this directory are git-ignored and must not be committed or reposted.**
-The dataset carries a *"do not share examples online to prevent leakage"* notice. Keep raw prompts and rubrics local.
+**The full HealthBench `.jsonl` downloads in this directory are git-ignored and must not be committed or reposted.**
+The dataset carries a *"do not share examples online to prevent leakage"* notice, so the complete
+original benchmark stays local. Modified, derived, or small-subset artifacts elsewhere in the repo
+are fine to commit (prefer modified/derived text over verbatim when leakage-sensitivity matters).
 
 ## How to (re)download
 
