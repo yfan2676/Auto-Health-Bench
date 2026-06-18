@@ -83,3 +83,112 @@ contrast, at the cost of mixing self- and third-party disclosure in one bucket).
   ("retired" → "in school"). The primary swap is correct and disclosure edits (subagent overrides)
   are unaffected, but the **age net effect (+1.4%) is measured on less-thorough edits** — re-running
   `sweep.py` with the fixed parser would refresh the age variants and could move that number.
+
+## Where this is going — a research program
+
+*This section steps back from the 4B pilot and frames the work as a contribution: what is
+new, what the next experiment must show, and what would falsify the idea. Plain claims,
+honestly bounded.*
+
+### One idea, two uses
+
+Counterfactual dimensional mutation is a single operation — *edit one dimension of a
+HealthBench task and predict, per criterion, which parts of the physician rubric should
+change* — that does two jobs at once:
+
+- **Build.** The criteria predicted *unchanged* (the **bridge**) stay valid verbatim, so a
+  new variant inherits most of an expensive expert rubric and only the small **footprint** is
+  re-authored. New, mostly-expert-graded tasks at edit-distance cost.
+- **Test.** That same per-criterion prediction is a behavioral expectation: a good model's
+  answer should change exactly on the footprint and hold on the bridge. Measuring where it
+  *actually* moves grades the model's **counterfactual consistency**.
+
+The rubric is the shared ground truth for both. That coupling — *the structure that lets you
+reuse the rubric is the same structure you test the model against* — is the core of the idea.
+
+### What's actually new (positioned against prior work)
+
+Perturbing a clinical LLM and watching what changes is an active area, and we don't claim
+that part is new. CheckList (Ribeiro et al., 2020) named the two test shapes we use —
+**invariance** (output shouldn't change) and **directional** (output should change a known
+way). Metamorphic fairness testing and recent medical-counterfactual work (DeVisE,
+MedPerturb, MedEqualQA, FairMedQA; 2025) perturb demographics or vitals and measure whether
+the *answer* shifts, almost always expecting invariance on a protected attribute.
+
+Two things here are new:
+
+1. **The expected change is read off a physician rubric, per criterion.** Prior work
+   hand-writes one invariance/directional expectation per input. Here one edit yields a
+   *vector* of expert-authored expectations — every rubric criterion is independently a bridge
+   (invariance) or footprint (directional) test, for free, from an artifact that already
+   exists. The ground truth for "what should change" is the rubric, not our assertion.
+2. **The same locality structure builds the benchmark.** Because the bridge is
+   predicted-invariant, those criteria are reused verbatim to manufacture a new graded item;
+   only the footprint is re-authored. Evaluation and validated data-augmentation become the
+   same operation. The fairness-testing papers only *test* — none turn the locality into new
+   expert-graded items.
+
+A consequence the whole-answer bias metrics can't reach: we separate **appropriate
+adaptation** (the footprint *should* move — age changes dosing) from **unwarranted variation**
+(the bridge *should* hold — empathy shouldn't depend on age) inside one framework, because the
+rubric says which is which. "It changed" becomes "it changed where it should / shouldn't."
+
+### What the pilot settled, and what it can't
+
+The 4B pilot proved the machinery runs end-to-end and produces an honest, floor-corrected
+signal — and it surfaced a real capability gap (disclosure / numeracy, +5.7%). But every role
+(predict, edit, answer, judge) was one small model, so:
+
+- the dimension signal sits inside a **~27% same-input floor** (a 4B's run-to-run answer
+  variance), which swallowed age; and
+- the a-priori footprint classifier is **near chance** (on-target ≈ off-target).
+
+Both are model-capability artifacts, not verdicts on the method. The pilot is a *feasibility*
+result; the contribution needs a capable model.
+
+### The next experiment (the immediate task)
+
+Two changes, each aimed at one pilot limitation:
+
+1. **A capable model, with roles split.** Use a strong model as the **footprint-predictor and
+   edit-author** (the job the 4B did worst), and put a **suite of answer models** (strong →
+   small) *under test*. A stronger answer model shrinks the floor so the net effect is legible;
+   the role split turns "does this model adapt appropriately?" into a clean per-model number
+   instead of a confound.
+2. **More dimensions.** Add **D3 severity**, **D4 pregnancy**, **D5 comorbidity** (idea doc
+   §5), plus one **protected-attribute** dimension (sex) whose expectation is pure
+   bridge-invariance — that one engages the fairness literature directly and yields a bias
+   surface.
+
+**Deliverable: a dimension × rubric-axis sensitivity map, across models** — which axes each
+dimension moves, which stay bridge, and which models adapt on the footprint while holding the
+bridge. That map is a model property no leaderboard reports, and it doubles as the
+per-dimension trust record (footprint precision/recall) for the build half.
+
+| Dim | Edit | Should move (footprint) | Stays (bridge) | Status |
+|---|---|---|---|---|
+| D1 age | swap stated age | differentials, screening, dosing | empathy, safety-netting, work-up | done (pilot) |
+| D2 disclosure | fact stated → fact as data | read/interpret the value; stop asking for it | whole management plan | done (pilot) |
+| D3 severity | mild → acute descriptor | triage, ER-referral, red flags | education, history-taking | next |
+| D4 pregnancy | toggle pregnant on/off | teratogen avoidance, imaging caution, involve OB | symptom-management plan | next |
+| D5 comorbidity | + CKD / warfarin / allergy | interaction, contraindication, dose-adjust | primary work-up | next |
+| Dx sex (control) | swap patient sex | only where clinically real | the rest — a pure invariance test | next |
+
+### What would falsify it
+
+Stated up front, because the next experiment is meant to *find out*, not to confirm:
+
+- **If the bridge doesn't hold even with a strong predictor and answer model** (off-target ≈
+  on-target), the locality hypothesis fails — the build half collapses and the test half loses
+  its "should / shouldn't" anchor.
+- **If footprint precision/recall stays near chance with a capable predictor**, the cheap
+  a-priori prediction isn't usable. (The measured behavioral sweep still works as ground truth,
+  but the edit-distance economics weaken — you'd need the sweep, not a one-shot prediction, to
+  localize the footprint.)
+- **If the net effect stays inside the floor for a capable answer model**, the dimension is a
+  true bridge for that model — a real, if negative, result, and exactly the equity signal when
+  it happens *only* on the bridge.
+
+A dimension's worth is its *measured* footprint precision/recall and net effect — reported per
+model, never assumed. That honesty is the point: the method earns trust dimension by dimension
+instead of asserting it.
