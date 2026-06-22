@@ -1,0 +1,22 @@
+{
+  "example_id": "bb4799b5-0e99-480a-8ec8-109b43161b1d",
+  "encoding_kind": "med_list",
+  "fact": "on metformin",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "put me on metformin and spironolactone",
+      "data_phrase": "put me on metformin 500 mg PO BID and spironolactone"
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "put me on metformin and spironolactone",
+      "data_phrase": "put me on the following meds — Metformin | 500 mg | PO | BID — and spironolactone"
+    },
+    {
+      "style": "a structured med block",
+      "find": "put me on metformin and spironolactone",
+      "data_phrase": "put me on the following — Medication: metformin; Dose: 500 mg; Route: oral; Frequency: twice daily — and spironolactone"
+    }
+  ]
+}

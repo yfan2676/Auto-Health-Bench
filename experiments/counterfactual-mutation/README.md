@@ -38,9 +38,11 @@ Compared against an a-priori footprint prediction:
 - **footprint:** criteria predicted **sensitive** *should* flip when the model adapts.
 
 Together → a confusion matrix and **footprint precision/recall**. The judge runs at
-**temperature 0**; because the answers to `V` and each `V_k` are sampled independently, the raw
-change rate includes the model's own answer variance, so the reported signal is **net = change
-rate − the same-input floor** (per dimension; see [`FINDINGS.md`](FINDINGS.md)).
+**temperature 0**; because the answers to `V` and each `V_k` are sampled independently, the rubric
+**score** varies run-to-run, so the reported headline is the **net score SD = sweep score SD −
+same-input floor SD** (per dimension — the std-dev of the rubric score across the sweep minus across
+same-input resamples; the per-criterion flip view feeds footprint precision/recall; see
+[`FINDINGS.md`](FINDINGS.md)).
 
 ## Pipeline
 
@@ -58,11 +60,11 @@ src/answers.py       Step 4  fresh answer to EACH input — V and every V_k (con
                                                                          -> results/answers_<ver>/<id>.json
 src/sweep_grade.py   Step 5  grade each fresh answer vs the original rubric (T=0, concurrent across GPUs)
                                                                          -> results/sweep_grades_<ver>/<id>.jsonl
-src/noise_floor.py   Step 6  same-input answer-resampling flip rate / dim  -> results/noise_floor_<ver>.json
+src/noise_floor.py   Step 6  same-input answer-SCORE std-dev / dim        -> results/noise_floor_<ver>.json
                                  (Steps 4-6 are the BEHAVIORAL half, versioned by answer+judge model via
                                   CM_BEHAVIOR_VERSION, default v2_qwen3.6-27b-fp8; 4B preserved as *_v1_qwen3-4b.
                                   sweep/ is model-independent, NOT versioned. run_full.sh pins v1 for the 4B serve.)
-src/analyze.py       Step 7  change rate + net effect vs floor (+by-dim)   -> results/{metrics.json,report.md}
+src/analyze.py       Step 7  net SCORE SD vs floor (+ per-criterion view)  -> results/{metrics.json,report.md}
 src/build_viewer.py  Step 8  aggregate everything (+difflib spans)        -> viewer/data.json
 viewer/index.html    dependency-free static viewer (serve with python -m http.server)
 ```
@@ -70,12 +72,17 @@ viewer/index.html    dependency-free static viewer (serve with python -m http.se
 A criterion is in the **measured footprint** iff the model's answer flips its verdict between
 the original input `V` and *any* swept input `V_k`; held across the whole sweep ⇒ bridge.
 `analyze.py` scores the a-priori footprint classifier against this measured footprint, reports
-the per-dimension **net effect** (change rate − same-input floor), and breaks change rate down
-by dimension and rubric axis. Each step is resumable (per-item files / appended jsonl,
+the per-dimension **net score SD** (sweep score SD − same-input floor SD) as the headline plus the
+per-criterion change rate, broken down by dimension and rubric axis. Each step is resumable (per-item files / appended jsonl,
 skip-existing). `src/edit.py` is the deterministic age-edit primitive reused by
 `src/dimensions/age.py`.
 
 ## How to run
+
+> **Server env + porting to another cluster (incl. H100):** building the `vllm-qwen36` env (cu129
+> wheel, transformers 5.x), the GPU-arch serve flags, the model/data, and **how to continue the
+> partial 27B run on a new box** (which git-ignored artifacts to copy + the exact resume command) are
+> all in **[`ENVIRONMENT.md`](ENVIRONMENT.md)**. The commands below assume the env already exists.
 
 **One command (recommended).** [`run_full.sh`](run_full.sh) owns the whole lifecycle: it
 starts both vLLM servers (one per GPU), waits for them to be healthy, runs the full pipeline,
@@ -158,11 +165,12 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
   and `viewer/data.json`; the viewer renders the input/rubric/edited-diff/measured-footprint views
   plus the qualitative + metric panels, for both dimensions. (Full sweep+grade run ≈ 54 min; the
   a-priori footprint was then classified for all 171 items, fanned across both GPUs.)
-- **Net dimension effect (Δ change rate vs the same-input floor): age ≈ +1.4%, disclosure ≈ +5.7%** —
-  see [`FINDINGS.md`](FINDINGS.md). At scale **age collapses near its noise floor** (the earlier
-  n=30 +6% was largely small-sample noise); **disclosure is the robust effect (~4× age)**, a 4B
-  numeracy gap. Change concentrates in completeness/accuracy; the communication/management bridge is
-  the most invariant axis.
+- **Headline = net score SD** (run-to-run std-dev of the rubric score): **sweep score SD − same-input
+  floor SD**, per dimension. Sweep score SD ≈ **13%** for both dimensions and both models (4B/27B); the
+  same-input floor *under this metric* is being regenerated (blocked on GPU 0), so the net is pending —
+  see [`FINDINGS.md`](FINDINGS.md). *Legacy per-criterion flip-rate (superseded, kept in the per-criterion
+  view):* 4B net age +1.4%, disclosure +5.7% — disclosure the robust effect (~4× age), a 4B numeracy gap;
+  change concentrates in completeness/accuracy, the communication/management bridge most invariant.
 - **A-priori footprint: versioned + classifier-swappable; the 27B makes it discriminative.**
   `footprint.py` fans its per-item calls across both GPUs and classifies every item, writing to a
   *versioned* dir (`results/footprint_v*/`, selected by `CM_FOOTPRINT_DIR`, default
@@ -180,9 +188,10 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
   (Steps 4–6) is versioned by answer+judge model (`CM_BEHAVIOR_VERSION`, default the 27B; 4B kept as
   `*_v1_qwen3-4b`) and re-run on the *same* `sweep/` inputs. Drivers: `run_behavioral_27b.sh` (both
   GPUs) and `complete_v2_gpu1.sh` (single-GPU finish). **GPU 0 fell off the PCIe bus during the
-  disclosure floor**, so v2 is incomplete: saved = 171/171 answers, 2055/2061 grades, age floor;
-  missing = disclosure floor (net `n/a`) + 6 ungraded criteria. Partial: **age net +2.8%** (vs 4B
-  +1.4%); footprint on/off **39.4%/25.4%** (disclosure footprint sharp at 56.2%/24.7%). `report.md`
+  same-input floor**, so v2 is incomplete: saved = 171/171 answers, 2055/2061 grades; pending = **both
+  score-SD floors** + 6 ungraded criteria. Partial: sweep score SD **age 13.5% / disclosure 13.1%**
+  (floor/net pending); per-criterion footprint on/off **39.4%/25.4%** (disclosure sharp 56.2%/24.7%;
+  legacy flip-rate age net +2.8%). `report.md`
   carries a ⚠ partial-run banner. Finishing needs GPU 0 back (reboot) — a fresh vLLM can't boot while
   a GPU is faulted (NVML enumerates all devices). `common.judge_criterion` was hardened (extract the
   JSON object that actually carries `criteria_met`, + a thinking-on rescue) for the larger judge.

@@ -1,0 +1,22 @@
+{
+  "example_id": "8e512b09-c912-4ecb-bdf3-90496931a8e4",
+  "encoding_kind": "lab_lipids",
+  "fact": "elevated LDL cholesterol",
+  "renderings": [
+    {
+      "style": "an LDL value",
+      "find": "borderline high cholesterol",
+      "data_phrase": "an LDL of 165 mg/dL"
+    },
+    {
+      "style": "a lipid-panel line",
+      "find": "borderline high cholesterol",
+      "data_phrase": "a lipid panel showing LDL 165 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "borderline high cholesterol",
+      "data_phrase": "a lab result of LDL 165 mg/dL (H)"
+    }
+  ]
+}

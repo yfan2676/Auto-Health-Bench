@@ -41,6 +41,13 @@ MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"
 MAX_NUM_SEQS="${MAX_NUM_SEQS:-256}"        # hybrid Mamba-cache vs CUDA-graph ceiling (default 1024 fails)
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"   # 27B FP8 load is slower than the 4B
 FLOOR_ITEMS="${FLOOR_ITEMS:-20}"           # items/dimension for the same-input floor (matches v1)
+# GPU-arch-specific serve env. Defaults target the Blackwell sm_120 box (RTX PRO 6000): flashinfer's
+# check_cuda_arch reads TORCH_CUDA_ARCH_LIST (unset -> wrongly errors on sm_120) and its JIT sampler
+# trips a sm_120 bug. ON A DIFFERENT GPU override these — e.g. H100 (sm_90):
+#   TORCH_CUDA_ARCH_LIST=9.0 VLLM_USE_FLASHINFER_SAMPLER=1 ./run_behavioral_27b.sh
+# (--max-num-seqs is a model property — the hybrid Mamba cache — keep it.) See ENVIRONMENT.md.
+export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-12.0}"
+export VLLM_USE_FLASHINFER_SAMPLER="${VLLM_USE_FLASHINFER_SAMPLER:-0}"
 
 LOG="$SCRIPT_DIR/run_behavioral_27b.log"
 SRV_LOG_DIR="$SCRIPT_DIR/logs"
@@ -127,12 +134,10 @@ start_servers() {
     srv_log="$SRV_LOG_DIR/vllm27b_${port}.log"
     echo "[:$port] starting $MODEL on GPU $gpu  (log: $srv_log)"
     CUDA_VISIBLE_DEVICES="$gpu" \
-      TORCH_CUDA_ARCH_LIST=12.0 \
-      VLLM_USE_FLASHINFER_SAMPLER=0 \
       nohup "$VLLM_BIN" serve "$MODEL" \
         --port "$port" --gpu-memory-utilization "$GPU_MEM_UTIL" \
         --max-model-len "$MAX_MODEL_LEN" --max-num-seqs "$MAX_NUM_SEQS" \
-        >"$srv_log" 2>&1 &
+        >"$srv_log" 2>&1 &  # TORCH_CUDA_ARCH_LIST / VLLM_USE_FLASHINFER_SAMPLER exported above
     SERVER_PIDS+=("$!")
   done
   printf '%s\n' "${SERVER_PIDS[@]}" > /tmp/qwen36_behavioral_pids

@@ -1,0 +1,22 @@
+{
+  "example_id": "153e3b1c-a999-4c74-984d-0f3033cb6e58",
+  "encoding_kind": "lab_a1c",
+  "fact": "daily foot checks for type 2 diabetes",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "type 2 diabetes",
+      "data_phrase": "an HbA1c of 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "type 2 diabetes",
+      "data_phrase": "a fasting glucose of 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "type 2 diabetes",
+      "data_phrase": "a lab result of HbA1c 8.0% (H)"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "example_id": "60405a2b-75fd-4f02-b123-53ab8181a990",
+  "encoding_kind": "med_list",
+  "fact": "taking metoprolol",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "on metoprolol 25 mg bid",
+      "data_phrase": "with a medication list of metoprolol 25 mg twice daily"
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "on metoprolol 25 mg bid",
+      "data_phrase": "with a med-reconciliation row of Metoprolol 25 mg PO BID"
+    },
+    {
+      "style": "a structured med block",
+      "find": "on metoprolol 25 mg bid",
+      "data_phrase": "with Medications: metoprolol 25 mg twice daily"
+    }
+  ]
+}

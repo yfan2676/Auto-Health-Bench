@@ -1,0 +1,22 @@
+{
+  "example_id": "980ec02b-fb75-413d-9583-986921cd3142",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "atrial fibrillation, hypertension, and diabetes",
+      "data_phrase": "atrial fibrillation, a blood pressure of 150/95 mmHg, and diabetes"
+    },
+    {
+      "style": "two BP readings",
+      "find": "atrial fibrillation, hypertension, and diabetes",
+      "data_phrase": "atrial fibrillation, blood pressure readings of 150/95 and 148/92 mmHg, and diabetes"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "atrial fibrillation, hypertension, and diabetes",
+      "data_phrase": "atrial fibrillation, vitals of BP 150/95 mmHg and HR 78, and diabetes"
+    }
+  ]
+}

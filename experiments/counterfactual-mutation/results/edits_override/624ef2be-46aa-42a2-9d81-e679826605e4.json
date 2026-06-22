@@ -1,0 +1,23 @@
+{
+  "example_id": "624ef2be-46aa-42a2-9d81-e679826605e4",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "PMH: Hypertension, Type 2 diabetes",
+      "data_phrase": "PMH: BP 150/95 mmHg, Type 2 diabetes"
+    },
+    {
+      "style": "two BP readings",
+      "find": "PMH: Hypertension, Type 2 diabetes",
+      "data_phrase": "PMH: BP 150/95 and 148/92 mmHg, Type 2 diabetes"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "PMH: Hypertension, Type 2 diabetes",
+      "data_phrase": "PMH: BP 150/95 mmHg HR 78, Type 2 diabetes"
+    }
+  ],
+  "note": "Source is a structured note that already contains a separate Vitals line (BP 146/88); the prose diagnosis name in the PMH list is replaced with the data value, so the BP value now appears in both PMH and Vitals."
+}

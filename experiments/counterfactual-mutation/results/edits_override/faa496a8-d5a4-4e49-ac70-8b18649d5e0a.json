@@ -1,0 +1,10 @@
+{
+  "example_id": "faa496a8-d5a4-4e49-ac70-8b18649d5e0a",
+  "encoding_kind": "lab_a1c",
+  "fact": "type 1 diabetes (poorly controlled)",
+  "renderings": [
+    {"style": "an HbA1c value", "find": "a competitive runner with type 1 diabetes", "data_phrase": "a competitive runner with an HbA1c of 8.1% and on insulin"},
+    {"style": "a fasting glucose value", "find": "a competitive runner with type 1 diabetes", "data_phrase": "a competitive runner with a fasting glucose of 168 mg/dL and on insulin"},
+    {"style": "a flagged lab line", "find": "a competitive runner with type 1 diabetes", "data_phrase": "a competitive runner with HbA1c 8.1% (flagged high) and on insulin"}
+  ]
+}

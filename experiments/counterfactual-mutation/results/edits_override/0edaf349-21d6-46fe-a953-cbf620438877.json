@@ -1,0 +1,22 @@
+{
+  "example_id": "0edaf349-21d6-46fe-a953-cbf620438877",
+  "encoding_kind": "lab_a1c",
+  "fact": "diabetes",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "si tengo diabetes",
+      "data_phrase": "si tengo una HbA1c de 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "si tengo diabetes",
+      "data_phrase": "si tengo una glucosa en ayunas de 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "si tengo diabetes",
+      "data_phrase": "si tengo un resultado de laboratorio de HbA1c 8.0% (H)"
+    }
+  ]
+}

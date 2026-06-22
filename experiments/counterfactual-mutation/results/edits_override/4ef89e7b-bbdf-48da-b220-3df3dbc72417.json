@@ -1,0 +1,22 @@
+{
+  "example_id": "4ef89e7b-bbdf-48da-b220-3df3dbc72417",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "i have hypertension and type 2 diabetes",
+      "data_phrase": "i have a blood pressure of 150/95 mmHg and type 2 diabetes"
+    },
+    {
+      "style": "two BP readings",
+      "find": "i have hypertension and type 2 diabetes",
+      "data_phrase": "i have blood pressure readings of 150/95 and 148/92 mmHg and type 2 diabetes"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "i have hypertension and type 2 diabetes",
+      "data_phrase": "i have vitals of BP 150/95 mmHg, HR 78 and type 2 diabetes"
+    }
+  ]
+}

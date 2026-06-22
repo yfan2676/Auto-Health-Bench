@@ -16,29 +16,35 @@ This file is the narrative.*
   answer, each graded against the **original** rubric. A criterion "moves" when its verdict
   differs between the answer to `V` and the answer to some `V_k`.
 
-## Reading the change rate: subtract the same-input floor
+## Reading the dimension effect: score variation minus the same-input floor
 
-The raw fraction of criteria that move is **~30%**, but a 4B model at temperature gives
-materially different (often equally valid) answers to the *same* input, and the answers to `V`
-and each `V_k` are sampled independently — so the raw rate contains the model's own answer
-variance. The baseline that isolates the dimension is the **same-input floor**: regenerate K
-answers to one *unchanged* input and measure the flip rate (`noise_floor.py`). It is **~27%**.
+Each answer is scored with the HealthBench rubric (achieved ÷ total possible points, a 0–100%
+score). The dimension's effect is the run-to-run **standard deviation of that score**: how much the
+score moves across `V` and its mutated variants (the **sweep score SD**) minus how much it moves
+across K fresh answers to the *same* input (the **same-input floor SD**) — answers are sampled at
+temperature, so even an unchanged input scores differently each roll.
 
-**Net dimension effect = change rate − same-input floor** (a delta of two rates, shown as %):
+**net score SD = sweep score SD − same-input floor SD** (per dimension, in score points):
 
-| dimension | items | change rate | same-input floor | **net effect (Δ)** |
+| dimension | items | sweep score SD (4B / 27B) | same-input floor SD | **net score SD (Δ)** |
 |---|---|---|---|---|
-| age (D1)        | 100 | 28.4% | 27.0% | **+1.4%** |
-| disclosure (D2) | 71  | 32.4% | 26.8% | **+5.7%** |
+| age (D1)        | 100 | 13.4% / 13.5% | *pending re-run* | *pending* |
+| disclosure (D2) | 71  | 12.8% / 13.1% | *pending re-run* | *pending* |
 
-(floors estimated on a ~20-item subset per dimension.) So once its own sampling noise is
-removed, **age has essentially no attributable effect** — at n=100 the model adapts to an age
-swap about as much as it varies run-to-run on the *same* input, i.e. age behaves almost like a
-pure bridge for this 4B model. **Disclosure stays clearly positive (~4× age).**
+The sweep score SD is ~13% and **nearly identical across dimensions and model sizes** — most of it is
+the same-input sampling floor (the score wobbles run-to-run regardless of the mutation), and the
+**net** is what subtracting the floor leaves. The floor *under this score metric* is being regenerated
+for both models (it needs a GPU run, currently blocked on the GPU-0 fault), so the net is pending.
+
+**Legacy per-criterion flip-rate** (the earlier metric, retained in the per-criterion view): counting
+the *fraction of rubric criteria* whose pass/fail verdict flips (not score-weighted) gave the 4B pilot
+net **age +1.4%, disclosure +5.7%** (raw change rate ~28–32% minus a ~27% flip-rate floor) — disclosure
+≈4× age, age collapsing into its floor. That view still drives the a-priori footprint classifier's
+precision/recall; the score-SD above is the score-weighted headline.
 
 ## What the signal looks like
 
-- **Disclosure moves the model materially more than age** (+5.7% vs +1.4%). This is a
+- **Disclosure moves the model materially more than age** (+5.7% vs +1.4%, *legacy flip-rate*). This is a
   **numeracy gap**: Qwen3-4B does not reliably read a bare value (`HbA1c 8.1%`, `BP 150/95`) as
   the diagnosis it stated in prose, so its graded behavior shifts — even though the underlying
   clinical fact is identical. The same case is genuinely harder for the model when the fact is
@@ -58,28 +64,29 @@ the judge**, on the *same* mutated inputs (the `sweep/` variants are model-indep
 clean answer-model swap). It is **versioned** (`CM_BEHAVIOR_VERSION`, default the 27B; the 4B run is
 preserved as `*_v1_qwen3-4b`), so the two are directly comparable.
 
-**This run is incomplete.** GPU 0 fell off the PCIe bus partway through the **disclosure same-input
-floor**. Saved and intact on disk: **171/171 answers, 2055/2061 grades, the age floor**. Missing:
-the **disclosure floor** (so disclosure's net effect is `n/a`) and **6 criteria** the judge left
-ungraded (~0.3%, JSON-parse). Finishing those ~25 min of work needs GPU 0 back — a *fresh* vLLM
-process can't boot while a GPU is faulted (its NVML startup enumerates **all** physical devices and
-dies on the bad one), so the surviving GPU 1 alone can't serve a new replica until a reboot.
+**This run is incomplete.** GPU 0 fell off the PCIe bus partway through the same-input floor. Saved
+and intact on disk: **171/171 answers, 2055/2061 grades**. Pending (need GPU 0 back): **both
+same-input floors** under the score-SD metric and **6 criteria** the judge left ungraded (~0.3%,
+JSON-parse). A *fresh* vLLM process can't boot while a GPU is faulted (its NVML startup enumerates
+**all** physical devices and dies on the bad one), so the surviving GPU 1 alone can't serve a new
+replica until a reboot.
 
-Partial numbers (27B answer+judge vs the 4B baseline; **disclosure net pending the floor**):
+Score-variation numbers (27B; sweep computable now, floor pending — and see the metric-section table
+above for both models):
 
-| dimension | raw change | same-input floor | **net effect** | (4B net) |
+| dimension | items | sweep score SD | same-input floor SD | **net score SD** |
 |---|---|---|---|---|
-| age (D1)        | 28.2% | 25.4% | **+2.8%** | +1.4% |
-| disclosure (D2) | 25.3% | *pending* | **n/a** | +5.7% |
+| age (D1)        | 100 | 13.5% | *pending* | *pending* |
+| disclosure (D2) | 71  | 13.1% | *pending* | *pending* |
 
-- **Age moves *more* under the 27B answer model, not less** (+2.8% vs +1.4%) — the opposite of what
-  "a bigger model is more counterfactually consistent" would predict, and worth confirming once the
-  run is complete and with a lower-variance answer protocol.
-- **Footprint discrimination (now 27B classifier vs 27B behavior) is clearly positive**: predicted-
-  sensitive criteria move **39.4%** on-target vs **25.4%** off-target (**+14 pt**). By dimension the
-  disclosure footprint is sharp — **on-target 56.2% vs off-target 24.7%** — i.e. the 27B answer model
+- **Footprint discrimination (now 27B classifier vs 27B behavior) is clearly positive** (per-criterion):
+  predicted-sensitive criteria move **39.4%** on-target vs **25.4%** off-target (**+14 pt**). By dimension
+  the disclosure footprint is sharp — **on-target 56.2% vs off-target 24.7%** — i.e. the 27B answer model
   varies *exactly* the disclosure-sensitive criteria a lot when the mode of disclosure changes; age is
-  milder (38.0% vs 26.0%). The honest disclosure *net* still awaits its floor.
+  milder (38.0% vs 26.0%).
+- **Legacy per-criterion flip-rate** (pre-metric-change): the 27B gave age net **+2.8%** (vs 4B +1.4%) —
+  the bigger answer model moved age *more*, not less. Retained for continuity; superseded by the score-SD
+  headline once the floors are re-measured.
 - Grading robustness was hardened for the larger judge: `common.judge_criterion` now extracts the
   last JSON object that actually carries `criteria_met` (the 27B sometimes emits a trailing non-
   verdict object) with a one-shot thinking-on rescue. Live partial numbers: [`results/report.md`](results/report.md)
@@ -230,8 +237,9 @@ The 4B pilot proved the machinery runs end-to-end and produces an honest, floor-
 signal — and it surfaced a real capability gap (disclosure / numeracy, +5.7%). But every role
 (predict, edit, answer, judge) was one small model, so:
 
-- the dimension signal sits inside a **~27% same-input floor** (a 4B's run-to-run answer
-  variance), which swallowed age; and
+- the dimension signal sits inside the model's **run-to-run answer variance** (the same-input
+  floor — ~27% as a 4B per-criterion flip rate, now reported as an answer-score std-dev), which
+  swallowed age; and
 - the a-priori footprint classifier is **near chance** (on-target ≈ off-target).
 
 Both are model-capability artifacts, not verdicts on the method. The pilot is a *feasibility*

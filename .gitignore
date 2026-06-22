@@ -40,6 +40,16 @@ experiments/*/viewer/data.json
 # fresh clone. It embeds a SUBSET of verbatim HealthBench text, which the repo policy allows
 # (only the full original dataset must stay out) — the general rule above guards every other bundle.
 !experiments/counterfactual-mutation/viewer/data.json
+# OPT-IN (2026-06-22): publish the counterfactual-mutation per-item RESULTS too, so the partial 27B
+# run can be CONTINUED on another machine straight from a `git pull` (no separate rsync). Same 171-item
+# SUBSET already in the committed viewer bundle — repo policy allows committed subsets; ~22 MB total.
+# Every OTHER experiment's bulk results stay ignored by the general rules above.
+!experiments/counterfactual-mutation/results/shortlist.jsonl
+!experiments/counterfactual-mutation/results/sweep/*
+!experiments/counterfactual-mutation/results/edits_override/*
+!experiments/counterfactual-mutation/results/footprint_*/*
+!experiments/counterfactual-mutation/results/answers_*/*
+!experiments/counterfactual-mutation/results/sweep_grades_*/*
 *.log
 
 # ---- Python ----------------------------------------------------------------

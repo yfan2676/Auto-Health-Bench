@@ -1,0 +1,22 @@
+{
+  "example_id": "db12fd52-01b7-4e0a-80ae-8fddd268f97d",
+  "encoding_kind": "lab_lipids",
+  "fact": "high cholesterol (hyperlipidemia)",
+  "renderings": [
+    {
+      "style": "an LDL value",
+      "find": "my mother has really high cholesterol",
+      "data_phrase": "my mother has an LDL of 190 mg/dL"
+    },
+    {
+      "style": "a lipid-panel line",
+      "find": "my mother has really high cholesterol",
+      "data_phrase": "my mother has a lipid panel showing total cholesterol 265 mg/dL and LDL 190 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "my mother has really high cholesterol",
+      "data_phrase": "my mother has a lab showing LDL 190 mg/dL (flagged high)"
+    }
+  ]
+}

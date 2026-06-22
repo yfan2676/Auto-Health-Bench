@@ -24,15 +24,25 @@ Usage:
 """
 import argparse
 import json
+import statistics
 
 import common
 
-_METRIC = ("same-input answer-resampling flip rate: K fresh answers to the same input, "
-           "reference-based (answer[0] vs the other K-1), any verdict differs")
+_METRIC = ("same-input answer-resampling SCORE std-dev: K fresh answers to the same input, each "
+           "scored with the HealthBench rubric (achieved/possible); the floor is the mean over items "
+           "of the std-dev of those K per-answer scores. (Legacy per-criterion flip_rate also kept.)")
 
 
 def measure_dimension(rows, by_id, k, max_criteria):
-    """Return (flip_rate, n_criteria, n_unstable, examples_used) for one dimension's items."""
+    """Return (score_sd, flip_rate, n_criteria, n_items, examples_used) for one dimension's items.
+
+    For each item we regenerate K fresh answers to the SAME original input, grade EVERY criterion on
+    each answer, compute the HealthBench per-answer score (common.rubric_score), and take the std-dev
+    of those K scores — the run-to-run score variation with the input held fixed. The dimension floor
+    is the mean of those per-item SDs. The legacy per-criterion flip_rate (verdict not unanimous
+    across the K answers, reference-based vs answer[0]) is also kept for continuity.
+    """
+    per_item_sd = []
     n_criteria = n_unstable = 0
     used = []
     for s in rows:
@@ -40,7 +50,7 @@ def measure_dimension(rows, by_id, k, max_criteria):
         ex = by_id.get(eid)
         if not ex:
             continue
-        rubrics = ex["rubrics"][:max_criteria]
+        rubrics = ex["rubrics"][:max_criteria] if max_criteria else ex["rubrics"]
         # Regenerate K fresh answers to the SAME original input, fanned across the answer GPUs.
         answers = common.pmap(lambda _i, ep: common.target_answer(ex["messages"], endpoint=ep),
                               list(range(k)), endpoints=common.GEN_EPS)
@@ -53,23 +63,35 @@ def measure_dimension(rows, by_id, k, max_criteria):
         work = [(r, c) for r in rubrics for c in convos]
         results = common.pmap(lambda rc, ep: common.judge_criterion(rc[1], rc[0], endpoint=ep)[0], work)
         used.append(eid)
+        # Build each answer's graded-criteria list (only criteria graded cleanly on ALL k answers, so
+        # the k scores cover an identical criterion set), then score each answer and take the SD.
+        per_answer = [[] for _ in range(kk)]
         for i, r in enumerate(rubrics):
-            verdicts = [v for v in results[i * kk:(i + 1) * kk] if not isinstance(v, Exception)]
-            if not verdicts:
+            verdicts = results[i * kk:(i + 1) * kk]
+            if any(isinstance(v, Exception) for v in verdicts):
                 continue
             n_criteria += 1
             if any(v != verdicts[0] for v in verdicts[1:]):
                 n_unstable += 1
-        print(f"{eid}: sampled {len(rubrics)} criteria x{kk} fresh answers")
+            for a in range(kk):
+                per_answer[a].append({"points": r["points"], "criteria_met": bool(verdicts[a])})
+        scores = [sc for sc in (common.rubric_score(g) for g in per_answer) if sc is not None]
+        item_sd = statistics.stdev(scores) if len(scores) >= 2 else None
+        if item_sd is not None:
+            per_item_sd.append(item_sd)
+        print(f"{eid}: {len(rubrics)} criteria x{kk} answers, "
+              f"score SD={item_sd if item_sd is not None else float('nan'):.4f}")
+    score_sd = (sum(per_item_sd) / len(per_item_sd)) if per_item_sd else 0.0
     flip_rate = (n_unstable / n_criteria) if n_criteria else 0.0
-    return round(flip_rate, 4), n_criteria, n_unstable, used
+    return round(score_sd, 4), round(flip_rate, 4), n_criteria, len(used), used
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--k", type=int, default=4, help="fresh answers per item (reference + K-1 others)")
     ap.add_argument("--items", type=int, default=12, help="items sampled per dimension")
-    ap.add_argument("--max-criteria", type=int, default=12, help="cap criteria per item")
+    ap.add_argument("--max-criteria", type=int, default=0,
+                    help="cap criteria per item (0 = all; all are needed for a faithful per-answer score)")
     ap.add_argument("--dimension", default=None, help="restrict to one dimension (merges into the file)")
     args = ap.parse_args()
 
@@ -88,12 +110,12 @@ def main():
     for dim in dims:
         rows = [s for s in shortlist if s.get("dimension", "age") == dim][:args.items]
         by_id = common.examples_by_id([s["example_id"] for s in rows])
-        flip_rate, n_criteria, n_unstable, used = measure_dimension(
+        score_sd, flip_rate, n_criteria, n_items, used = measure_dimension(
             rows, by_id, args.k, args.max_criteria)
-        rec["by_dimension"][dim] = {"flip_rate": flip_rate, "n_criteria": n_criteria,
-                                    "n_items": len(used), "examples_used": used}
-        print(f"floor [{dim}]: {n_unstable}/{n_criteria} criteria unstable across k={args.k} "
-              f"({flip_rate:.1%})")
+        rec["by_dimension"][dim] = {"score_sd": score_sd, "flip_rate": flip_rate,
+                                    "n_criteria": n_criteria, "n_items": n_items, "examples_used": used}
+        print(f"floor [{dim}]: score SD {score_sd:.1%} across k={args.k} on {n_items} items "
+              f"(legacy criterion flip_rate {flip_rate:.1%})")
 
     common.atomic_write_json(out_p, rec)
     print(f"-> {out_p}")

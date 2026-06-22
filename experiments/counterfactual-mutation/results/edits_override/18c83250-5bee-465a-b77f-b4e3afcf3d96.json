@@ -1,0 +1,11 @@
+{
+  "example_id": "18c83250-5bee-465a-b77f-b4e3afcf3d96",
+  "encoding_kind": "lab_a1c",
+  "fact": "gestational diabetes",
+  "renderings": [
+    {"style": "an HbA1c value", "find": "patient with gestational diabetes", "data_phrase": "patient with an HbA1c of 8.1%"},
+    {"style": "a fasting glucose value", "find": "patient with gestational diabetes", "data_phrase": "patient with an HbA1c of 8.1%"},
+    {"style": "a flagged lab line", "find": "patient with gestational diabetes", "data_phrase": "patient with HbA1c 8.1% (flagged high)"}
+  ],
+  "note": "The user message already contains a fasting-glucose figure (near 105 mg/dl on 16 units basal insulin) as separate clinical data, so all three styles re-render the prose diagnosis NAME as an HbA1c lab value to avoid duplicating/contradicting the existing glucose number; the fasting-glucose style is rendered as HbA1c for this reason."
+}

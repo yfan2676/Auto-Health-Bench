@@ -1,0 +1,23 @@
+{
+  "example_id": "c07af892-4d6e-4a32-93b6-7c1a56813aae",
+  "encoding_kind": "lab_a1c",
+  "fact": "type 2 diabetes (poorly controlled)",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "pacientes con diabetes tipo 2 que no usan insulina",
+      "data_phrase": "pacientes con una HbA1c de 8,1% que no usan insulina"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "pacientes con diabetes tipo 2 que no usan insulina",
+      "data_phrase": "pacientes con una glucosa en ayunas de 168 mg/dL que no usan insulina"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "pacientes con diabetes tipo 2 que no usan insulina",
+      "data_phrase": "pacientes con HbA1c 8,1% (marcada como alta) que no usan insulina"
+    }
+  ],
+  "note": "Degenerate framing: this is a clinician-to-clinician research discussion about a CLASS of T2D patients (not a single patient's disclosed diagnosis). The first-occurrence replacement is grammatical, but 'diabetes tipo 2' recurs later in the conversation unchanged, so the diagnosis name is not fully removed from the dialogue."
+}

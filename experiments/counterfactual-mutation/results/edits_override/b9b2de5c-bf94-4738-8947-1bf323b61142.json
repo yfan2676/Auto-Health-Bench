@@ -1,0 +1,22 @@
+{
+  "example_id": "b9b2de5c-bf94-4738-8947-1bf323b61142",
+  "encoding_kind": "med_list",
+  "fact": "metformin",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "is on metformin 500 mg daily",
+      "data_phrase": "has a medication list of metformin 500 mg PO daily,"
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "is on metformin 500 mg daily",
+      "data_phrase": "has a med-rec row of metformin | 500 mg | PO | once daily | active,"
+    },
+    {
+      "style": "a structured med block",
+      "find": "is on metformin 500 mg daily",
+      "data_phrase": "has the structured med record Drug: metformin; Dose: 500 mg; Route: PO; Frequency: once daily,"
+    }
+  ]
+}

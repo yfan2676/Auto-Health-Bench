@@ -1,0 +1,22 @@
+{
+  "example_id": "59600660-5978-45bf-82fa-f576c8362722",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "hypertension for 15 years",
+      "data_phrase": "a blood pressure of 150/95 mmHg documented for 15 years"
+    },
+    {
+      "style": "two BP readings",
+      "find": "hypertension for 15 years",
+      "data_phrase": "blood pressure readings of 150/95 and 148/92 mmHg documented for 15 years"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "hypertension for 15 years",
+      "data_phrase": "vitals of BP 150/95 mmHg and HR 78 documented for 15 years"
+    }
+  ]
+}

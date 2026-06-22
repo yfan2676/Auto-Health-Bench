@@ -1,30 +1,30 @@
 # Counterfactual dimensional locality — results
 
 - items: **171**, criterion-pairs graded: **2055**
-- same-input floor (per dimension): age **25.4%**
+- same-input floor — answer-score std-dev (per dimension): n/a (run noise_floor.py)
 
-> ⚠ **Partial run** — same-input floor not yet measured for **disclosure** (net effect below shows n/a there; fill it with `noise_floor.py --dimension <d>`). The raw change-rate, by-axis and footprint-discrimination numbers ARE complete.
+> ⚠ **Partial run** — same-input score floor not yet measured for **age, disclosure** (net score SD shows n/a there; fill it by running `noise_floor.py`). The sweep score SD and the per-criterion view ARE complete.
 
-## Headline
+## Headline — dimension effect on the answer score
 
-> Answers to V and to each V_k are sampled independently, so the raw change rate includes the model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input floor** (per dimension). See the by-dimension table.
+> Each answer is scored with the HealthBench rubric (achieved ÷ total possible points). The dimension signal is the run-to-run **std-dev of that score**: the spread across V and its mutated variants (the sweep) minus the spread across K fresh answers to the SAME input (the same-input floor). **net score SD = sweep score SD − floor score SD** (per dimension), in score points (a 0–100% rubric score).
+
+| dimension | items | sweep score SD | same-input floor SD | **net score SD (Δ)** |
+|---|---|---|---|---|
+| age | 100 | 13.5% | n/a | **n/a** |
+| disclosure | 71 | 13.1% | n/a | **n/a** |
+
+## Per-criterion view (which criteria move + footprint discrimination)
+
+> The numbers below are per-criterion verdict **flips** (an answer satisfies a criterion differently across inputs) — NOT score-weighted. They drive the a-priori footprint classifier's precision/recall; the score-SD headline above is the score-weighted summary.
 
 - **raw change rate** (any criterion whose verdict moved across the sweep): **26.9%**
-- **footprint discrimination (v2_qwen3.6-27b-fp8) is clearly positive**: predicted-sensitive criteria moved **39.4%** (on-target) vs predicted-bridge **25.4%** (off-target) — a **+14.0-pt** gap, flagging **10.8%** of criteria. Footprint precision **39.4%**, recall **15.8%** (see caveat below).
+- **footprint discrimination (v2_qwen3.6-27b-fp8) is clearly positive**: predicted-sensitive criteria moved **39.4%** (on-target) vs predicted-bridge **25.4%** (off-target) — a **+14.0-pt** gap, flagging **10.8%** of criteria. Footprint precision **39.4%**, recall **15.8%**.
 
-## By dimension (net effect vs the same-input floor)
-
-| dimension | items | raw change rate | same-input floor | **net effect (Δ)** |
-|---|---|---|---|---|
-| age | 100 | 28.2% | 25.4% | **+2.8%** |
-| disclosure | 71 | 25.3% | n/a | **n/a** |
-
-## Footprint discrimination by dimension (does predicted-sensitive move more than the predicted bridge?)
-
-| dimension | on-target (pred-sensitive moved) | off-target (bridge moved) | recall (of moved, predicted) |
-|---|---|---|---|
-| age | 38.0% | 26.0% | 24.8% |
-| disclosure | 56.2% | 24.7% | 3.8% |
+| dimension | items | raw change rate | legacy flip-rate floor | on-target | off-target |
+|---|---|---|---|---|---|
+| age | 100 | 28.2% | 25.4% | 38.0% | 26.0% |
+| disclosure | 71 | 25.3% | n/a | 56.2% | 24.7% |
 
 ## Change rate by rubric axis
 
@@ -58,7 +58,7 @@
 
 ## Caveats
 
-- **A-priori footprint classifier (v2_qwen3.6-27b-fp8) discrimination is clearly positive.** It flags **10.8%** of criteria as sensitive; those move **39.4%** (on-target) vs **25.4%** for the predicted bridge (off-target), a **+14.0-pt** gap. A clearly positive gap means the a-priori prediction adds signal over the behavioral sweep; a ≈0 or negative gap means it does not, and the reliable footprint signal is then the measured per-axis change rate and by-value flip distribution rather than the predicted buckets. The footprint model is versioned (results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; the net-effect headline above is computed from the behavioral sweep alone and does NOT change with the classifier model.
-- **The same-input floor (age **25.4%**) is high** because the answer model at temperature varies run-to-run; with it subtracted the net dimension effect is modest. Lower answer temperature or averaging several answers per input would raise signal-to-noise.
+- **The same-input score floor (n/a (run noise_floor.py)) is the model's own roll-to-roll score variance** — answers to the SAME input, sampled at temperature, score differently. The net score SD subtracts it, so it is the score movement attributable to the dimension beyond that noise. Lower the answer temperature or average several answers per input to shrink the floor.
+- **A-priori footprint classifier (v2_qwen3.6-27b-fp8) discrimination is clearly positive** (per-criterion). It flags **10.8%** of criteria as sensitive; those move **39.4%** (on-target) vs **25.4%** for the predicted bridge (off-target), a **+14.0-pt** gap. The footprint model is versioned (results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; neither headline changes with the classifier model.
 
-_Generated by src/analyze.py. Interpretation: net effect = change rate − same-input floor. A clean, local dimension shows a small positive net concentrated in the dimension-relevant criteria; ≈0 net means the bridge holds (the edit did not change the model's clinically-graded behavior beyond its own sampling noise)._
+_Generated by src/analyze.py. Headline: net score SD = sweep score SD − same-input floor SD. A local dimension shows a small positive net concentrated in the dimension-relevant criteria; ≈0 net means the bridge holds (mutating the dimension did not move the rubric score beyond the model's own sampling noise)._

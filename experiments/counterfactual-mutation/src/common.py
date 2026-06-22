@@ -149,6 +149,20 @@ def convo_string(messages, answer):
     return "\n\n".join(f"{m['role']}: {m['content']}" for m in convo)
 
 
+def rubric_score(graded):
+    """HealthBench per-answer score = achieved / total_possible over an answer's graded criteria.
+    `graded`: iterable of {points, criteria_met}. total_possible = sum of POSITIVE points; achieved =
+    sum of points whose criteria_met is true. Returns a float (unclipped — can fall outside [0,1] when
+    negative-point criteria are met) or None if there are no positive points. Identical to
+    healthbench-local-eval/src/score.py:calc_score so scores match the baseline eval. The same-input
+    floor and the dimension sweep report the std-dev of THIS score across answers."""
+    total = sum(g["points"] for g in graded if g["points"] > 0)
+    if total == 0:
+        return None
+    achieved = sum(g["points"] for g in graded if g["criteria_met"])
+    return achieved / total
+
+
 def _extract_grader_json(text):
     """Pull the HealthBench grader verdict out of a judge response.
 

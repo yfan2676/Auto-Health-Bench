@@ -1,0 +1,22 @@
+{
+  "example_id": "2fd5fba2-300b-4163-8052-3f6fddbcede1",
+  "encoding_kind": "lab_a1c",
+  "fact": "gestational diabetes",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "gestational diabetes",
+      "data_phrase": "an HbA1c of 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "gestational diabetes",
+      "data_phrase": "a fasting glucose of 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "gestational diabetes",
+      "data_phrase": "a lab result of HbA1c 8.0% (H)"
+    }
+  ]
+}

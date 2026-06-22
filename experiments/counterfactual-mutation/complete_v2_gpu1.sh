@@ -5,10 +5,11 @@
 # work the main run left unfinished:
 #   1. sweep_grade.py (resume) — fills the 6 criteria the judge left ungraded (now with the
 #      hardened grader-JSON extraction + think-on rescue in common.judge_criterion);
-#   2. noise_floor.py --dimension disclosure — the floor the GPU-0 fault interrupted (merges into
-#      the existing noise_floor_v2 json, which already holds the age floor);
+#   2. noise_floor.py for BOTH age and disclosure — recomputes the same-input floors under the new
+#      SCORE std-dev metric (the prior age floor on disk is the legacy flip-rate only, so both dims
+#      must be re-measured; noise_floor now scores every criterion, so it grades all of them);
 #   3. analyze.py + build_viewer.py — regenerate metrics/report/viewer from the now-complete v2.
-# Does NOT touch answers (171/171 done) or the age floor (done). ALWAYS stops the server on exit.
+# Does NOT touch answers (171/171 done). ALWAYS stops the server on exit.
 #
 # Usage:  cd experiments/counterfactual-mutation && ./complete_v2_gpu1.sh
 set -Eeuo pipefail
@@ -22,6 +23,10 @@ GPU="${GPU:-1}"; PORT="${PORT:-8001}"          # GPU 0 is offline — single rep
 GPU_MEM_UTIL="${GPU_MEM_UTIL:-0.85}"; MAX_MODEL_LEN="${MAX_MODEL_LEN:-32768}"; MAX_NUM_SEQS="${MAX_NUM_SEQS:-256}"
 HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-1200}"; FLOOR_ITEMS="${FLOOR_ITEMS:-20}"
 GRADES_DIR="results/sweep_grades_v2_qwen3.6-27b-fp8"
+# GPU-arch serve env — defaults for Blackwell sm_120. On H100 (sm_90):
+#   TORCH_CUDA_ARCH_LIST=9.0 VLLM_USE_FLASHINFER_SAMPLER=1 ./complete_v2_gpu1.sh   (see ENVIRONMENT.md)
+export TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST:-12.0}"
+export VLLM_USE_FLASHINFER_SAMPLER="${VLLM_USE_FLASHINFER_SAMPLER:-0}"
 
 LOG="$SCRIPT_DIR/complete_v2_gpu1.log"; SRV_LOG_DIR="$SCRIPT_DIR/logs"; mkdir -p "$SRV_LOG_DIR"
 exec > >(tee -a "$LOG") 2>&1
@@ -72,7 +77,7 @@ if curl -sf "http://localhost:$PORT/v1/models" >/dev/null 2>&1; then
 else
   srv_log="$SRV_LOG_DIR/vllm27b_${PORT}.log"
   echo "[:$PORT] starting $MODEL on GPU $GPU (log: $srv_log)"
-  CUDA_VISIBLE_DEVICES="$GPU" TORCH_CUDA_ARCH_LIST=12.0 VLLM_USE_FLASHINFER_SAMPLER=0 \
+  CUDA_VISIBLE_DEVICES="$GPU" \
     nohup "$VLLM_BIN" serve "$MODEL" --port "$PORT" --gpu-memory-utilization "$GPU_MEM_UTIL" \
       --max-model-len "$MAX_MODEL_LEN" --max-num-seqs "$MAX_NUM_SEQS" >"$srv_log" 2>&1 &
   SERVER_PID="$!"
@@ -84,6 +89,7 @@ else
 fi
 
 run_step grade_resume "$PY" src/sweep_grade.py
+run_step floor_age    "$PY" src/noise_floor.py --dimension age --items "$FLOOR_ITEMS"
 run_step floor_disc   "$PY" src/noise_floor.py --dimension disclosure --items "$FLOOR_ITEMS"
 run_step analyze      "$PY" src/analyze.py
 run_step build_viewer "$PY" src/build_viewer.py

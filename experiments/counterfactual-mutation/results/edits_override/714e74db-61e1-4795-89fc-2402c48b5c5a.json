@@ -1,0 +1,22 @@
+{
+  "example_id": "714e74db-61e1-4795-89fc-2402c48b5c5a",
+  "encoding_kind": "lab_a1c",
+  "fact": "diabetes mellitus",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "my mother’s diabetic",
+      "data_phrase": "my mother has an HbA1c of 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "my mother’s diabetic",
+      "data_phrase": "my mother has a fasting glucose of 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "my mother’s diabetic",
+      "data_phrase": "my mother has a lab result of HbA1c 8.0% (H)"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "example_id": "036c8274-4280-4f4c-ab9b-a7362ddd567e",
+  "encoding_kind": "med_list",
+  "fact": "on metformin",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "on metformin",
+      "data_phrase": "on metformin 1000 mg twice daily"
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "on metformin",
+      "data_phrase": "on Metformin 1000 mg PO BID"
+    },
+    {
+      "style": "a structured med block",
+      "find": "on metformin",
+      "data_phrase": "on the following medications: metformin 1000 mg twice daily"
+    }
+  ]
+}

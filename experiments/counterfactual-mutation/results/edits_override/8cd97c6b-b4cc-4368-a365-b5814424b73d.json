@@ -1,0 +1,11 @@
+{
+  "example_id": "8cd97c6b-b4cc-4368-a365-b5814424b73d",
+  "encoding_kind": "lab_a1c",
+  "fact": "gestational diabetes",
+  "renderings": [
+    {"style": "an HbA1c value", "find": "what would a doctor do for gestational diabetes", "data_phrase": "what would a doctor do for an HbA1c of 8.1%"},
+    {"style": "a fasting glucose value", "find": "what would a doctor do for gestational diabetes", "data_phrase": "what would a doctor do for a fasting glucose of 168 mg/dL"},
+    {"style": "a flagged lab line", "find": "what would a doctor do for gestational diabetes", "data_phrase": "what would a doctor do for HbA1c 8.1% (flagged high)"}
+  ],
+  "note": "'gestational diabetes' appears multiple times in the conversation; find anchors on the unique first-message prefix 'what would a doctor do for gestational diabetes' so replace(...,1) hits the intended occurrence. Pregnancy context (28 weeks, fasting/post-meal sugars) is preserved elsewhere in the message."
+}

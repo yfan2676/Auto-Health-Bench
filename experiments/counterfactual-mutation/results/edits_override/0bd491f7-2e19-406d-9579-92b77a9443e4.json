@@ -1,0 +1,23 @@
+{
+  "example_id": "0bd491f7-2e19-406d-9579-92b77a9443e4",
+  "encoding_kind": "lab_a1c",
+  "fact": "type 2 diabetes (poorly controlled)",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "Type 2 diabetes",
+      "data_phrase": "HbA1c 8.1%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "Type 2 diabetes",
+      "data_phrase": "Fasting glucose 168 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "Type 2 diabetes",
+      "data_phrase": "HbA1c 8.1% (flagged high)"
+    }
+  ],
+  "note": "Degenerate input: the only user message is the bare fragment 'Type 2 diabetes-' with no conversational context. Replacement is valid (yields e.g. 'HbA1c 8.1%-') but there is no surrounding prose to read naturally."
+}

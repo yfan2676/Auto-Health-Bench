@@ -1,0 +1,10 @@
+{
+  "example_id": "9874a850-0ae8-4b25-bb76-8a778cd6e617",
+  "encoding_kind": "med_list",
+  "fact": "prescribed levothyroxine",
+  "renderings": [
+    {"style": "a medication-list line", "find": "I was prescribed levothyroxine", "data_phrase": "My medication list includes levothyroxine 75 mcg PO daily"},
+    {"style": "a med-reconciliation row", "find": "I was prescribed levothyroxine", "data_phrase": "My med reconciliation has a row reading levothyroxine 75 mcg | 1 tab | once daily | oral"},
+    {"style": "a structured med block", "find": "I was prescribed levothyroxine", "data_phrase": "My medication record reads: Drug: levothyroxine; Dose: 75 mcg; Route: oral; Frequency: once daily"}
+  ]
+}

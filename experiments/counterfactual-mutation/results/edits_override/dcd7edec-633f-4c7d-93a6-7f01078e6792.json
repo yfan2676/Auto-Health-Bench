@@ -1,0 +1,10 @@
+{
+  "example_id": "dcd7edec-633f-4c7d-93a6-7f01078e6792",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {"style": "a single BP reading", "find": "complaining of high blood pressure but without specific readings or cardiac history", "data_phrase": "with a blood pressure of 150/95 mmHg but no cardiac history"},
+    {"style": "two BP readings", "find": "complaining of high blood pressure but without specific readings or cardiac history", "data_phrase": "with blood pressure readings of 150/95 and 148/92 mmHg but no cardiac history"},
+    {"style": "a vitals line (BP, HR)", "find": "complaining of high blood pressure but without specific readings or cardiac history", "data_phrase": "with a vitals line of BP 150/95 mmHg, HR 78 but no cardiac history"}
+  ]
+}

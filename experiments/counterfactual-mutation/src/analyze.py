@@ -24,6 +24,7 @@ Usage:
 """
 import argparse
 import json
+import statistics
 from collections import Counter, defaultdict
 
 import common
@@ -121,6 +122,56 @@ def confusion_metrics(rows):
     }
 
 
+def _item_input_scores(rows):
+    """For one item's raw sweep_grades rows, return (sd, scores): `scores` maps each input label
+    ("V" and each variant value) to its HealthBench per-answer score (common.rubric_score), and `sd`
+    is the std-dev of those scores ACROSS inputs. Only criteria graded on V and on every variant are
+    used, so all inputs are scored over an identical criterion set. (None, {}) if <2 scorable inputs.
+    """
+    values = []
+    for r in rows:
+        for c in r.get("sweep", []):
+            if c["value"] not in values:
+                values.append(c["value"])
+
+    def cell(r, v):
+        return next((c for c in r.get("sweep", []) if c["value"] == v), None)
+
+    usable = [r for r in rows
+              if r.get("verdict_orig") is not None and all(cell(r, v) is not None for v in values)]
+    if not usable:
+        return None, {}
+    scores = {"V": common.rubric_score(
+        [{"points": r["points"], "criteria_met": bool(r["verdict_orig"])} for r in usable])}
+    for v in values:
+        scores[v] = common.rubric_score(
+            [{"points": r["points"], "criteria_met": bool(cell(r, v)["verdict"])} for r in usable])
+    vals = [s for s in scores.values() if s is not None]
+    return (statistics.stdev(vals) if len(vals) >= 2 else None), scores
+
+
+def score_variation_by_dimension(dim_of):
+    """Mean over items (per dimension) of the per-item across-input score SD — the dimension sweep's
+    score variation, read from the raw sweep_grades files (same source as the change rate). Returns
+    {dimension: (mean_sd, n_items)}."""
+    by_dim = defaultdict(list)
+    if common.SWEEP_GRADES.exists():
+        for fp in sorted(common.SWEEP_GRADES.glob("*.jsonl")):
+            rows = []
+            for line in fp.read_text().splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+            sd, _ = _item_input_scores(rows)
+            if sd is not None:
+                by_dim[dim_of.get(fp.stem, "age")].append(sd)
+    return {d: (sum(v) / len(v), len(v)) for d, v in by_dim.items()}
+
+
 def main():
     argparse.ArgumentParser().parse_args()  # no args; keep a consistent CLI shape
 
@@ -161,11 +212,13 @@ def main():
     # model's answer to the SAME input. The change rate compares independently sampled answers
     # to V vs V_k, so this baseline — the model's own roll-to-roll answer variance — is
     # subtracted to get the net dimension effect = change rate − floor.
-    floor_by_dim = {}
+    floor_by_dim = {}          # legacy per-criterion flip-rate floor (per dimension)
+    floor_sd_by_dim = {}       # same-input answer-score std-dev floor (per dimension) — the headline
     floor_p = common.NOISE_FLOOR
     if floor_p.exists():
         for d, rec in (json.loads(floor_p.read_text()).get("by_dimension") or {}).items():
             floor_by_dim[d] = rec.get("flip_rate")
+            floor_sd_by_dim[d] = rec.get("score_sd")
 
     for d, m in by_dimension.items():
         f_d = floor_by_dim.get(d)
@@ -173,10 +226,29 @@ def main():
         m["same_input_floor"] = f_d
         m["net_dimension_effect"] = (raw - f_d) if (raw is not None and f_d is not None) else None
 
+    # HEADLINE metric: run-to-run std-dev of the HealthBench answer SCORE. The sweep's per-dimension
+    # score SD (spread of the score across V + its variants) minus the same-input floor SD (spread
+    # across K resamples of V) is the net score effect of mutating the dimension. The sweep side is
+    # computed live from sweep_grades; the floor side comes from noise_floor.py's score_sd (needs a
+    # run to populate — older floor files only carry the legacy flip_rate).
+    sweep_sd = score_variation_by_dimension(dim_of)        # {dim: (mean_sd, n_items)}
+    score_var_by_dim = {}
+    for d in sorted(set(sweep_sd) | set(floor_sd_by_dim) | set(by_dimension)):
+        s = sweep_sd.get(d, (None, 0))[0]
+        f = floor_sd_by_dim.get(d)
+        score_var_by_dim[d] = {
+            "sweep_score_sd": s,
+            "same_input_floor_sd": f,
+            "net_score_sd": (s - f) if (s is not None and f is not None) else None,
+            "n_items": sweep_sd.get(d, (None, 0))[1],
+        }
+
     metrics = {
         "source": source, "n_items": n_items, "n_criteria_pairs": n,
         **overall,
         "same_input_floor_by_dimension": floor_by_dim,
+        "score_variation_by_dimension": score_var_by_dim,
+        "same_input_floor_sd_by_dimension": floor_sd_by_dim,
         "by_dimension": by_dimension,
         "actual_change_rate_by_axis": {k: {"rate": _safe(v[0], v[1]), "n": v[1]} for k, v in sorted(by_axis.items())},
         "actual_change_rate_by_predicted_bucket": {k: {"rate": _safe(v[0], v[1]), "n": v[1]} for k, v in sorted(by_bucket.items())},
@@ -190,10 +262,13 @@ def main():
     def pdelta(x):  # net effect is a delta of two rates; show as a signed %
         return "n/a" if x is None else f"{x*100:+.1f}%"
 
-    floor_line = ", ".join(f"{d} **{pct(v)}**" for d, v in sorted(floor_by_dim.items())) or "n/a"
+    # The headline floor is the same-input SCORE std-dev (per dimension); the legacy flip-rate floor
+    # still appears in the per-criterion view below.
+    floor_sd_line = ", ".join(f"{d} **{pct(v)}**" for d, v in sorted(floor_sd_by_dim.items())
+                              if v is not None) or "n/a (run noise_floor.py)"
 
-    # Footprint-discrimination summary, data-driven so the prose matches whatever classifier model
-    # produced results/footprint_*/ (the dir is versioned + selectable via CM_FOOTPRINT_DIR).
+    # Footprint-discrimination summary (per-CRITERION view), data-driven so the prose matches whatever
+    # classifier model produced results/footprint_*/ (versioned + selectable via CM_FOOTPRINT_DIR).
     fp_model = common.FOOTPRINT.name.replace("footprint_", "") or common.FOOTPRINT.name
     _on = overall["on_target_change_rate"] or 0.0
     _off = overall["off_target_change_rate"] or 0.0
@@ -210,46 +285,52 @@ def main():
     else:
         _disc = "inverted (below chance)"
 
-    # Flag an incomplete run (e.g. a dimension whose same-input floor has not been measured yet, as
-    # happens if the run was interrupted) so an n/a net effect reads as "pending", not "no signal".
-    _missing_floor = [d for d, m in by_dimension.items() if m.get("same_input_floor") is None]
-    _partial = ([f"> ⚠ **Partial run** — same-input floor not yet measured for "
-                 f"**{', '.join(_missing_floor)}** (net effect below shows n/a there; fill it with "
-                 f"`noise_floor.py --dimension <d>`). The raw change-rate, by-axis and "
-                 f"footprint-discrimination numbers ARE complete.", ""]
+    # Flag an incomplete run: any dimension whose same-input SCORE floor has not been measured yet
+    # (run interrupted, or the floor file predates this metric) so an n/a net reads "pending".
+    _missing_floor = [d for d, m in score_var_by_dim.items() if m.get("same_input_floor_sd") is None]
+    _partial = ([f"> ⚠ **Partial run** — same-input score floor not yet measured for "
+                 f"**{', '.join(_missing_floor)}** (net score SD shows n/a there; fill it by running "
+                 f"`noise_floor.py`). The sweep score SD and the per-criterion view ARE complete.", ""]
                 if _missing_floor else [])
 
     lines = [
         "# Counterfactual dimensional locality — results", "",
         f"- items: **{n_items}**, criterion-pairs graded: **{n}**",
-        f"- same-input floor (per dimension): {floor_line}",
+        f"- same-input floor — answer-score std-dev (per dimension): {floor_sd_line}",
         "",
         *_partial,
-        "## Headline", "",
-        "> Answers to V and to each V_k are sampled independently, so the raw change rate includes the"
-        " model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input"
-        " floor** (per dimension). See the by-dimension table.",
+        "## Headline — dimension effect on the answer score", "",
+        "> Each answer is scored with the HealthBench rubric (achieved ÷ total possible points). The"
+        " dimension signal is the run-to-run **std-dev of that score**: the spread across V and its"
+        " mutated variants (the sweep) minus the spread across K fresh answers to the SAME input (the"
+        " same-input floor). **net score SD = sweep score SD − floor score SD** (per dimension), in"
+        " score points (a 0–100% rubric score).",
+        "",
+        "| dimension | items | sweep score SD | same-input floor SD | **net score SD (Δ)** |",
+        "|---|---|---|---|---|",
+    ]
+    for d, m in score_var_by_dim.items():
+        lines.append(f"| {d} | {m['n_items']} | {pct(m['sweep_score_sd'])} | "
+                     f"{pct(m.get('same_input_floor_sd'))} | **{pdelta(m.get('net_score_sd'))}** |")
+    lines += [
+        "",
+        "## Per-criterion view (which criteria move + footprint discrimination)", "",
+        "> The numbers below are per-criterion verdict **flips** (an answer satisfies a criterion"
+        " differently across inputs) — NOT score-weighted. They drive the a-priori footprint"
+        " classifier's precision/recall; the score-SD headline above is the score-weighted summary.",
         "",
         f"- **raw change rate** (any criterion whose verdict moved across the sweep): **{pct(overall['change_rate'])}**",
         f"- **footprint discrimination ({fp_model}) is {_disc}**: predicted-sensitive criteria moved "
         f"**{pct(_on)}** (on-target) vs predicted-bridge **{pct(_off)}** (off-target) — a **{_gap*100:+.1f}-pt** gap, "
         f"flagging **{_flag_share:.1%}** of criteria. Footprint precision **{pct(overall['footprint_precision'])}**, "
-        f"recall **{pct(overall['footprint_recall'])}** (see caveat below).",
+        f"recall **{pct(overall['footprint_recall'])}**.",
         "",
-        "## By dimension (net effect vs the same-input floor)", "",
-        "| dimension | items | raw change rate | same-input floor | **net effect (Δ)** |",
-        "|---|---|---|---|---|",
+        "| dimension | items | raw change rate | legacy flip-rate floor | on-target | off-target |",
+        "|---|---|---|---|---|---|",
     ]
     for d, m in by_dimension.items():
-        lines.append(f"| {d} | {m['n_items']} | {pct(m['change_rate'])} | "
-                     f"{pct(m.get('same_input_floor'))} | **{pdelta(m.get('net_dimension_effect'))}** |")
-    lines += ["", "## Footprint discrimination by dimension "
-              "(does predicted-sensitive move more than the predicted bridge?)", "",
-              "| dimension | on-target (pred-sensitive moved) | off-target (bridge moved) | recall (of moved, predicted) |",
-              "|---|---|---|---|"]
-    for d, m in by_dimension.items():
-        lines.append(f"| {d} | {pct(m['on_target_change_rate'])} | {pct(m['off_target_change_rate'])} | "
-                     f"{pct(m['footprint_recall'])} |")
+        lines.append(f"| {d} | {m['n_items']} | {pct(m['change_rate'])} | {pct(m.get('same_input_floor'))} | "
+                     f"{pct(m['on_target_change_rate'])} | {pct(m['off_target_change_rate'])} |")
     lines += ["", "## Change rate by rubric axis", "",
               "| axis | change rate | n |", "|---|---|---|"]
     for k, v in metrics["actual_change_rate_by_axis"].items():
@@ -260,27 +341,25 @@ def main():
         for k, v in metrics["flip_point_distribution"].items():
             lines.append(f"| {k} | {v} |")
     lines += ["", "## Caveats", "",
-              f"- **A-priori footprint classifier ({fp_model}) discrimination is {_disc}.** It flags "
-              f"**{_flag_share:.1%}** of criteria as sensitive; those move **{pct(_on)}** (on-target) vs "
-              f"**{pct(_off)}** for the predicted bridge (off-target), a **{_gap*100:+.1f}-pt** gap. A clearly "
-              "positive gap means the a-priori prediction adds signal over the behavioral sweep; a ≈0 or negative "
-              "gap means it does not, and the reliable footprint signal is then the measured per-axis change rate "
-              "and by-value flip distribution rather than the predicted buckets. The footprint model is versioned "
-              "(results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; the net-effect headline above is "
-              "computed from the behavioral sweep alone and does NOT change with the classifier model.",
-              f"- **The same-input floor ({floor_line}) is high** because the answer model at temperature "
-              "varies run-to-run; with it subtracted the net dimension effect is modest. Lower answer "
-              "temperature or averaging several answers per input would raise signal-to-noise.",
+              f"- **The same-input score floor ({floor_sd_line}) is the model's own roll-to-roll score"
+              " variance** — answers to the SAME input, sampled at temperature, score differently. The net"
+              " score SD subtracts it, so it is the score movement attributable to the dimension beyond that"
+              " noise. Lower the answer temperature or average several answers per input to shrink the floor.",
+              f"- **A-priori footprint classifier ({fp_model}) discrimination is {_disc}** (per-criterion). It"
+              f" flags **{_flag_share:.1%}** of criteria as sensitive; those move **{pct(_on)}** (on-target) vs "
+              f"**{pct(_off)}** for the predicted bridge (off-target), a **{_gap*100:+.1f}-pt** gap. The footprint"
+              " model is versioned (results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; neither headline"
+              " changes with the classifier model.",
               "",
-              "_Generated by src/analyze.py. Interpretation: net effect = change rate − same-input floor. "
-              "A clean, local dimension shows a small positive net concentrated in the dimension-relevant "
-              "criteria; ≈0 net means the bridge holds (the edit did not change the model's "
-              "clinically-graded behavior beyond its own sampling noise)._"]
+              "_Generated by src/analyze.py. Headline: net score SD = sweep score SD − same-input floor SD."
+              " A local dimension shows a small positive net concentrated in the dimension-relevant criteria;"
+              " ≈0 net means the bridge holds (mutating the dimension did not move the rubric score beyond the"
+              " model's own sampling noise)._"]
     (common.RESULTS / "report.md").write_text("\n".join(lines) + "\n")
 
-    net_str = ", ".join(f"{d} {pdelta(m.get('net_dimension_effect'))}" for d, m in by_dimension.items())
-    print(f"source={source} items={n_items} pairs={n}  "
-          f"raw_change={pct(overall['change_rate'])}  net[{net_str}]")
+    net_str = ", ".join(f"{d} {pdelta(m.get('net_score_sd'))}" for d, m in score_var_by_dim.items())
+    sweep_str = ", ".join(f"{d} {pct(m.get('sweep_score_sd'))}" for d, m in score_var_by_dim.items())
+    print(f"source={source} items={n_items} pairs={n}  sweep_scoreSD[{sweep_str}]  net_scoreSD[{net_str}]")
     print(f"-> {common.RESULTS/'metrics.json'}  and  {common.RESULTS/'report.md'}")
 
 

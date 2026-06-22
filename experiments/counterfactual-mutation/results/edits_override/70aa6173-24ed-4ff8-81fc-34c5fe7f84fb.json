@@ -1,0 +1,22 @@
+{
+  "example_id": "70aa6173-24ed-4ff8-81fc-34c5fe7f84fb",
+  "encoding_kind": "bp",
+  "fact": "mild hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "mild hypertension",
+      "data_phrase": "a blood pressure of 150/95 mmHg"
+    },
+    {
+      "style": "two BP readings",
+      "find": "mild hypertension",
+      "data_phrase": "blood pressure readings of 150/95 and 148/94 mmHg"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "mild hypertension",
+      "data_phrase": "BP 150/95 mmHg, HR 78 bpm"
+    }
+  ]
+}

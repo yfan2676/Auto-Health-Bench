@@ -1,0 +1,22 @@
+{
+  "example_id": "b7331e4b-1aac-4338-8eb8-1359cb93b8cb",
+  "encoding_kind": "lab_a1c",
+  "fact": "type 1 diabetes",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "type 1 diabetic child weighing 20 kg",
+      "data_phrase": "child weighing 20 kg with an HbA1c of 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "type 1 diabetic child weighing 20 kg",
+      "data_phrase": "child weighing 20 kg with a fasting glucose of 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "type 1 diabetic child weighing 20 kg",
+      "data_phrase": "child weighing 20 kg with a lab result of HbA1c 8.0% (H)"
+    }
+  ]
+}

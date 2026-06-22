@@ -1,0 +1,22 @@
+{
+  "example_id": "7e7040bf-29d7-4e11-94a2-96fb7991cccd",
+  "encoding_kind": "bp",
+  "fact": "hypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "has hypertension",
+      "data_phrase": "has a blood pressure of 150/95 mmHg"
+    },
+    {
+      "style": "two BP readings",
+      "find": "has hypertension",
+      "data_phrase": "has blood pressure readings of 150/95 and 148/94 mmHg"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "has hypertension",
+      "data_phrase": "has a BP of 150/95 mmHg, HR 78 bpm"
+    }
+  ]
+}

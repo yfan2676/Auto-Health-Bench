@@ -1,0 +1,23 @@
+{
+  "example_id": "800dbb03-87d1-4e99-bf67-e1fd3d872d38",
+  "encoding_kind": "bp",
+  "fact": "malignant hypertension (hypertensive emergency)",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "a new patient in the ER with malignant hypertension and neurological deficits",
+      "data_phrase": "a new patient in the ER with a blood pressure of 240/130 mmHg and neurological deficits"
+    },
+    {
+      "style": "two BP readings",
+      "find": "a new patient in the ER with malignant hypertension and neurological deficits",
+      "data_phrase": "a new patient in the ER with blood pressure readings of 240/130 and 238/128 mmHg and neurological deficits"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "a new patient in the ER with malignant hypertension and neurological deficits",
+      "data_phrase": "a new patient in the ER with vitals of BP 240/130 mmHg and HR 96 and neurological deficits"
+    }
+  ],
+  "note": "Fact is malignant hypertension (hypertensive emergency), so BP is rendered at hypertensive-emergency level (240/130 mmHg) rather than the routine 150/95 anchor; 150/95 would not be diagnostic of malignant HTN. This is consistent with the systolic 240 the user already states later in the conversation."
+}

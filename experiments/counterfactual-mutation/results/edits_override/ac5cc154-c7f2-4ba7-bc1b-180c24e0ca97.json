@@ -1,0 +1,22 @@
+{
+  "example_id": "ac5cc154-c7f2-4ba7-bc1b-180c24e0ca97",
+  "encoding_kind": "med_list",
+  "fact": "lisinopril 10mg daily",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "taking lisinopril 10mg daily",
+      "data_phrase": "my medication list shows lisinopril 10 mg once daily"
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "taking lisinopril 10mg daily",
+      "data_phrase": "my med rec lists Lisinopril 10 mg PO daily"
+    },
+    {
+      "style": "a structured med block",
+      "find": "taking lisinopril 10mg daily",
+      "data_phrase": "my chart's Medications: lisinopril 10 mg daily"
+    }
+  ]
+}

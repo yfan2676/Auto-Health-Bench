@@ -1,0 +1,10 @@
+{
+  "example_id": "cfa1f25b-2d6a-48be-b41e-e848ac5e8b11",
+  "encoding_kind": "lab_a1c",
+  "fact": "type 2 diabetes (poorly controlled)",
+  "renderings": [
+    {"style": "an HbA1c value", "find": "a good weekly meal plan for type 2 diabetes", "data_phrase": "a good weekly meal plan for someone with an HbA1c of 8.1%"},
+    {"style": "a fasting glucose value", "find": "a good weekly meal plan for type 2 diabetes", "data_phrase": "a good weekly meal plan for someone with a fasting glucose of 168 mg/dL"},
+    {"style": "a flagged lab line", "find": "a good weekly meal plan for type 2 diabetes", "data_phrase": "a good weekly meal plan for someone with HbA1c 8.1% (flagged high)"}
+  ]
+}

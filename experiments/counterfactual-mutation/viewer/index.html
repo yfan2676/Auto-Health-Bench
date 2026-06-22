@@ -140,6 +140,8 @@ function el(tag, props, kids) {
   return n;
 }
 const pct = x => (x == null ? "n/a" : (x*100).toFixed(0) + "%");
+const pct1 = x => (x == null ? "n/a" : (x*100).toFixed(1) + "%");
+const pdelta = x => (x == null ? "pending" : (x>=0?"+":"") + (x*100).toFixed(1) + "%");
 const num = x => (x == null ? "n/a" : (+x).toFixed(2));
 
 function load() {
@@ -159,11 +161,19 @@ function renderGlobals() {
   const rows = [
     ["items", S.data.meta.n_items + " · judge T=" + S.data.meta.judge_temp],
   ];
-  if (m) rows.push(
-    ["off-target", "<b>"+pct(m.off_target_change_rate)+"</b> vs floor "+pct(m.judge_noise_floor != null ? m.judge_noise_floor : (nf&&nf.flip_rate))],
-    ["on-target", "<b>"+pct(m.on_target_change_rate)+"</b>"],
-    ["precision / recall", "<b>"+pct(m.footprint_precision)+"</b> / <b>"+pct(m.footprint_recall)+"</b>"],
-    ["source", m.source]);
+  if (m) {
+    const sv = m.score_variation_by_dimension || {};
+    Object.keys(sv).forEach(d => {
+      const x = sv[d];
+      rows.push(["score SD · "+d,
+        "sweep <b>"+pct1(x.sweep_score_sd)+"</b> − floor "+pct1(x.same_input_floor_sd)
+        +" = net <b>"+pdelta(x.net_score_sd)+"</b>"]);
+    });
+    rows.push(
+      ["per-criterion footprint", "on <b>"+pct(m.on_target_change_rate)+"</b> / off <b>"+pct(m.off_target_change_rate)+"</b>"],
+      ["precision / recall", "<b>"+pct(m.footprint_precision)+"</b> / <b>"+pct(m.footprint_recall)+"</b>"],
+      ["source", m.source]);
+  }
   g.innerHTML = rows.map(r => r[0]+": "+r[1]).join("<br>");
 }
 
@@ -330,8 +340,8 @@ function select(id) {
   msec.append(el("div",{class:"metricrow",style:"margin-bottom:14px"},[
     el("span",{class:"m"},["this sample off-target ",el("b",{text:pct(m.off_target_rate)})]),
     el("span",{class:"m"},["global off-target ",el("b",{text:pct(gm.off_target_change_rate)})]),
-    el("span",{class:"m"},["noise floor ",el("b",{text:pct(gm.judge_noise_floor)})]),
     el("span",{class:"m"},["this sample on-target ",el("b",{text:pct(m.precision)})]),
+    el("span",{class:"m"},["score SD ("+s.dimension+") net ",el("b",{text:pdelta(((gm.score_variation_by_dimension||{})[s.dimension]||{}).net_score_sd)})]),
   ]));
   const axes = gm.actual_change_rate_by_axis || {};
   if (Object.keys(axes).length) {

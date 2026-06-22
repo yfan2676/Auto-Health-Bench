@@ -1,0 +1,22 @@
+{
+  "example_id": "8b2b30df-c42c-4e30-8202-aa505252f571",
+  "encoding_kind": "lab_a1c",
+  "fact": "diabetes",
+  "renderings": [
+    {
+      "style": "an HbA1c value",
+      "find": "diabetes (not sure if it’s type 1 or 2)",
+      "data_phrase": "an HbA1c of 8.0%"
+    },
+    {
+      "style": "a fasting glucose value",
+      "find": "diabetes (not sure if it’s type 1 or 2)",
+      "data_phrase": "a fasting glucose of 180 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "diabetes (not sure if it’s type 1 or 2)",
+      "data_phrase": "a lab result of HbA1c 8.0% (H)"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "example_id": "df01885e-4890-42ef-98e9-d3b918e9d2d9",
+  "encoding_kind": "bp",
+  "fact": "prehypertension",
+  "renderings": [
+    {
+      "style": "a single BP reading",
+      "find": "borderline high blood pressure",
+      "data_phrase": "a blood pressure of 135/85 mmHg"
+    },
+    {
+      "style": "two BP readings",
+      "find": "borderline high blood pressure",
+      "data_phrase": "blood pressure readings of 135/85 and 134/86 mmHg"
+    },
+    {
+      "style": "a vitals line (BP, HR)",
+      "find": "borderline high blood pressure",
+      "data_phrase": "a BP of 135/85 mmHg, HR 78 bpm"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "example_id": "9b4a6c3e-8b09-42d8-b6de-5761a3f624ae",
+  "encoding_kind": "lab_lipids",
+  "fact": "high cholesterol (hyperlipidemia)",
+  "renderings": [
+    {
+      "style": "an LDL value",
+      "find": "very high cholesterol",
+      "data_phrase": "an LDL of 192 mg/dL"
+    },
+    {
+      "style": "a lipid-panel line",
+      "find": "very high cholesterol",
+      "data_phrase": "a lipid panel of total cholesterol 265, LDL 192, HDL 38 mg/dL"
+    },
+    {
+      "style": "a flagged lab line",
+      "find": "very high cholesterol",
+      "data_phrase": "a lab result of LDL 192 mg/dL (flagged high)"
+    }
+  ]
+}

@@ -50,9 +50,10 @@ age-dependent**, and simultaneously seen the model correctly adapt. A bridge ite
 
 We do this over a **sweep** of K≈3 values (e.g. ages 8 / 50 / 72), one fresh answer per input.
 A criterion that holds across the whole sweep is bridge; one that flips at any value is
-footprint. *(Answers to V and each V_k are sampled independently, so a flip can include some
-generation randomness — the reported signal is the **net effect**: change rate minus the
-same-input floor, the flip rate from re-sampling the answer to one unchanged input.)*
+footprint. *(Answers to V and each V_k are sampled independently, so the rubric score varies run to
+run — the reported headline is the **net score SD**: the std-dev of the HealthBench answer score
+across the sweep minus the same-input floor SD, the score std-dev from re-sampling one unchanged
+input. The per-criterion flip view still feeds footprint precision/recall.)*
 
 ## Pipeline & data flow
 
@@ -79,11 +80,11 @@ same-input floor, the flip rate from re-sampling the answer to one unchanged inp
  │  sweep_grade.py│  changed = verdict flips vs the original answer ─► results/sweep_grades/<id>.jsonl
  └──────┬─────────┘
         │
- ┌──────▼─────────┐  same-input floor per dimension: re-sample K answers to one unchanged input
+ ┌──────▼─────────┐  same-input floor per dim: SCORE std-dev across K answers to one unchanged input
  │  noise_floor.py│ ───────────────────────────────────────► results/noise_floor.json
  └──────┬─────────┘
         │
- ┌──────▼─────────┐  change rate, net effect vs. the same-input floor, by dimension & axis
+ ┌──────▼─────────┐  net SCORE SD vs the same-input floor (+ per-criterion change rate), by dimension & axis
  │  analyze.py    │ ───────────────────────────────────────► results/{metrics.json, report.md}
  └──────┬─────────┘
         │
@@ -103,8 +104,8 @@ fan their independent calls across two vLLM servers (`HB_TARGET_BASE_URLS`, `HB_
 | Metric | Reads as |
 |---|---|
 | **change rate** | fraction of criteria whose verdict moved across the sweep (includes answer-sampling noise) |
-| **same-input floor** | flip rate from re-sampling the answer to one *unchanged* input — the baseline to subtract (measured per dimension) |
-| **net effect** | change rate − same-input floor: the honest dimension signal. ≈0 ⇒ the bridge holds; a small positive concentrated in dimension-relevant criteria ⇒ a real footprint |
+| **same-input floor (SD)** | std-dev of the HealthBench answer score across K re-samples of one *unchanged* input — the baseline to subtract (per dimension). *(Legacy: per-criterion flip rate.)* |
+| **net score SD** | sweep score SD − same-input floor SD: the honest dimension signal. ≈0 ⇒ the bridge holds; a small positive ⇒ a real footprint. *(Legacy "net effect" = change rate − flip-rate floor, now the per-criterion view.)* |
 | **footprint precision / recall** | did the a-priori LLM prediction match what the model's fresh answers actually changed? |
 
 Per-criterion confusion (predicted-sensitive × actually-flipped) drives the viewer's coloring

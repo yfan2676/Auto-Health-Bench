@@ -1,0 +1,22 @@
+{
+  "example_id": "169b9665-0688-4171-bd54-716456a9861a",
+  "encoding_kind": "med_list",
+  "fact": "on warfarin",
+  "renderings": [
+    {
+      "style": "a medication-list line",
+      "find": "I have a patient on warfarin.",
+      "data_phrase": "I have a patient whose medication list includes warfarin 5 mg PO daily."
+    },
+    {
+      "style": "a med-reconciliation row",
+      "find": "I have a patient on warfarin.",
+      "data_phrase": "I have a patient with a med-rec row: warfarin | 5 mg | PO | once daily | active."
+    },
+    {
+      "style": "a structured med block",
+      "find": "I have a patient on warfarin.",
+      "data_phrase": "I have a patient with the structured med record: Drug: warfarin; Dose: 5 mg; Route: PO; Frequency: once daily."
+    }
+  ]
+}

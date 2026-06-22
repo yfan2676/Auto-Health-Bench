@@ -1,0 +1,10 @@
+{
+  "example_id": "9845c59a-0f8e-4431-8a37-8ceae854fbe1",
+  "encoding_kind": "lab_lipids",
+  "fact": "hyperlipidemia",
+  "renderings": [
+    {"style": "an LDL value", "find": "also has hyperlipidemia with no known drug allergies", "data_phrase": "also has an LDL of 190 mg/dL with no known drug allergies"},
+    {"style": "a lipid-panel line", "find": "also has hyperlipidemia with no known drug allergies", "data_phrase": "also has a lipid panel of total cholesterol 265 mg/dL and LDL 190 mg/dL with no known drug allergies"},
+    {"style": "a flagged lab line", "find": "also has hyperlipidemia with no known drug allergies", "data_phrase": "also has a lab line of LDL 190 mg/dL (flagged high) with no known drug allergies"}
+  ]
+}
