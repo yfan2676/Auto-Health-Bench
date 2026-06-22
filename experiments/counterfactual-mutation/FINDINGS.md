@@ -52,12 +52,12 @@ rubric.
 
 | model | dimension | mean score, original input | mean score, mutated input |
 |---|---|---|---|
-| 4B  | age        | 0.591 | 0.525 |
-| 4B  | disclosure | 0.594 | 0.534 |
-| 4B  | **all**    | **0.593** | 0.529 |
 | 27B | age        | 0.620 | 0.507 |
 | 27B | disclosure | 0.536 | 0.532 |
 | 27B | **all**    | **0.585** | 0.517 |
+| 4B  | age        | 0.591 | 0.525 |
+| 4B  | disclosure | 0.594 | 0.534 |
+| 4B  | **all**    | **0.593** | 0.529 |
 
 - On the **original** input the two models are level overall (~0.59); the 27B is higher on age (0.62
   vs 0.59) but lower on disclosure (0.54 vs 0.59). This is a small curated subset (171 items), not
