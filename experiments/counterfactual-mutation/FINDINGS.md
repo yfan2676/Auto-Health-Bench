@@ -20,9 +20,9 @@ This file is the narrative.*
 
 Each answer is scored with the HealthBench rubric (achieved ÷ total possible points, a 0–100%
 score). The dimension's effect is the run-to-run **standard deviation of that score**: how much the
-score moves across `V` and its mutated variants (the **sweep score SD**) minus how much it moves
-across K fresh answers to the *same* input (the **same-input floor SD**) — answers are sampled at
-temperature, so even an unchanged input scores differently each roll.
+score moves across the original input and its mutated variants (the **sweep score SD**) minus how
+much it moves across K fresh answers to the *same* input (the **same-input floor SD**) — answers are
+sampled at temperature, so even an unchanged input scores differently each roll.
 
 **net score SD = sweep score SD − same-input floor SD** (per dimension, in score points):
 
@@ -41,6 +41,33 @@ the *fraction of rubric criteria* whose pass/fail verdict flips (not score-weigh
 net **age +1.4%, disclosure +5.7%** (raw change rate ~28–32% minus a ~27% flip-rate floor) — disclosure
 ≈4× age, age collapsing into its floor. That view still drives the a-priori footprint classifier's
 precision/recall; the score-SD above is the score-weighted headline.
+
+## Mean score level (original vs mutated input)
+
+Complementary to the spread above: the **mean** HealthBench score (achieved ÷ total possible points)
+of the answers we have, averaged over items. The same-input floor runs saved only a flip count, so
+there is no floor mean to report — these come from the sweep grades (every graded answer to the
+original input and to each mutated input). Each mutated-input answer is graded against the *original*
+rubric.
+
+| model | dimension | mean score, original input | mean score, mutated input |
+|---|---|---|---|
+| 4B  | age        | 0.591 | 0.525 |
+| 4B  | disclosure | 0.594 | 0.534 |
+| 4B  | **all**    | **0.593** | 0.529 |
+| 27B | age        | 0.620 | 0.507 |
+| 27B | disclosure | 0.536 | 0.532 |
+| 27B | **all**    | **0.585** | 0.517 |
+
+- On the **original** input the two models are level overall (~0.59); the 27B is higher on age (0.62
+  vs 0.59) but lower on disclosure (0.54 vs 0.59). This is a small curated subset (171 items), not
+  full HealthBench.
+- The **mutated** input scores lower than the original in every cell (e.g. 27B age 0.620 → 0.507).
+  That drop is itself a footprint signal in the mean: an answer to the mutated input meets the
+  original (input-specific) rubric less well — not that the model got worse.
+- Caveat: like the score-SD net, this original→mutated gap still contains the model's run-to-run
+  answer noise (each input was answered once), which the same-input floor — pending the GPU re-run —
+  would let us subtract. Per-answer scores are unclipped `achieved/possible` (all fell in [0,1]).
 
 ## What the signal looks like
 
