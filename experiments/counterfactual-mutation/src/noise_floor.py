@@ -79,7 +79,7 @@ def main():
     common.RESULTS.mkdir(parents=True, exist_ok=True)
     common.endpoints_banner("(noise_floor)", len(shortlist))
 
-    out_p = common.RESULTS / "noise_floor.json"
+    out_p = common.NOISE_FLOOR
     rec = json.loads(out_p.read_text()) if out_p.exists() else {}
     rec.update({"k": args.k, "judge_temp": common.CM_JUDGE_TEMP,
                 "judge_think": common.CM_JUDGE_THINK, "metric": _METRIC})

@@ -1,62 +1,64 @@
 # Counterfactual dimensional locality — results
 
-- items: **171**, criterion-pairs graded: **2060**
-- same-input floor (per dimension): age **27.0%**, disclosure **26.8%**
+- items: **171**, criterion-pairs graded: **2055**
+- same-input floor (per dimension): age **25.4%**
+
+> ⚠ **Partial run** — same-input floor not yet measured for **disclosure** (net effect below shows n/a there; fill it with `noise_floor.py --dimension <d>`). The raw change-rate, by-axis and footprint-discrimination numbers ARE complete.
 
 ## Headline
 
 > Answers to V and to each V_k are sampled independently, so the raw change rate includes the model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input floor** (per dimension). See the by-dimension table.
 
-- **raw change rate** (any criterion whose verdict moved across the sweep): **30.2%**
-- **footprint discrimination is weak**: predicted-sensitive criteria moved **28.6%** (on-target) vs predicted-bridge **30.7%** (off-target) — the a-priori classifier barely matches (here slightly trails) chance. Footprint precision **28.6%**, recall **21.5%** (see caveat below).
+- **raw change rate** (any criterion whose verdict moved across the sweep): **26.9%**
+- **footprint discrimination (v2_qwen3.6-27b-fp8) is clearly positive**: predicted-sensitive criteria moved **39.4%** (on-target) vs predicted-bridge **25.4%** (off-target) — a **+14.0-pt** gap, flagging **10.8%** of criteria. Footprint precision **39.4%**, recall **15.8%** (see caveat below).
 
 ## By dimension (net effect vs the same-input floor)
 
 | dimension | items | raw change rate | same-input floor | **net effect (Δ)** |
 |---|---|---|---|---|
-| age | 100 | 28.4% | 27.0% | **+1.4%** |
-| disclosure | 71 | 32.4% | 26.8% | **+5.7%** |
+| age | 100 | 28.2% | 25.4% | **+2.8%** |
+| disclosure | 71 | 25.3% | n/a | **n/a** |
 
 ## Footprint discrimination by dimension (does predicted-sensitive move more than the predicted bridge?)
 
 | dimension | on-target (pred-sensitive moved) | off-target (bridge moved) | recall (of moved, predicted) |
 |---|---|---|---|
-| age | 29.8% | 27.7% | 33.6% |
-| disclosure | 24.5% | 33.5% | 8.9% |
+| age | 38.0% | 26.0% | 24.8% |
+| disclosure | 56.2% | 24.7% | 3.8% |
 
 ## Change rate by rubric axis
 
 | axis | change rate | n |
 |---|---|---|
-| accuracy | 28.0% | 665 |
-| communication_quality | 16.4% | 177 |
-| completeness | 38.4% | 735 |
-| context_awareness | 26.8% | 325 |
-| instruction_following | 24.7% | 158 |
+| accuracy | 23.2% | 664 |
+| communication_quality | 14.8% | 176 |
+| completeness | 29.3% | 733 |
+| context_awareness | 36.9% | 325 |
+| instruction_following | 23.6% | 157 |
 
 ## Sweep flip-point distribution (criteria that flipped, by value)
 
 | value | # criteria flipped |
 |---|---|
-| 8 | 119 |
-| 30 | 138 |
-| 50 | 113 |
-| 72 | 169 |
-| an LDL value | 17 |
-| an HbA1c value | 93 |
-| two BP readings | 42 |
-| a flagged lab line | 110 |
-| a lipid-panel line | 14 |
-| a single BP reading | 46 |
-| a medication-list line | 14 |
-| a structured med block | 16 |
-| a vitals line (BP, HR) | 50 |
-| a fasting glucose value | 105 |
-| a med-reconciliation row | 16 |
+| 8 | 118 |
+| 30 | 134 |
+| 50 | 144 |
+| 72 | 179 |
+| an LDL value | 11 |
+| an HbA1c value | 79 |
+| two BP readings | 44 |
+| a flagged lab line | 75 |
+| a lipid-panel line | 17 |
+| a single BP reading | 43 |
+| a medication-list line | 16 |
+| a structured med block | 15 |
+| a vitals line (BP, HR) | 43 |
+| a fasting glucose value | 72 |
+| a med-reconciliation row | 12 |
 
 ## Caveats
 
-- **The a-priori footprint classifier has little discriminative power on Qwen3-4B.** It does emit real predictions (~23% of criteria flagged sensitive, across buckets), but predicted-sensitive criteria move at about the same rate as the predicted bridge (on-target ≈ off-target above) — weakly positive for age, inverted for disclosure — so predicted-vs-measured agreement is near chance. The reliable footprint signal is the measured per-axis change rate and the by-value flip distribution, not the predicted buckets; a stronger classifier model would be needed to make the a-priori prediction useful.
-- **The same-input floor is high (~24%)** because a 4B answer model at temperature varies a lot run-to-run; with it subtracted the net dimension effect is modest. Lower answer temperature or averaging several answers per input would raise signal-to-noise.
+- **A-priori footprint classifier (v2_qwen3.6-27b-fp8) discrimination is clearly positive.** It flags **10.8%** of criteria as sensitive; those move **39.4%** (on-target) vs **25.4%** for the predicted bridge (off-target), a **+14.0-pt** gap. A clearly positive gap means the a-priori prediction adds signal over the behavioral sweep; a ≈0 or negative gap means it does not, and the reliable footprint signal is then the measured per-axis change rate and by-value flip distribution rather than the predicted buckets. The footprint model is versioned (results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; the net-effect headline above is computed from the behavioral sweep alone and does NOT change with the classifier model.
+- **The same-input floor (age **25.4%**) is high** because the answer model at temperature varies run-to-run; with it subtracted the net dimension effect is modest. Lower answer temperature or averaging several answers per input would raise signal-to-noise.
 
 _Generated by src/analyze.py. Interpretation: net effect = change rate − same-input floor. A clean, local dimension shows a small positive net concentrated in the dimension-relevant criteria; ≈0 net means the bridge holds (the edit did not change the model's clinically-graded behavior beyond its own sampling noise)._

@@ -25,16 +25,21 @@ You are auditing how a medical grading rubric should change if ONLY the patient'
 changes — from {age_from} to a clearly different age (we will test ages {values}).
 Everything else about the case is identical.
 
-For EACH numbered criterion, decide whether the criterion's correct pass/fail verdict for a
-good answer would change at any of those ages versus age {age_from}, and classify it:
-- "kept": age-neutral — a good answer satisfies it the same way at every age.
-- "moot": it rewards asking for / seeking information that the new age makes irrelevant.
-- "reweight": still relevant but its threshold, strength, or expected detail changes with age.
-- "urgency": the age changes the appropriate level of triage / red-flag / referral.
-- "answer_shift": the age changes the substantive recommendation (differential, dose,
-  screening, contraindication).
-Be conservative: use "kept" unless a SPECIFIC age-driven clinical reason makes it change.
-Set "sensitive" true for everything that is not "kept".
+For EACH numbered criterion, decide whether a good answer still satisfies it the SAME way after
+the age change — i.e. whether its correct pass/fail verdict is unchanged at every tested age
+versus age {age_from} — and classify it:
+- "kept": still valid the same way — a good answer's pass/fail verdict for this item does not
+  change with age. This INCLUDES items whose emphasis, strength, threshold, or expected level of
+  detail would merely shift: we are NOT tracking weighting, only whether the verdict changes.
+- "moot": it rewards asking for / seeking / confirming information that the new age makes
+  irrelevant or unnecessary.
+- "change": the age changes whether a good answer satisfies the item — the substantive content a
+  good answer must have changes (differential, dose, screening, contraindication, management).
+  This INCLUDES an item that itself grades the response's level of urgency / triage / red-flags /
+  referral, when the appropriate level changes with age.
+Be conservative: use "kept" unless a SPECIFIC age-driven clinical reason changes the verdict.
+A mere shift in weighting / emphasis / threshold is NOT a change -> "kept".
+Set "sensitive" true for everything that is not "kept" (i.e. "moot" or "change").
 
 Also propose any NEW criteria a good answer should now satisfy specifically because of the
 age change (e.g. geriatric falls/polypharmacy at an older age; growth/development or guardian
@@ -47,7 +52,7 @@ involvement at a younger age). Keep them specific and checkable.
 {criteria}
 
 Return ONLY this JSON (no prose):
-{{"predictions": [{{"idx": <int>, "bucket": "kept|moot|reweight|urgency|answer_shift",
+{{"predictions": [{{"idx": <int>, "bucket": "kept|moot|change",
                     "sensitive": <bool>, "reason": "<one clause>"}}],
   "proposed_induced": ["<new criterion>", "..."]}}
 Every idx in the criteria list must appear exactly once in predictions.
@@ -112,4 +117,4 @@ class AgeDimension(Dimension):
                                         conversation=convo, criteria=criteria)
 
     def buckets(self):
-        return {"kept", "moot", "reweight", "urgency", "answer_shift"}
+        return {"kept", "moot", "change"}

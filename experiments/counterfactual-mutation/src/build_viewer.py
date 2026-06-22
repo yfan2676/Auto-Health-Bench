@@ -177,7 +177,7 @@ def main():
             samples.append(sample)
 
     metrics = _read_json(common.RESULTS / "metrics.json")
-    noise_floor = _read_json(common.RESULTS / "noise_floor.json")
+    noise_floor = _read_json(common.NOISE_FLOOR)
     dims = sorted({s["dimension"] for s in samples})
 
     bundle = {

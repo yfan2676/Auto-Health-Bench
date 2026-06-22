@@ -162,7 +162,7 @@ def main():
     # to V vs V_k, so this baseline — the model's own roll-to-roll answer variance — is
     # subtracted to get the net dimension effect = change rate − floor.
     floor_by_dim = {}
-    floor_p = common.RESULTS / "noise_floor.json"
+    floor_p = common.NOISE_FLOOR
     if floor_p.exists():
         for d, rec in (json.loads(floor_p.read_text()).get("by_dimension") or {}).items():
             floor_by_dim[d] = rec.get("flip_rate")
@@ -191,20 +191,49 @@ def main():
         return "n/a" if x is None else f"{x*100:+.1f}%"
 
     floor_line = ", ".join(f"{d} **{pct(v)}**" for d, v in sorted(floor_by_dim.items())) or "n/a"
+
+    # Footprint-discrimination summary, data-driven so the prose matches whatever classifier model
+    # produced results/footprint_*/ (the dir is versioned + selectable via CM_FOOTPRINT_DIR).
+    fp_model = common.FOOTPRINT.name.replace("footprint_", "") or common.FOOTPRINT.name
+    _on = overall["on_target_change_rate"] or 0.0
+    _off = overall["off_target_change_rate"] or 0.0
+    _gap = _on - _off
+    _conf = overall["confusion"]
+    _tot = sum(_conf.values()) or 1
+    _flag_share = (_conf["tp"] + _conf["fp"]) / _tot
+    if _gap >= 0.08:
+        _disc = "clearly positive"
+    elif _gap >= 0.03:
+        _disc = "weakly positive"
+    elif _gap > -0.03:
+        _disc = "near chance"
+    else:
+        _disc = "inverted (below chance)"
+
+    # Flag an incomplete run (e.g. a dimension whose same-input floor has not been measured yet, as
+    # happens if the run was interrupted) so an n/a net effect reads as "pending", not "no signal".
+    _missing_floor = [d for d, m in by_dimension.items() if m.get("same_input_floor") is None]
+    _partial = ([f"> ⚠ **Partial run** — same-input floor not yet measured for "
+                 f"**{', '.join(_missing_floor)}** (net effect below shows n/a there; fill it with "
+                 f"`noise_floor.py --dimension <d>`). The raw change-rate, by-axis and "
+                 f"footprint-discrimination numbers ARE complete.", ""]
+                if _missing_floor else [])
+
     lines = [
         "# Counterfactual dimensional locality — results", "",
         f"- items: **{n_items}**, criterion-pairs graded: **{n}**",
         f"- same-input floor (per dimension): {floor_line}",
         "",
+        *_partial,
         "## Headline", "",
         "> Answers to V and to each V_k are sampled independently, so the raw change rate includes the"
         " model's roll-to-roll answer variance. The dimension signal is **net = change rate − same-input"
         " floor** (per dimension). See the by-dimension table.",
         "",
         f"- **raw change rate** (any criterion whose verdict moved across the sweep): **{pct(overall['change_rate'])}**",
-        f"- **footprint discrimination is weak**: predicted-sensitive criteria moved **{pct(overall['on_target_change_rate'])}** "
-        f"(on-target) vs predicted-bridge **{pct(overall['off_target_change_rate'])}** (off-target) — the a-priori "
-        f"classifier barely matches (here slightly trails) chance. Footprint precision **{pct(overall['footprint_precision'])}**, "
+        f"- **footprint discrimination ({fp_model}) is {_disc}**: predicted-sensitive criteria moved "
+        f"**{pct(_on)}** (on-target) vs predicted-bridge **{pct(_off)}** (off-target) — a **{_gap*100:+.1f}-pt** gap, "
+        f"flagging **{_flag_share:.1%}** of criteria. Footprint precision **{pct(overall['footprint_precision'])}**, "
         f"recall **{pct(overall['footprint_recall'])}** (see caveat below).",
         "",
         "## By dimension (net effect vs the same-input floor)", "",
@@ -231,15 +260,16 @@ def main():
         for k, v in metrics["flip_point_distribution"].items():
             lines.append(f"| {k} | {v} |")
     lines += ["", "## Caveats", "",
-              "- **The a-priori footprint classifier has little discriminative power on Qwen3-4B.** It does emit "
-              "real predictions (~23% of criteria flagged sensitive, across buckets), but predicted-sensitive "
-              "criteria move at about the same rate as the predicted bridge (on-target ≈ off-target above) — weakly "
-              "positive for age, inverted for disclosure — so predicted-vs-measured agreement is near chance. The "
-              "reliable footprint signal is the measured per-axis change rate and the by-value flip distribution, "
-              "not the predicted buckets; a stronger classifier model would be needed to make the a-priori "
-              "prediction useful.",
-              "- **The same-input floor is high (~24%)** because a 4B answer model at temperature varies "
-              "a lot run-to-run; with it subtracted the net dimension effect is modest. Lower answer "
+              f"- **A-priori footprint classifier ({fp_model}) discrimination is {_disc}.** It flags "
+              f"**{_flag_share:.1%}** of criteria as sensitive; those move **{pct(_on)}** (on-target) vs "
+              f"**{pct(_off)}** for the predicted bridge (off-target), a **{_gap*100:+.1f}-pt** gap. A clearly "
+              "positive gap means the a-priori prediction adds signal over the behavioral sweep; a ≈0 or negative "
+              "gap means it does not, and the reliable footprint signal is then the measured per-axis change rate "
+              "and by-value flip distribution rather than the predicted buckets. The footprint model is versioned "
+              "(results/footprint_v*/) and selectable via CM_FOOTPRINT_DIR; the net-effect headline above is "
+              "computed from the behavioral sweep alone and does NOT change with the classifier model.",
+              f"- **The same-input floor ({floor_line}) is high** because the answer model at temperature "
+              "varies run-to-run; with it subtracted the net dimension effect is modest. Lower answer "
               "temperature or averaging several answers per input would raise signal-to-noise.",
               "",
               "_Generated by src/analyze.py. Interpretation: net effect = change rate − same-input floor. "

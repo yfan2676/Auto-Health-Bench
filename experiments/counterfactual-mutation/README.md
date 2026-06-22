@@ -52,12 +52,16 @@ src/common.py        bridge to healthbench-local-eval (llm client + GRADER_TEMPL
                      pmap (multi-GPU grading), diff helpers
 src/pick.py        Step 1  pick items that state a patient age        -> results/shortlist.jsonl
 src/sweep.py         Step 2  K~3-value sweep of minimal edits (+guard)   -> results/sweep/<id>.json
-src/footprint.py     Step 3  a-priori per-criterion footprint prediction -> results/footprint/<id>.json
+src/footprint.py     Step 3  a-priori per-criterion footprint prediction -> results/footprint_v*/<id>.json
+                                 (versioned by classifier model; CM_FOOTPRINT_DIR, default footprint_v2_qwen3.6-27b-fp8)
 src/answers.py       Step 4  fresh answer to EACH input — V and every V_k (concurrent across GPUs)
-                                                                         -> results/answers/<id>.json
+                                                                         -> results/answers_<ver>/<id>.json
 src/sweep_grade.py   Step 5  grade each fresh answer vs the original rubric (T=0, concurrent across GPUs)
-                                                                         -> results/sweep_grades/<id>.jsonl
-src/noise_floor.py   Step 6  same-input answer-resampling flip rate / dim  -> results/noise_floor.json
+                                                                         -> results/sweep_grades_<ver>/<id>.jsonl
+src/noise_floor.py   Step 6  same-input answer-resampling flip rate / dim  -> results/noise_floor_<ver>.json
+                                 (Steps 4-6 are the BEHAVIORAL half, versioned by answer+judge model via
+                                  CM_BEHAVIOR_VERSION, default v2_qwen3.6-27b-fp8; 4B preserved as *_v1_qwen3-4b.
+                                  sweep/ is model-independent, NOT versioned. run_full.sh pins v1 for the 4B serve.)
 src/analyze.py       Step 7  change rate + net effect vs floor (+by-dim)   -> results/{metrics.json,report.md}
 src/build_viewer.py  Step 8  aggregate everything (+difflib spans)        -> viewer/data.json
 viewer/index.html    dependency-free static viewer (serve with python -m http.server)
@@ -73,8 +77,29 @@ skip-existing). `src/edit.py` is the deterministic age-edit primitive reused by
 
 ## How to run
 
-Start **two** vLLM servers (one per GPU — grading fans across both) — see
-[`../healthbench-local-eval/data/README.md`](../healthbench-local-eval/data/README.md):
+**One command (recommended).** [`run_full.sh`](run_full.sh) owns the whole lifecycle: it
+starts both vLLM servers (one per GPU), waits for them to be healthy, runs the full pipeline,
+and — via a `trap ... EXIT INT TERM` — **always stops the servers again when it finishes**,
+whether the run succeeds, a step fails, or you hit Ctrl-C, so the GPUs are never left occupied:
+
+```bash
+cd experiments/counterfactual-mutation
+python3 src/pick.py --limit 100 && python3 src/pick.py --dimension disclosure --limit 71  # once: build the shortlist
+./run_full.sh                                                                              # start -> run -> stop servers
+```
+
+It logs to `run_full.log`; per-server stdout goes to `logs/vllm_<port>.log`. Tunables (env):
+`VLLM_BIN` (defaults to the conda `vllm` env — it is not on `PATH`), `GPUS`/`PORTS` (default
+`"0 1"`/`"8000 8001"`), `GPU_MEM_UTIL`, `MAX_MODEL_LEN`, `HEALTH_TIMEOUT`, `CM_RUN_FOOTPRINT=1`
+(also run the optional footprint step), `CM_KEEP_SERVERS=1` (skip teardown), `CM_REUSE=1`
+(reuse a server already up on a port). `pick.py` is intentionally **not** automated — it
+curates the item set (and D2 uses subagent-authored edit overrides).
+
+---
+
+**Manual / step-by-step.** Start **two** vLLM servers (one per GPU — grading fans across
+both) — see [`../healthbench-local-eval/data/README.md`](../healthbench-local-eval/data/README.md).
+With this path you stop the servers yourself when done (`run_full.sh` does it for you):
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 vllm serve Qwen/Qwen3-4B --port 8000 --gpu-memory-utilization 0.85 --max-model-len 32768 &
@@ -138,15 +163,29 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
   n=30 +6% was largely small-sample noise); **disclosure is the robust effect (~4× age)**, a 4B
   numeracy gap. Change concentrates in completeness/accuracy; the communication/management bridge is
   the most invariant axis.
-- **A-priori footprint: run for all 171, but weak discrimination.** `footprint.py` (the LLM
-  estimator) now fans its per-item calls across both GPUs and classifies every item — flagging
-  ~23% of criteria as sensitive. But predicted-sensitive criteria move at ~the same rate as the
-  predicted bridge (**on-target 28.6% vs off-target 30.7%**; weakly + for age, *inverted* for
-  disclosure), so it adds little over the behavioral sweep and predicted-vs-measured is near
-  chance. It feeds only footprint precision/recall — not the change-rate/net-effect headline — so
-  `sweep_grade.py` still tolerates a missing footprint file and the step stays optional for the
-  headline. *(The earlier "predicts 0 sensitive" was a JSON-extraction bug in `llm.extract_json`,
-  now fixed; the behavioral **sweep** remains the ground-truth footprint signal.)*
+- **A-priori footprint: versioned + classifier-swappable; the 27B makes it discriminative.**
+  `footprint.py` fans its per-item calls across both GPUs and classifies every item, writing to a
+  *versioned* dir (`results/footprint_v*/`, selected by `CM_FOOTPRINT_DIR`, default
+  `footprint_v2_qwen3.6-27b-fp8`); `analyze.py`/`build_viewer.py` read whichever version is set, so
+  classifier models can be A/B'd with **no re-grade**. With the original **Qwen3-4B** classifier
+  discrimination was near chance (on-target 28.6% vs off-target 30.7%, *inverted* for disclosure).
+  Re-running with **Qwen3.6-27B-FP8** (served from the isolated `vllm-qwen36` env) makes it
+  **clearly positive: on-target 42.5% vs off-target 28.8% (+13.8pt), precision 42.5%**, flagging a
+  more conservative 10.7% of criteria (age 43.4/25.0; disclosure stays flat — the refined prompt
+  marks nearly all disclosure criteria "kept"). It feeds only footprint precision/recall — **not**
+  the change-rate/net-effect headline (behavioral, identical across classifiers) — so
+  `sweep_grade.py` still tolerates a missing footprint file and the step stays optional. *(The
+  earlier "predicts 0 sensitive" was a JSON-extraction bug in `llm.extract_json`, since fixed.)*
+- **⚠ Behavioral re-run on Qwen3.6-27B-FP8 (answer + judge) — PARTIAL.** The behavioral half
+  (Steps 4–6) is versioned by answer+judge model (`CM_BEHAVIOR_VERSION`, default the 27B; 4B kept as
+  `*_v1_qwen3-4b`) and re-run on the *same* `sweep/` inputs. Drivers: `run_behavioral_27b.sh` (both
+  GPUs) and `complete_v2_gpu1.sh` (single-GPU finish). **GPU 0 fell off the PCIe bus during the
+  disclosure floor**, so v2 is incomplete: saved = 171/171 answers, 2055/2061 grades, age floor;
+  missing = disclosure floor (net `n/a`) + 6 ungraded criteria. Partial: **age net +2.8%** (vs 4B
+  +1.4%); footprint on/off **39.4%/25.4%** (disclosure footprint sharp at 56.2%/24.7%). `report.md`
+  carries a ⚠ partial-run banner. Finishing needs GPU 0 back (reboot) — a fresh vLLM can't boot while
+  a GPU is faulted (NVML enumerates all devices). `common.judge_criterion` was hardened (extract the
+  JSON object that actually carries `criteria_met`, + a thinking-on rescue) for the larger judge.
 - **D2 eligibility ceiling ≈ 71 (not 100).** The regex prefilter gives 193 hits in the 5k split,
   but most are topic/class mentions, third-party/clinician cases, or questions — not re-encodable
   self-disclosures; capable authors flag ~40% unsuitable. D1 age is regex-deterministic (478

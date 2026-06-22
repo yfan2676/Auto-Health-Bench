@@ -20,6 +20,7 @@ Run every script from this experiment's directory (paths are relative to it):
 import difflib
 import json
 import os
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -61,11 +62,25 @@ GEN_EPS = config.target_endpoints()
 # --- paths -------------------------------------------------------------------
 RESULTS = _EXP / "results"
 SHORTLIST = RESULTS / "shortlist.jsonl"
-FOOTPRINT = RESULTS / "footprint"   # per-item a-priori per-criterion prediction
-ANSWERS = RESULTS / "answers"       # per-item fresh model answers (to V and each swept variant)
-SWEEP = RESULTS / "sweep"           # per-item K-value sweep of edited conversations
-SWEEP_GRADES = RESULTS / "sweep_grades"  # per-item K-way grades (orig + each swept value)
-EDITS_OVERRIDE = RESULTS / "edits_override"  # optional subagent-authored edits (D2 prose->data)
+# Per-item a-priori per-criterion prediction, versioned by the classifier model so old runs are
+# kept side by side. CM_FOOTPRINT_DIR selects which version footprint.py writes and analyze.py /
+# build_viewer.py read (default = the newest). Versions: footprint_v1_qwen3-4b (first 4B run),
+# footprint_v2_qwen3.6-27b-fp8 (Qwen3.6-27B-FP8 author). Point CM_FOOTPRINT_DIR at v1 to compare.
+FOOTPRINT = RESULTS / os.environ.get("CM_FOOTPRINT_DIR", "footprint_v2_qwen3.6-27b-fp8")
+# Behavioral results (the fresh answers, their per-criterion grades, and the same-input floor) are
+# versioned by the ANSWER+JUDGE model so the 4B baseline is kept side by side with the 27B run.
+# CM_BEHAVIOR_VERSION selects which version answers.py / sweep_grade.py / noise_floor.py WRITE and
+# analyze.py / build_viewer.py READ (default = the newest). Versions: v1_qwen3-4b (first run),
+# v2_qwen3.6-27b-fp8 (Qwen3.6-27B-FP8 answer+judge). Reproduce the 4B numbers with
+# `CM_BEHAVIOR_VERSION=v1_qwen3-4b python3 src/analyze.py`. The a-priori footprint (CM_FOOTPRINT_DIR)
+# is versioned INDEPENDENTLY — either classifier can be joined with either behavioral run. SWEEP
+# (the mutated inputs) is model-independent, so it is NOT versioned.
+_BEHAVIOR = os.environ.get("CM_BEHAVIOR_VERSION", "v2_qwen3.6-27b-fp8")
+ANSWERS = RESULTS / f"answers_{_BEHAVIOR}"          # per-item fresh model answers (to V and each variant)
+SWEEP = RESULTS / "sweep"                           # per-item K-value sweep of edited conversations (model-independent)
+SWEEP_GRADES = RESULTS / f"sweep_grades_{_BEHAVIOR}"  # per-item K-way grades (orig + each swept value)
+NOISE_FLOOR = RESULTS / f"noise_floor_{_BEHAVIOR}.json"  # per-dimension same-input answer-resampling floor
+EDITS_OVERRIDE = RESULTS / "edits_override"         # optional subagent-authored edits (D2 prose->data)
 
 
 # --- data loading (resolve the HealthBench split flexibly) -------------------
@@ -134,6 +149,41 @@ def convo_string(messages, answer):
     return "\n\n".join(f"{m['role']}: {m['content']}" for m in convo)
 
 
+def _extract_grader_json(text):
+    """Pull the HealthBench grader verdict out of a judge response.
+
+    The grader is asked for `{"explanation": ..., "criteria_met": true|false}`. A larger judge
+    (Qwen3.6-27B) sometimes wraps that in prose or emits a second trailing JSON object (an example
+    or a note), so `llm.extract_json` (which returns the LAST top-level object) can hand back an
+    object with no "criteria_met" (-> KeyError) or miss the verdict entirely. So scan every balanced
+    object here and return the LAST one that actually carries "criteria_met". Raises ValueError if
+    none do, leaving the caller to retry. For a clean single-verdict response this returns exactly
+    what extract_json would, so it is strictly more robust with no behavior change on good output.
+    """
+    cleaned = re.sub(r"```(?:json)?|```", "", llm.strip_think(text))
+    found = None
+    for i, c in enumerate(cleaned):
+        if c != "{":
+            continue
+        depth = 0
+        for j in range(i, len(cleaned)):
+            if cleaned[j] == "{":
+                depth += 1
+            elif cleaned[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    try:
+                        o = json.loads(cleaned[i:j + 1])
+                    except json.JSONDecodeError:
+                        o = None
+                    if isinstance(o, dict) and "criteria_met" in o:
+                        found = o  # keep scanning; prefer the LAST valid verdict object
+                    break
+    if found is None:
+        raise ValueError(f"no grader verdict JSON (with 'criteria_met') in model output:\n{text}")
+    return found
+
+
 def judge_criterion(convo_str, rubric, *, endpoint=None, temperature=None, think=None):
     """One HealthBench grader call for a single criterion. Returns (criteria_met, explanation).
 
@@ -148,7 +198,15 @@ def judge_criterion(convo_str, rubric, *, endpoint=None, temperature=None, think
     text = llm.chat([{"role": "user", "content": prompt}], endpoint,
                     temperature=temperature, top_p=config.TOP_P,
                     max_tokens=config.MAX_TOKENS, think=think)
-    obj = llm.extract_json(text)
+    try:
+        obj = _extract_grader_json(text)
+    except ValueError:
+        # Rare (~0.3% on the 27B judge): no usable verdict JSON. Retry once with thinking ON — the
+        # extra reasoning reliably ends in a clean {"criteria_met": ...}. Last-resort rescue only.
+        text = llm.chat([{"role": "user", "content": prompt}], endpoint,
+                        temperature=temperature, top_p=config.TOP_P,
+                        max_tokens=config.MAX_TOKENS, think=True)
+        obj = _extract_grader_json(text)
     return bool(obj["criteria_met"]), obj.get("explanation", "")
 
 

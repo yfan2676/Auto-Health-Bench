@@ -3,7 +3,7 @@
 holding the clinical fact constant: "I have hypertension" -> "a blood pressure of 152/96
 mmHg". The fact is unchanged, so the entire clinical-management rubric is the BRIDGE; the
 only legitimate movers are criteria that reward *asking/confirming* the value (now shown ->
-"moot") and criteria that reward *correctly reading/interpreting* the value ("induced").
+"moot") and criteria that reward *correctly reading/interpreting* the value ("change").
 This is the cleanest construct-validity control (idea doc §5, D2): it isolates the
 ask->interpret shift from any new-information confound.
 
@@ -126,15 +126,26 @@ You are auditing how a medical grading rubric should change if ONLY the MODE OF 
 one fact changes: the patient's stated "{fact}" is re-expressed as a concrete DATA value
 (we will test these renderings: {values}). The clinical fact itself is UNCHANGED.
 
-For EACH numbered criterion, decide whether its correct pass/fail verdict for a good answer
-would change once the fact is shown as data instead of prose, and classify it:
-- "kept": clinical-management criterion — unchanged, because the fact is the same (BRIDGE).
+For EACH numbered criterion, decide whether a good answer still satisfies it the SAME way once
+the fact is shown as data instead of prose — i.e. whether its correct pass/fail verdict is
+unchanged — and classify it:
+- "kept": still valid the same way — a clinical-management criterion whose pass/fail verdict does
+  not change, because the underlying fact is the same (BRIDGE). This INCLUDES items whose emphasis
+  or threshold would merely shift (we are NOT tracking weighting), AND items that do not themselves
+  require interpreting the data: if the criterion is not originally about reading the value, and a
+  good answer can implicitly infer the underlying condition/symptom from the shown value and go on
+  to satisfy the criterion the same way, it is "kept" — the rubric does not demand that the answer
+  explicitly read out or interpret the number.
 - "moot": it rewards ASKING FOR or CONFIRMING the value that is now shown in the data.
-- "induced": it rewards correctly READING / INTERPRETING the shown value (numeracy), e.g.
-  "recognizes the BP as hypertensive", "notes the A1c indicates poor control".
-- "answer_shift": the data form changes the substantive recommendation (rare here).
+- "change": the data form changes whether a good answer satisfies the item. Use this ONLY when the
+  criterion is ITSELF about interpreting the value — it explicitly grades whether the answer reads
+  the shown number correctly (numeracy), e.g. "recognizes the BP as hypertensive", "notes the A1c
+  indicates poor control"; or, rarely, when the data form changes the substantive recommendation.
+  Do NOT mark a management criterion "change" just because the fact is now a number — if a good
+  answer can use the value implicitly, the criterion is "kept".
 Be conservative: most criteria are "kept" because the underlying fact does not change.
-Set "sensitive" true for everything that is not "kept".
+A mere shift in weighting / emphasis / threshold is NOT a change -> "kept".
+Set "sensitive" true for everything that is not "kept" (i.e. "moot" or "change").
 
 Also propose any NEW criteria a good answer should now satisfy specifically because the value
 is shown (e.g. "interprets the numeric value correctly").
@@ -146,7 +157,7 @@ is shown (e.g. "interprets the numeric value correctly").
 {criteria}
 
 Return ONLY this JSON (no prose):
-{{"predictions": [{{"idx": <int>, "bucket": "kept|moot|induced|answer_shift",
+{{"predictions": [{{"idx": <int>, "bucket": "kept|moot|change",
                     "sensitive": <bool>, "reason": "<one clause>"}}],
   "proposed_induced": ["<new criterion>", "..."]}}
 Every idx in the criteria list must appear exactly once in predictions.
@@ -261,4 +272,4 @@ class DisclosureDimension(Dimension):
                                         conversation=convo, criteria=criteria)
 
     def buckets(self):
-        return {"kept", "moot", "induced", "answer_shift"}
+        return {"kept", "moot", "change"}

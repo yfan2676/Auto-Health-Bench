@@ -50,6 +50,41 @@ pure bridge for this 4B model. **Disclosure stays clearly positive (~4× age).**
   +8.6%; scaling to n=100/71 shrank both toward their floors and pulled age down to noise. The
   larger run is the reliable one: **disclosure is the robust effect; age is not.**
 
+## Update 2026-06-22 — Qwen3.6-27B behavioral re-run (⚠ PARTIAL)
+
+The headline above is the **complete Qwen3-4B** run. We then re-ran the **behavioral half** (fresh
+answers + their grades + the same-input floor) with **Qwen3.6-27B-FP8 as both the answer model and
+the judge**, on the *same* mutated inputs (the `sweep/` variants are model-independent, so this is a
+clean answer-model swap). It is **versioned** (`CM_BEHAVIOR_VERSION`, default the 27B; the 4B run is
+preserved as `*_v1_qwen3-4b`), so the two are directly comparable.
+
+**This run is incomplete.** GPU 0 fell off the PCIe bus partway through the **disclosure same-input
+floor**. Saved and intact on disk: **171/171 answers, 2055/2061 grades, the age floor**. Missing:
+the **disclosure floor** (so disclosure's net effect is `n/a`) and **6 criteria** the judge left
+ungraded (~0.3%, JSON-parse). Finishing those ~25 min of work needs GPU 0 back — a *fresh* vLLM
+process can't boot while a GPU is faulted (its NVML startup enumerates **all** physical devices and
+dies on the bad one), so the surviving GPU 1 alone can't serve a new replica until a reboot.
+
+Partial numbers (27B answer+judge vs the 4B baseline; **disclosure net pending the floor**):
+
+| dimension | raw change | same-input floor | **net effect** | (4B net) |
+|---|---|---|---|---|
+| age (D1)        | 28.2% | 25.4% | **+2.8%** | +1.4% |
+| disclosure (D2) | 25.3% | *pending* | **n/a** | +5.7% |
+
+- **Age moves *more* under the 27B answer model, not less** (+2.8% vs +1.4%) — the opposite of what
+  "a bigger model is more counterfactually consistent" would predict, and worth confirming once the
+  run is complete and with a lower-variance answer protocol.
+- **Footprint discrimination (now 27B classifier vs 27B behavior) is clearly positive**: predicted-
+  sensitive criteria move **39.4%** on-target vs **25.4%** off-target (**+14 pt**). By dimension the
+  disclosure footprint is sharp — **on-target 56.2% vs off-target 24.7%** — i.e. the 27B answer model
+  varies *exactly* the disclosure-sensitive criteria a lot when the mode of disclosure changes; age is
+  milder (38.0% vs 26.0%). The honest disclosure *net* still awaits its floor.
+- Grading robustness was hardened for the larger judge: `common.judge_criterion` now extracts the
+  last JSON object that actually carries `criteria_met` (the 27B sometimes emits a trailing non-
+  verdict object) with a one-shot thinking-on rescue. Live partial numbers: [`results/report.md`](results/report.md)
+  (carries a ⚠ partial-run banner) and the viewer.
+
 ## D2 eligibility: the clean pool is smaller than it looks
 
 The disclosure picker's regex prefilter yields **193 hits** in the 5,000-item split, but most are
