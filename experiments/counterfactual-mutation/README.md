@@ -166,6 +166,7 @@ The flow inverts D1/D2 (the subagent's `applicable` flag *is* the detector):
 ```bash
 python3 src/seed_candidates.py --dimension severity --limit 45 --out <scratch>/seed  # +the other 3
 # fan ~5 Claude subagents per dimension -> write results/edits_override/<dim>/<eid>.json
+#   (the high-level flow + the EXACT subagent prompts are in MUTATION_AUTHORING.md)
 python3 src/validate_overrides.py                       # exact-substring + schema gate (must pass)
 python3 src/materialize_shortlist.py                    # build shortlist rows from applicable overrides
 python3 src/sweep.py                                    # K=1 variant per item -> results/sweep/<eid>.json
