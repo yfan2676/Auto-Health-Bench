@@ -1,41 +1,28 @@
-# How D3–Dx mutations are authored by subagents
+# How the severity / pregnancy / comorbidity / sex mutations are authored
 
-The K=1 dimensions — **D3 severity, D4 pregnancy, D5 comorbidity, Dx sex** — are too semantic to
-detect or edit with regex (D1 age is a regex swap; D2 disclosure is regex + a render). Instead a
-capable **Claude subagent** both *decides applicability* and *authors the single counterfactual
-edit*. This note records the high-level process and the **exact prompts** given to those subagents,
-so the run is reproducible. (Run recipe + schema also live in [`README.md`](README.md) → "How to
-run" → the D3+ block; this file adds the prompts.)
+Some of the things we change in a case — how severe a symptom is, whether the patient is pregnant,
+an added health condition, the patient's sex — can't be edited by a simple find-and-replace rule.
+Changing one of them while leaving everything else intact takes clinical judgment, so each edit is
+written by a capable AI model rather than by a script. This note explains, in plain terms, how that
+works, and records the exact instructions the model was given. The technical specifics are at the
+very end.
 
-## High-level process
+## How it works
 
-1. **Seed candidates.** `src/seed_candidates.py --dimension <d> --limit N --out <seed_dir>` scans
-   the HealthBench split with a light keyword/regex prefilter (recall over precision — the subagent
-   is the real gate) and writes one task file per candidate to `<seed_dir>/<dimension>/<eid>.json`.
-   A `claimed` set (shortlist ∪ already-seeded) keeps the four dimensions on **disjoint** items.
-   Each task file holds: `example_id`, the rendered `conversation`, `user_messages` (the exact
-   user-turn strings a `find` must be a substring of), `n_rubrics`, and a one-line `hint`.
-   Over-provision N (≈45–55) to net ~25 applicable after attrition.
+**Input.** A set of existing patient cases that might suit the change we want to make — each one a
+conversation with a patient, alongside the checklist a clinician would grade the answer against.
 
-2. **Batch + fan out.** Split each dimension's seed files into ~3 manifests (a manifest is a text
-   file of absolute task-file paths). Launch **~3–5 Claude subagents per dimension in parallel**
-   (≈15 items each), each given one manifest and the prompt below.
+**Process.** Taking one kind of change at a time, the model works through the cases. For each case
+it first asks whether the change even makes sense — you can't make a man pregnant, raise the urgency
+of a question that describes no symptom, or swap the sex of a patient whose sex is never mentioned.
+Where the change does fit, the model rewrites the patient's own words to introduce just that one
+thing — a more acute symptom, a mention of being pregnant, an added condition, a swapped pronoun —
+and nothing else, so the case still reads like something a real patient would have written. Where it
+doesn't fit, the model says so and moves on rather than forcing an awkward edit.
 
-3. **Author overrides.** Each subagent reads its manifest, and for every item decides applicability
-   and (if applicable) authors one exact-substring edit, writing
-   `results/edits_override/<dimension>/<eid>.json`. Unfit items are written with
-   `"applicable": false` and a reason (recorded, then skipped downstream). Schema:
-   `{example_id, dimension, applicable, base_value, target_value, label, edits:[{find,replace}],
-   rationale, note}`.
-
-4. **Validate.** `src/validate_overrides.py` is the gate: every `find` must be a verbatim substring
-   of a USER message, applying must change the text, schema must be complete. It exits non-zero on
-   any hard failure. (Large char-diff is reported as an advisory warning only.)
-
-5. **Materialize + sweep.** `src/materialize_shortlist.py` builds shortlist rows from the
-   *applicable* overrides (inverting D1/D2's pick→author order — here the subagent's `applicable`
-   flag is the detector); `src/sweep.py` then applies each edit into `results/sweep/<eid>.json`, the
-   same format as D1/D2. No GPU is used in any of these steps; only the later behavioral run is.
+**Output.** One altered version of each suitable case: the same conversation as before, changed
+along a single dimension and otherwise untouched, ready to be answered and graded later. The cases
+the model judged unsuitable are kept too, each with a short reason, so nothing is quietly dropped.
 
 ## The exact prompts given to the subagents
 
@@ -196,7 +183,43 @@ VERIFY before writing each file: confirm EVERY `find` is an EXACT substring of a
 When done, reply with a COMPACT summary only: total items, # applicable, # not-applicable, and reasons for not-applicable (one phrase each). Do NOT paste file contents.
 ```
 
-## Yield from the live run (2026-06-24)
+## Pipeline details (scripts, schema, mechanics)
+
+The specifics behind the plain-language description above; the run recipe also lives in
+[`README.md`](README.md) → "How to run" → the D3+ block. These four are *K=1* dimensions — one edit
+per case — and, unlike D1 age (a regex age-swap) and D2 disclosure (a regex prefilter + render),
+they are authored entirely by the subagent. No GPU is used in any of these steps; only the later
+behavioral run is.
+
+1. **Seed candidates.** `src/seed_candidates.py --dimension <d> --limit N --out <seed_dir>` scans
+   the HealthBench split with a light keyword/regex prefilter (recall over precision — the subagent
+   is the real gate) and writes one task file per candidate to `<seed_dir>/<dimension>/<eid>.json`.
+   A `claimed` set (shortlist ∪ already-seeded) keeps the four dimensions on **disjoint** items.
+   Each task file holds: `example_id`, the rendered `conversation`, `user_messages` (the exact
+   user-turn strings a `find` must be a substring of), `n_rubrics`, and a one-line `hint`.
+   Over-provision N (≈45–55) to net ~25 applicable after attrition.
+
+2. **Batch + fan out.** Split each dimension's seed files into ~3 manifests (a manifest is a text
+   file of absolute task-file paths). Launch **~3–5 Claude subagents per dimension in parallel**
+   (≈15 items each), each given one manifest and the prompt above.
+
+3. **Author overrides.** Each subagent reads its manifest, and for every item decides applicability
+   and (if applicable) authors one exact-substring edit, writing
+   `results/edits_override/<dimension>/<eid>.json`. Unfit items are written with
+   `"applicable": false` and a reason (recorded, then skipped downstream). Schema:
+   `{example_id, dimension, applicable, base_value, target_value, label, edits:[{find,replace}],
+   rationale, note}`.
+
+4. **Validate.** `src/validate_overrides.py` is the gate: every `find` must be a verbatim substring
+   of a USER message, applying must change the text, schema must be complete. It exits non-zero on
+   any hard failure. (Large char-diff is reported as an advisory warning only.)
+
+5. **Materialize + sweep.** `src/materialize_shortlist.py` builds shortlist rows from the
+   *applicable* overrides (inverting D1/D2's pick→author order — here the subagent's `applicable`
+   flag is the detector); `src/sweep.py` then applies each edit into `results/sweep/<eid>.json`, the
+   same format as D1/D2.
+
+### Yield from the live run (2026-06-24)
 
 Seeded 45/55/45/45 candidates, fanned 3 subagents per dimension. Applicable after the validator
 (0 hard failures): **severity 39, pregnancy 39, comorbidity 29, sex 26**. The not-applicable files
