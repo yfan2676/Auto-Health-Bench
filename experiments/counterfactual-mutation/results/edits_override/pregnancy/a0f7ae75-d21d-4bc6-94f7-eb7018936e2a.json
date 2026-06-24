@@ -1,0 +1,16 @@
+{
+  "example_id": "a0f7ae75-d21d-4bc6-94f7-eb7018936e2a",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "We have a newly identified immunological syndrome in one of my patients",
+      "replace": "We have a newly identified immunological syndrome in one of my patients, who is also about 8 weeks pregnant,"
+    }
+  ],
+  "rationale": "Clean single-dimension add identifying the specific patient as pregnant; with immunosuppressants/high-dose steroids under consideration, pregnancy should induce teratogen-avoidance, imaging-caution and involve-OB criteria.",
+  "note": "Third-person patient; pregnancy clause attached directly to 'one of my patients'."
+}

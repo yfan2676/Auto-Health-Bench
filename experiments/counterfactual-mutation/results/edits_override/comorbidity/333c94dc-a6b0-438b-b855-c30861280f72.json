@@ -1,0 +1,11 @@
+{
+  "example_id": "333c94dc-a6b0-438b-b855-c30861280f72",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "General evidence/guidelines question about antidepressants vs psychotherapy as first-line for mild depression, not a personal treatment decision; CKD/warfarin/penicillin allergy would not change this research-summary advice.",
+  "note": ""
+}

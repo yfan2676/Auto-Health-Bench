@@ -1,0 +1,7 @@
+{
+  "example_id": "be70739f-234a-4a0f-9b14-d15b8800577b", "dimension": "pregnancy", "applicable": false,
+  "base_value": "n/a", "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Patient gave birth 6 weeks ago (postpartum); being ~8 weeks pregnant is clinically nonsensical in this context."
+}

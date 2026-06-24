@@ -1,0 +1,15 @@
+{
+  "example_id": "754b5d72-2294-49e3-83af-ff22be025f8c",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "and i started taking it daily",
+      "replace": "and i started taking it daily, i'm also on warfarin"
+    }
+  ],
+  "rationale": "+ on warfarin should flag a bleeding-risk interaction with bilberry (antiplatelet/anticoagulant effects), warranting caution/INR monitoring before daily supplement use."
+}

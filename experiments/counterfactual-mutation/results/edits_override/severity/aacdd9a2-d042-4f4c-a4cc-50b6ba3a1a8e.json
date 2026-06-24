@@ -1,0 +1,16 @@
+{
+  "example_id": "aacdd9a2-d042-4f4c-a4cc-50b6ba3a1a8e",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "fall, brief loss of consciousness, loopy, vomiting, raging headache",
+  "target_value": "same, now with worsening drowsiness, unequal pupils and clear fluid from the nose",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "And he threw up a few times now and says he has a ragin headache.",
+      "replace": "And he threw up a few times now and says he has a ragin headache, and he's getting really drowsy and hard to wake, one pupil looks bigger than the other, and clear fluid is leaking from his nose."
+    }
+  ],
+  "rationale": "same head-injury complaint escalated with deteriorating consciousness, anisocoria and CSF rhinorrhea indicating rising intracranial pressure/basal skull fracture, sharpening the immediate-911/ER red-flag footprint",
+  "note": "Already an acute presentation; edit adds severity/neurologic red flags only."
+}

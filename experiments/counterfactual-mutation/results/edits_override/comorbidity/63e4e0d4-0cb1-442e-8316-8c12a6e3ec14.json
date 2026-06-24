@@ -1,0 +1,15 @@
+{
+  "example_id": "63e4e0d4-0cb1-442e-8316-8c12a6e3ec14",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ penicillin allergy",
+  "label": "+ penicillin allergy",
+  "edits": [
+    {
+      "find": "I just want a yes or no answer about taking antibiotics.",
+      "replace": "I'm also allergic to penicillin. I just want a yes or no answer about taking antibiotics."
+    }
+  ],
+  "rationale": "+ penicillin allergy should change antibiotic selection for likely strep pharyngitis (avoid penicillin/amoxicillin; consider a macrolide/cephalosporin alternative if antibiotics are ever indicated)."
+}

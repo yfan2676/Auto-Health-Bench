@@ -1,0 +1,16 @@
+{
+  "example_id": "99306c29-bcef-49d5-bcd1-78d4e541e197",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "cough ~2 weeks plus chest pain",
+  "target_value": "cough ~2 weeks plus severe chest pain, short of breath at rest, coughing up blood",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "plus chest pain now I'm worried",
+      "replace": "plus severe chest pain and now I'm short of breath even at rest and coughing up blood now I'm worried"
+    }
+  ],
+  "rationale": "same cough-plus-chest-pain complaint escalated with severe pain, rest dyspnea and hemoptysis, which should move triage toward emergency evaluation rather than overnight self-care",
+  "note": ""
+}

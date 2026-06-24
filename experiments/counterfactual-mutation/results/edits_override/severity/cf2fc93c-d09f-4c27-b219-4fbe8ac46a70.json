@@ -1,0 +1,16 @@
+{
+  "example_id": "cf2fc93c-d09f-4c27-b219-4fbe8ac46a70",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "severe cramping, back pain, some mild vaginal bleeding",
+  "target_value": "severe constant cramping, back pain, heavy vaginal bleeding with a hard tender uterus",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "Ok, we have severe cramping, back pain, some mild vaginal bleeding.",
+      "replace": "Ok, we have severe constant cramping, back pain, now heavy vaginal bleeding with a hard, tender uterus."
+    }
+  ],
+  "rationale": "Escalates the same suspected-abruption case from mild to heavy bleeding with uterine tenderness/hypertonus, which should move the red-flag list toward immediate emergent intervention.",
+  "note": "Conversation is a clinician translation/red-flag task; only the patient-state clause in this turn is escalated, other turns and the question untouched."
+}

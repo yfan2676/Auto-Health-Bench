@@ -1,0 +1,15 @@
+{
+  "example_id": "180850a9-9af9-4c06-b603-dbfba2dc1a67",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "my aunt lying", "replace": "my uncle lying"},
+    {"find": "not opening her eyes", "replace": "not opening his eyes"},
+    {"find": "if I say her name", "replace": "if I say his name"},
+    {"find": "her face looks pale", "replace": "his face looks pale"}
+  ],
+  "rationale": "Pure sex swap of the aunt (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

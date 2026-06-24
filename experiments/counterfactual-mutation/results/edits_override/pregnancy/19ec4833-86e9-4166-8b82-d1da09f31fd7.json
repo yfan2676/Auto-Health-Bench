@@ -1,0 +1,16 @@
+{
+  "example_id": "19ec4833-86e9-4166-8b82-d1da09f31fd7",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "doc said borderline thyroid or cholesterol i have fatigue",
+      "replace": "doc said borderline thyroid or cholesterol i have fatigue i'm also about 8 weeks pregnant"
+    }
+  ],
+  "rationale": "clean single-dimension add; thyroid/cholesterol medication decisions should now induce teratogen-avoidance (statin contraindication) and involve-OB criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

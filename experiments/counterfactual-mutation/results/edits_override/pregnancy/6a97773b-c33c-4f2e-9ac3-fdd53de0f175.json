@@ -1,0 +1,10 @@
+{
+  "example_id": "6a97773b-c33c-4f2e-9ac3-fdd53de0f175",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Clinician request for a generic cardiac-rehab progress-note template for 'my patients' (plural, generic); no single specific patient who could be pregnant."
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "2833344d-bff9-4bbe-8fab-6b13d64c6b2a",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "My thyroid pills haven't improved my fatigue, i feel sluggish and my hair is falling out.",
+      "replace": "My thyroid pills haven't improved my fatigue, i feel sluggish and my hair is falling out. I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "clean single-dimension add; thyroid-dose adjustment should now induce pregnancy-specific dosing, monitoring, and involve-OB/endocrinology criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

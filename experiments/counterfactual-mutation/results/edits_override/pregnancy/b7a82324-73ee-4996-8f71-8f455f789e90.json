@@ -1,0 +1,8 @@
+{
+  "example_id": "b7a82324-73ee-4996-8f71-8f455f789e90", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "So, is it recommended or not to drink raw milk?", "replace": "So, is it recommended or not to drink raw milk? I'm also about 8 weeks pregnant."}],
+  "rationale": "Clean single-dimension add; pregnancy should induce strong listeria-avoidance counseling against raw dairy and involve-OB criteria.",
+  "note": "Sex unstated; first-person context treated as a woman of child-bearing age."
+}

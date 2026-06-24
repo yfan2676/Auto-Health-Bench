@@ -1,0 +1,16 @@
+{
+  "example_id": "e8e17de2-9b5f-4f20-a18e-fdd14a8b7192",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "should i use moleskin or different socks, i have no diabetes or circulation issues",
+      "replace": "should i use moleskin or different socks, i have no diabetes or circulation issues, though i am on warfarin"
+    }
+  ],
+  "rationale": "+ on warfarin: anticoagulation makes lancing/draining a friction blister a bleeding/bruising risk, so advice should emphasize leaving blisters intact, gentle protective padding, and watching for excessive bleeding or hematoma.",
+  "note": ""
+}

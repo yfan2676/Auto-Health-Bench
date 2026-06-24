@@ -1,0 +1,16 @@
+{
+  "example_id": "aed8663e-1f42-4794-aa97-15ee43af1ca1",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "sharp pain on defecation, suspected fissure",
+  "target_value": "severe constant pain with heavy bleeding and fever",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "like a sharp pain, and i think i might have a fissure or something.",
+      "replace": "like a severe constant pain that won't let up, and there's a lot of bright red bleeding into the toilet and i've got a fever now, and i think i might have a fissure or something."
+    }
+  ],
+  "rationale": "same anorectal complaint escalated from a sharp pain to severe constant pain with heavy bleeding and fever, which should shift the answer toward urgent in-person evaluation rather than an OTC cream",
+  "note": "Edits turn index 0; the cream question is unchanged."
+}

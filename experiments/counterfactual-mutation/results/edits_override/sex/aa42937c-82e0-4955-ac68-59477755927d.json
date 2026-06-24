@@ -1,0 +1,13 @@
+{
+  "example_id": "aa42937c-82e0-4955-ac68-59477755927d",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "few weeks. she keeps skipping meals", "replace": "few weeks. he keeps skipping meals"},
+    {"find": "how i should approach her.", "replace": "how i should approach him."}
+  ],
+  "rationale": "Pure sex swap of the patient (the friend: she→he, her→him); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

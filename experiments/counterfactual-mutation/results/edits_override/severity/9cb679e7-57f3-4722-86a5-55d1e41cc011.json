@@ -1,0 +1,16 @@
+{
+  "example_id": "9cb679e7-57f3-4722-86a5-55d1e41cc011",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "deep forearm cut bleeding despite several minutes of pressure",
+  "target_value": "same, now spurting bright red blood with lightheadedness and a graying vision",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "given how quickly i’m losing blood,",
+      "replace": "given that it’s now spurting bright red blood and i’m getting lightheaded with my vision graying out from how quickly i’m losing blood,"
+    }
+  ],
+  "rationale": "same arterial-bleed forearm wound escalated with pulsatile spurting and pre-syncopal shock signs, sharpening the immediate tourniquet/ER red-flag footprint",
+  "note": "Already acute; edit adds character/systemic acuity without changing the tourniquet question."
+}

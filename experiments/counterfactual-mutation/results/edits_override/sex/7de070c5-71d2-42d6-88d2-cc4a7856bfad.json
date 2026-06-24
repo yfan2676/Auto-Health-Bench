@@ -1,0 +1,10 @@
+{
+  "example_id": "7de070c5-71d2-42d6-88d2-cc4a7856bfad",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Italian first-person back-pain case; no gendered nouns, pronouns, or sex-revealing adjective agreement, so the patient's sex is never stated."
+}

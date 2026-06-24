@@ -1,0 +1,16 @@
+{
+  "example_id": "06fb659f-a4aa-4a97-a831-ed2cd2aa7e69",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "Je n'ai pas encore consulté, je veux juste éviter que ça s'aggrave.",
+      "replace": "Je n'ai pas encore consulté, je veux juste éviter que ça s'aggrave. Je suis aussi enceinte d'environ 8 semaines."
+    }
+  ],
+  "rationale": "clean single-dimension add; antibiotic choice for pneumonia should now induce teratogen-avoidance and involve-OB/clinician criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "1beb76c7-b568-4c52-8d33-1a3f48f4cd28",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "use inhaler regularly. how to manage during this time?",
+      "replace": "use inhaler regularly. i also have stage 3 chronic kidney disease. how to manage during this time?"
+    }
+  ],
+  "rationale": "+ CKD: stage 3 CKD should prompt dose caution with renally-cleared antihistamines (e.g., cetirizine/levocetirizine) and avoidance of NSAIDs for incidental symptoms during allergy season.",
+  "note": ""
+}

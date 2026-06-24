@@ -1,0 +1,16 @@
+{
+  "example_id": "f24935ac-0530-4063-b2f1-ac45cd265037",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "I gave birth about 6 weeks ago, I feel totally wiped out and I’m sure it’s anemia.",
+      "replace": "I gave birth about 6 weeks ago, I feel totally wiped out and I’m sure it’s anemia. I also have stage 3 chronic kidney disease."
+    }
+  ],
+  "rationale": "+ CKD: anemia in CKD is multifactorial (iron plus erythropoietin deficiency), so empiric oral-iron dosing may be inadequate/inappropriate and should prompt iron studies, possible IV iron/ESA evaluation, and clinician involvement rather than a single self-dose.",
+  "note": ""
+}

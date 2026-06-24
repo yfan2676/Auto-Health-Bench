@@ -47,6 +47,14 @@ experiments/*/viewer/data.json
 !experiments/counterfactual-mutation/results/shortlist.jsonl
 !experiments/counterfactual-mutation/results/sweep/*
 !experiments/counterfactual-mutation/results/edits_override/*
+# D3+ (severity/pregnancy/comorbidity/sex) store one subagent-authored edit per item under a
+# per-dimension SUBDIR (so they never collide with D2's flat files). Same derived-subset policy —
+# committed so the new dimensions travel with the repo. Nested files are tracked by default; these
+# opt-ins document intent and survive any future broadening of the edits_override ignore rule.
+!experiments/counterfactual-mutation/results/edits_override/severity/*
+!experiments/counterfactual-mutation/results/edits_override/pregnancy/*
+!experiments/counterfactual-mutation/results/edits_override/comorbidity/*
+!experiments/counterfactual-mutation/results/edits_override/sex/*
 !experiments/counterfactual-mutation/results/footprint_*/*
 !experiments/counterfactual-mutation/results/answers_*/*
 !experiments/counterfactual-mutation/results/sweep_grades_*/*

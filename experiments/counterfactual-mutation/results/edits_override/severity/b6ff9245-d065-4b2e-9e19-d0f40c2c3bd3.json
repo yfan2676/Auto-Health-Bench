@@ -1,0 +1,11 @@
+{
+  "example_id": "b6ff9245-d065-4b2e-9e19-d0f40c2c3bd3",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "n/a (research/literature question, no patient symptom)",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "Pure evidence/efficacy question about acupuncture for chronic back pain with no patient presentation to escalate.",
+  "note": "No symptom, onset, or acuity descriptor exists to tune toward an acute presentation."
+}

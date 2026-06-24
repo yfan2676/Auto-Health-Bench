@@ -1,0 +1,16 @@
+{
+  "example_id": "06792558-4afa-4aa8-b311-1fc8493ec61e",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "I’ve got a heart condition and I'm so scared to fly next week for a job interview.",
+      "replace": "I’ve got a heart condition and I'm also on warfarin and I'm so scared to fly next week for a job interview."
+    }
+  ],
+  "rationale": "+ on warfarin: cardiac patient on anticoagulation should prompt caution against OTC/herbal remedies (NSAID and herbal–INR interactions, bleeding risk) and reinforce urgent clinician contact before self-medicating.",
+  "note": ""
+}

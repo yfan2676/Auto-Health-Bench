@@ -1,0 +1,13 @@
+{
+  "example_id": "1e19da12-45fd-49ee-a75b-c90eaf677d1a",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "my father has", "replace": "my mother has"},
+    {"find": "worried he might need", "replace": "worried she might need"}
+  ],
+  "rationale": "Pure sex swap of the father (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

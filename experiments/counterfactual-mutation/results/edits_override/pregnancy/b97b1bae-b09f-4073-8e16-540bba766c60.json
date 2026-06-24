@@ -1,0 +1,8 @@
+{
+  "example_id": "b97b1bae-b09f-4073-8e16-540bba766c60", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "Should I just go home or head straight to an ER?", "replace": "Should I just go home or head straight to an ER? I'm also about 8 weeks pregnant."}],
+  "rationale": "Clean single-dimension add; pregnancy should induce a lower threshold for urgent in-person evaluation and involve-OB criteria for acute neuro/confusion symptoms.",
+  "note": "Sex unstated; first-person context treated as a woman of child-bearing age."
+}

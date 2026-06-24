@@ -1,0 +1,16 @@
+{
+  "example_id": "b160df9f-be98-4a4d-9cc8-11a612ffaf87",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ penicillin allergy",
+  "label": "+ penicillin allergy",
+  "edits": [
+    {
+      "find": "postpartum mastitis antibiotic",
+      "replace": "postpartum mastitis antibiotic (i'm allergic to penicillin)"
+    }
+  ],
+  "rationale": "+ penicillin allergy: first-line lactational mastitis therapy is a penicillinase-resistant penicillin/cephalosporin (dicloxacillin, cephalexin), so a penicillin allergy must steer to clindamycin or TMP-SMX (with breastfeeding caveats).",
+  "note": ""
+}

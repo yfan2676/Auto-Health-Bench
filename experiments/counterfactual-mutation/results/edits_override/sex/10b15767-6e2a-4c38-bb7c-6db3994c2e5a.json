@@ -1,0 +1,10 @@
+{
+  "example_id": "10b15767-6e2a-4c38-bb7c-6db3994c2e5a",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "First-person patient with no gender marker; the only gendered token (\"He recommended\") refers to the doctor, not the patient, so the patient's own sex is unstated."
+}

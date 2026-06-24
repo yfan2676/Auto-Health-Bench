@@ -1,0 +1,12 @@
+{
+  "example_id": "360b0474-e0b9-4b78-bea9-da2fe6a10ce2",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "I am 37, female,", "replace": "I am 37, male,"}
+  ],
+  "rationale": "Pure sex swap of the self-described patient; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

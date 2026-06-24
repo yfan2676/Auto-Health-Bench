@@ -1,0 +1,15 @@
+{
+  "example_id": "92fb3dc3-1027-4b0f-94ea-13c07e83a3d9",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "switching to a biologic therapy for my rheumatoid arthritis",
+      "replace": "switching to a biologic therapy for my rheumatoid arthritis. I also have stage 3 chronic kidney disease."
+    }
+  ],
+  "rationale": "+ CKD (stage 3) requires dose-adjustment/avoidance of renally-cleared co-therapy (e.g., methotrexate, NSAIDs) and heightened infection-monitoring when switching RA treatment to a biologic."
+}

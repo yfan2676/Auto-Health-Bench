@@ -1,0 +1,12 @@
+{
+  "example_id": "1811e10f-d52b-4a8c-a604-df5cd7b1af06",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "cant move her legs", "replace": "cant move his legs"}
+  ],
+  "rationale": "Pure sex swap of the friend (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

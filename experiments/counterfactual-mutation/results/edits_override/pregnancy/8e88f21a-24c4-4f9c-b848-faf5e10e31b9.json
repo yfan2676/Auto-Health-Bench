@@ -1,0 +1,16 @@
+{
+  "example_id": "8e88f21a-24c4-4f9c-b848-faf5e10e31b9",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "I’ve had several UTIs in the past year",
+      "replace": "I’ve had several UTIs in the past year, and I’m also about 8 weeks pregnant,"
+    }
+  ],
+  "rationale": "Clean single-dimension add to a first-person recurrent-UTI / antibiotic-choice question; pregnancy should induce teratogen-avoidance (avoid fluoroquinolones, sulfa/nitrofurantoin near term), urgent-treatment and involve-OB criteria.",
+  "note": "Recurrent UTIs with first-person framing strongly indicate a woman of child-bearing age."
+}

@@ -1,0 +1,11 @@
+{
+  "example_id": "e0eeaf5b-b31b-4770-a05d-4ac607ddd5d1",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Onchocerciasis prevention centers on bite avoidance and ivermectin, which needs no renal/anticoagulant dose adjustment and is not a penicillin; none of CKD/warfarin/penicillin allergy meaningfully changes the prophylaxis or treatment advice.",
+  "note": ""
+}

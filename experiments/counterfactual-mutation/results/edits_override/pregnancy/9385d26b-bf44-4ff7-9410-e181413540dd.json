@@ -1,0 +1,16 @@
+{
+  "example_id": "9385d26b-bf44-4ff7-9410-e181413540dd",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "i live near farmland, i wonder what's up",
+      "replace": "i live near farmland, and i'm also about 8 weeks pregnant, i wonder what's up"
+    }
+  ],
+  "rationale": "Clean single-dimension add to a first-person chronic-cough question; pregnancy should induce medication/imaging-caution and involve-OB criteria.",
+  "note": "Sex unstated; first-person personal symptom complaint treated as a woman of child-bearing age."
+}

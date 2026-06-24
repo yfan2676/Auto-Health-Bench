@@ -1,0 +1,12 @@
+{
+  "example_id": "5b05fcac-cada-4ac1-b546-3ead42332592",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "her oxygen saturation dropped to 82", "replace": "his oxygen saturation dropped to 82"}
+  ],
+  "rationale": "Pure sex swap of the ED patient (her→his); expect near-total bridge (invariance), with movement only on any genuinely sex-specific criteria."
+}

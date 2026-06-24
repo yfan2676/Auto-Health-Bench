@@ -1,0 +1,14 @@
+{
+  "example_id": "85c11e2a-628b-464f-a8bb-e97ab04a73eb",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "For a 68-year-old male with severe depression", "replace": "For a 68-year-old female with severe depression"},
+    {"find": "frequency of ECT sessions he might need?", "replace": "frequency of ECT sessions she might need?"},
+    {"find": "Even if he starts showing improvement", "replace": "Even if she starts showing improvement"}
+  ],
+  "rationale": "Pure sex swap of the depression/ECT patient (male→female, he→she); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

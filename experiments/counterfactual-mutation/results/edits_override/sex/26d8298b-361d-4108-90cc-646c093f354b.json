@@ -1,0 +1,13 @@
+{
+  "example_id": "26d8298b-361d-4108-90cc-646c093f354b",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "he's also had self harm", "replace": "she's also had self harm"},
+    {"find": "worried he might be at high risk", "replace": "worried she might be at high risk"}
+  ],
+  "rationale": "Pure sex swap of the patient; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

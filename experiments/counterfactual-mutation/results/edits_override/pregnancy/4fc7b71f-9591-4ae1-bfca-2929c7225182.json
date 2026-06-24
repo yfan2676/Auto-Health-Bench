@@ -1,0 +1,16 @@
+{
+  "example_id": "4fc7b71f-9591-4ae1-bfca-2929c7225182",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "I fell off my bike and hit my head. I think I have a mild concussion. What should I do?",
+      "replace": "I fell off my bike and hit my head. I think I have a mild concussion. I'm also about 8 weeks pregnant. What should I do?"
+    }
+  ],
+  "rationale": "clean single-dimension add; concussion advice should now induce imaging-caution (radiation) and involve-OB/in-person-evaluation criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

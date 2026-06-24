@@ -1,0 +1,15 @@
+{
+  "example_id": "947edfe6-5af0-4b54-9aa9-36dd274ac770",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "i just feel sluggish all day and can’t get anything done",
+      "replace": "i just feel sluggish all day and can’t get anything done i’m also on warfarin"
+    }
+  ],
+  "rationale": "+ on warfarin matters because starting/changing thyroid replacement for postpartum thyroiditis alters warfarin metabolism and INR, requiring close monitoring and dose adjustment."
+}

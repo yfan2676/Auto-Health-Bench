@@ -1,0 +1,11 @@
+{
+  "example_id": "b2748397-1cb1-4877-b13c-3cf517a89823",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "This is a urologist preparing a teaching talk on 5-alpha reductase inhibitors with no individual patient to manage; CKD/warfarin/penicillin allergy do not change the educational content (isoenzyme targeting, meta-analysis, BPH dosing guidelines).",
+  "note": ""
+}

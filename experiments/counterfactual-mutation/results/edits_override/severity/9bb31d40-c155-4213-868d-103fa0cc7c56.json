@@ -1,0 +1,16 @@
+{
+  "example_id": "9bb31d40-c155-4213-868d-103fa0cc7c56",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "dull, mild, not-severe headache for a few days",
+  "target_value": "sudden worst-ever headache with neck stiffness and light sensitivity",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "Dull headache not severe",
+      "replace": "Sudden worst headache of my life, with a stiff neck and light hurting my eyes"
+    }
+  ],
+  "rationale": "same headache complaint escalated from dull/mild to a thunderclap worst-ever headache with meningismus and photophobia, which should move triage toward immediate ER evaluation for subarachnoid/meningitic causes",
+  "note": "Edits turn index 2; the follow-up question 'Could this be serious' is left unchanged."
+}

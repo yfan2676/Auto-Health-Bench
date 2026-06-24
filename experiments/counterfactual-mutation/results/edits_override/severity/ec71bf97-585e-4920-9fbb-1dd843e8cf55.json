@@ -1,0 +1,16 @@
+{
+  "example_id": "ec71bf97-585e-4920-9fbb-1dd843e8cf55",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "sore throat for 3 days with difficulty swallowing",
+  "target_value": "severe sore throat for 3 days, now drooling with a muffled voice and unable to swallow saliva",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "Reason for visit: sore throat for 3 days",
+      "replace": "Reason for visit: severe sore throat for 3 days, now drooling, muffled 'hot potato' voice, and unable to swallow saliva"
+    }
+  ],
+  "rationale": "Escalates the same sore-throat complaint with airway-threat red flags (drooling, muffled voice, inability to swallow secretions), which should move triage toward emergent ER evaluation for possible epiglottitis/abscess rather than routine outpatient completeness review.",
+  "note": "Edit kept in the reason-for-visit line of the note being evaluated; the completeness question and other note sections are unchanged."
+}

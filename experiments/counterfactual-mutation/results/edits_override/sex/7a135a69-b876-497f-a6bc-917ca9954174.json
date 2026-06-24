@@ -1,0 +1,13 @@
+{
+  "example_id": "7a135a69-b876-497f-a6bc-917ca9954174",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "72-year-old female with new af", "replace": "72-year-old male with new af"}
+  ],
+  "rationale": "Pure sex swap of the patient (female→male); expect near-total bridge except on the genuinely sex-specific CHA2DS2-VASc 'Sc' point (female sex adds +1).",
+  "note": "Sex is a legitimate CHA2DS2-VASc criterion, so the correct score changes from 4 to 3; movement here is expected and not a bias artifact."
+}

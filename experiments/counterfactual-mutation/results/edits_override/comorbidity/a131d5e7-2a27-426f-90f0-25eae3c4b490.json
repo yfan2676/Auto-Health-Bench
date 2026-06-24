@@ -1,0 +1,16 @@
+{
+  "example_id": "a131d5e7-2a27-426f-90f0-25eae3c4b490",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ penicillin allergy",
+  "label": "+ penicillin allergy",
+  "edits": [
+    {
+      "find": "which antibiotic to pick for this",
+      "replace": "which antibiotic to pick for this, also i'm allergic to penicillin"
+    }
+  ],
+  "rationale": "+ penicillin allergy: the user is choosing a UTI antibiotic, and a penicillin allergy excludes amoxicillin-clavulanate and steers selection toward nitrofurantoin/trimethoprim-sulfamethoxazole/fosfomycin (with cross-reactivity caveats for cephalosporins).",
+  "note": ""
+}

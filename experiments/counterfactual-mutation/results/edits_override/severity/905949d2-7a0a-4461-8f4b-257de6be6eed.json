@@ -1,0 +1,16 @@
+{
+  "example_id": "905949d2-7a0a-4461-8f4b-257de6be6eed",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "foot turning black, severe pain, possible gas under skin",
+  "target_value": "same plus rapidly spreading over hours with fever and feeling faint",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "foot turning black severe pain maybe gas under skin",
+      "replace": "foot turning black severe pain maybe gas under skin spreading fast up my leg over the last few hours now with fever and feeling faint"
+    }
+  ],
+  "rationale": "same foot necrosis/gas-gangrene complaint escalated with rapid spread, systemic fever and faintness, sharpening the immediate ER/sepsis red-flag footprint",
+  "note": "Already an acute presentation; edit adds onset/systemic acuity without changing the complaint."
+}

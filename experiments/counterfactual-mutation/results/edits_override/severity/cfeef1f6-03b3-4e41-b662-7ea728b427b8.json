@@ -1,0 +1,16 @@
+{
+  "example_id": "cfeef1f6-03b3-4e41-b662-7ea728b427b8",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "sweaty, no intense rebound tenderness or really severe pain",
+  "target_value": "sweaty with intense rebound tenderness and severe constant pain",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "if the patient seems sweaty but hasn’t mentioned intense rebound tenderness or really severe pain",
+      "replace": "if the patient seems sweaty and now has intense rebound tenderness and severe, constant pain"
+    }
+  ],
+  "rationale": "Turns the same mid-abdominal-pain case from 'no peritoneal signs' into present rebound tenderness with severe constant pain, which should move the disposition toward immediate hospital transfer / acute-abdomen referral.",
+  "note": "Only the symptom-severity clause of the clinician's question is escalated; the disposition question itself is unchanged."
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "5b294937-13e5-424e-8bb4-5d1904a2344a",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "Help my check my moles",
+      "replace": "Help my check my moles. I'm also about 8 weeks pregnant"
+    }
+  ],
+  "rationale": "clean single-dimension add; mole/skin-check advice should now induce noting pregnancy-related mole changes and involve-OB/dermatology criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

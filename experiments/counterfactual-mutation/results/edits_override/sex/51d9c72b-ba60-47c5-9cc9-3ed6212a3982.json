@@ -1,0 +1,10 @@
+{
+  "example_id": "51d9c72b-ba60-47c5-9cc9-3ed6212a3982",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Lab-result dump with no patient sex stated anywhere in the conversation; nothing to swap."
+}

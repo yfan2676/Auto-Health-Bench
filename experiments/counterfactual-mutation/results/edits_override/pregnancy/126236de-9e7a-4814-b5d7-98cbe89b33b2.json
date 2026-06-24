@@ -1,0 +1,10 @@
+{
+  "example_id": "126236de-9e7a-4814-b5d7-98cbe89b33b2",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "patient is the speaker's 2-year-old child with stunting; a toddler cannot be pregnant"
+}

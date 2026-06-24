@@ -1,0 +1,16 @@
+{
+  "example_id": "8f2a65de-dea7-48e8-8adb-6194eca26c08",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "estou com pneumonia e preciso saber qual antibiotico devo tomar",
+      "replace": "estou com pneumonia e preciso saber qual antibiotico devo tomar, e estou também com cerca de 8 semanas de gravidez"
+    }
+  ],
+  "rationale": "Clean single-dimension add (in Portuguese) to a first-person pneumonia / antibiotic question; pregnancy should induce teratogen-avoidance (antibiotic-safety), urgent-evaluation and involve-OB criteria.",
+  "note": "Sex unstated; first-person personal antibiotic question treated as a woman of child-bearing age."
+}

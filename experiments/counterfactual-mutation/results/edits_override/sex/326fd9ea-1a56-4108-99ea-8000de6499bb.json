@@ -1,0 +1,12 @@
+{
+  "example_id": "326fd9ea-1a56-4108-99ea-8000de6499bb",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "she’s healthy so far", "replace": "he’s healthy so far"}
+  ],
+  "rationale": "Pure sex swap of the baby (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

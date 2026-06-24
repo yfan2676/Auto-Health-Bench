@@ -1,0 +1,16 @@
+{
+  "example_id": "779b5d14-1a6f-4d0a-8763-e0a25961a811",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "what can i do about it",
+      "replace": "what can i do about it. i'm also about 8 weeks pregnant"
+    }
+  ],
+  "rationale": "Clean single-dimension add to a first-person sickle-cell pain-crisis question; pregnancy should induce teratogen-avoidance (NSAIDs/hydroxyurea caution), urgent-OB/heme involvement and lower threshold to seek care criteria.",
+  "note": "Sex unstated; first-person personal pain-crisis complaint treated as a woman of child-bearing age."
+}

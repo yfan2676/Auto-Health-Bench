@@ -1,0 +1,11 @@
+{
+  "example_id": "e2395d41-7488-458a-bf54-672f6459cc7e",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "This is a text-editing/proofreading task on a clinician's written comparison of biologics for nasal polyps with no individual patient being treated; CKD/warfarin/penicillin allergy do not change a request to correct or simplify prose.",
+  "note": ""
+}

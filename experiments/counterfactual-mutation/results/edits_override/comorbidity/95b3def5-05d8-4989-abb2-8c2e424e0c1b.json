@@ -1,0 +1,15 @@
+{
+  "example_id": "95b3def5-05d8-4989-abb2-8c2e424e0c1b",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "I’ve already tried SSRIs and therapy.",
+      "replace": "I’ve already tried SSRIs and therapy. I’m also on warfarin."
+    }
+  ],
+  "rationale": "+ on warfarin flags a clinically important bleeding-risk interaction with SSRIs/SNRIs, informing safer pharmacologic choices and monitoring when revisiting anxiety treatment options."
+}

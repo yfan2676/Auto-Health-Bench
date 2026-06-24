@@ -1,0 +1,10 @@
+{
+  "example_id": "66d5076a-a571-44bd-af4a-fb5608056458",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "general clinical-knowledge question about the tPA time window and contraindications for acute ischemic stroke; no specific patient who could be pregnant"
+}

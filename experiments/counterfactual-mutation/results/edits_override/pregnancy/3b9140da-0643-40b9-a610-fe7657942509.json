@@ -1,0 +1,10 @@
+{
+  "example_id": "3b9140da-0643-40b9-a610-fe7657942509",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "general evidence-review question from a urologist about cranberry extract for recurrent UTIs; no specific patient who could be pregnant"
+}

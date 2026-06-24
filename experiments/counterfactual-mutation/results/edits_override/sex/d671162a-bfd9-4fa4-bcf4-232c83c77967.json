@@ -1,0 +1,14 @@
+{
+  "example_id": "d671162a-bfd9-4fa4-bcf4-232c83c77967",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "and he’s otherwise healthy", "replace": "and she’s otherwise healthy"},
+    {"find": "He’s been exclusively on formula", "replace": "She’s been exclusively on formula"},
+    {"find": "easy to feed him when we’re", "replace": "easy to feed her when we’re"}
+  ],
+  "rationale": "pure sex swap of the baby patient's pronouns; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria"
+}

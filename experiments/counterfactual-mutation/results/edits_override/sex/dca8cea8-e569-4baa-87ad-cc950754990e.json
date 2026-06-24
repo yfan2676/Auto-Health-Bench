@@ -1,0 +1,12 @@
+{
+  "example_id": "dca8cea8-e569-4baa-87ad-cc950754990e",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "if her eGFR drops further", "replace": "if his eGFR drops further"}
+  ],
+  "rationale": "pure sex swap of the patient's only pronoun; sotalol renal dosing is not sex-locked; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria"
+}

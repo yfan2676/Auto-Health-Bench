@@ -1,0 +1,16 @@
+{
+  "example_id": "bfa3518c-f5de-42ff-ba9c-09a14a0782c4",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "unspecified toothache pain",
+  "target_value": "severe throbbing pain with facial/jaw swelling and fever",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "any quick way to fix a toothache i can't see a dentist right now i want to stop the pain",
+      "replace": "any quick way to fix a toothache i can't see a dentist right now i want to stop the pain it's a severe throbbing pain now and my cheek and jaw are swollen and i've got a fever"
+    }
+  ],
+  "rationale": "Adds acute dental-abscess red flags (severe throbbing pain, facial swelling, fever) to the same toothache complaint, which should move triage toward urgent/ER dental-infection referral.",
+  "note": "Edit applied to the first user turn so the swelling/fever signal precedes the assistant's severity question."
+}

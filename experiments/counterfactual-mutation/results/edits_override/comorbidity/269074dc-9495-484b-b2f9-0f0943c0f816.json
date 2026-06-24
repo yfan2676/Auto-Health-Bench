@@ -1,0 +1,16 @@
+{
+  "example_id": "269074dc-9495-484b-b2f9-0f0943c0f816",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "ok im taking ferrous sulfate 325 mg daily a prenatal vitamin with DHA and paroxetine 20 mg daily",
+      "replace": "ok im taking warfarin and ferrous sulfate 325 mg daily a prenatal vitamin with DHA and paroxetine 20 mg daily"
+    }
+  ],
+  "rationale": "+ on warfarin: this is an explicit drug-interaction check, and warfarin + paroxetine (SSRI raises bleeding risk/can affect INR) is a clinically major interaction the assistant should flag for INR monitoring.",
+  "note": ""
+}

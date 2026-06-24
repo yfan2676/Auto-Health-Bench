@@ -1,0 +1,10 @@
+{
+  "example_id": "70afd1ac-85ea-4455-a5a2-15b35378e10a",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "no symptom (travel vaccination-certificate question)",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "Pure administrative travel question (whether a yellow fever vaccination certificate is required); there is no patient symptom or complaint to escalate."
+}

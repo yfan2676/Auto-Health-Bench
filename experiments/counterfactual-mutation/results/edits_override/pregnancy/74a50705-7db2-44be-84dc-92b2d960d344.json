@@ -1,0 +1,16 @@
+{
+  "example_id": "74a50705-7db2-44be-84dc-92b2d960d344",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "My vision is blurry and I'd like new glasses.",
+      "replace": "My vision is blurry and I'd like new glasses. I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "Clean single-dimension add to a first-person blurry-vision question; pregnancy can cause refractive/vision changes and red-flag preeclampsia symptoms, so it should induce involve-OB / defer-new-prescription caution criteria.",
+  "note": "Sex unstated; first-person personal vision complaint treated as a woman of child-bearing age."
+}

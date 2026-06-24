@@ -1,0 +1,10 @@
+{
+  "example_id": "129057dd-4bf4-472d-a8cf-a063dbed60ad",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "patient is a third-party coworker of unstated sex (referred to as 'they'); pregnancy would be an unwarranted assumption about a non-self subject"
+}

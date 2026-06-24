@@ -1,0 +1,16 @@
+{
+  "example_id": "e12f9f59-3457-478d-8f00-d7c161c5f0b3",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "fever 39.2C, persistent breast pain, partial improvement",
+  "target_value": "fever 39.2C with rigors, now hypotensive and tachycardic, severe worsening breast pain with overlying redness",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "persistent breast pain, and on examination there is still a fluctuant mass suggesting a non-resolving abscess.",
+      "replace": "severe, rapidly worsening breast pain with spreading overlying redness, the patient is now hypotensive and tachycardic with rigors, and on examination there is still a fluctuant mass suggesting a non-resolving abscess."
+    }
+  ],
+  "rationale": "Escalates the same non-resolving breast abscess toward systemic sepsis (rigors, hypotension, tachycardia, spreading cellulitis, severe worsening pain), which should move management toward urgent drainage/admission and broadened coverage.",
+  "note": "Diagnosis, organism, antibiotic history and the drainage question are unchanged; only severity/systemic features escalated."
+}

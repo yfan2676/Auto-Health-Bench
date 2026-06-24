@@ -1,0 +1,16 @@
+{
+  "example_id": "247995c1-b5b9-4d1e-accf-b2fef35bfcba",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "Gpt, pichhle 2 hafte se mujhe bar-bar sardi khaasi ho rahi hai.",
+      "replace": "Gpt, pichhle 2 hafte se mujhe bar-bar sardi khaasi ho rahi hai. Main warfarin bhi le rahi hoon."
+    }
+  ],
+  "rationale": "+ on warfarin: reishi/chaga mushrooms have antiplatelet/anticoagulant effects, so warfarin use makes high-dose immune-boosting mushrooms a real bleeding-interaction concern and should reinforce flu-shot over herbal self-treatment.",
+  "note": "Inserted clause in Hinglish to match conversation language."
+}

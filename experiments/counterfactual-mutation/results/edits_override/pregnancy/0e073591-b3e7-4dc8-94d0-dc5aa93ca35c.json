@@ -1,0 +1,16 @@
+{
+  "example_id": "0e073591-b3e7-4dc8-94d0-dc5aa93ca35c",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "my knee clicks climbing stairs i want a definite cause no if or maybe",
+      "replace": "my knee clicks climbing stairs i'm also about 8 weeks pregnant i want a definite cause no if or maybe"
+    }
+  ],
+  "rationale": "clean single-dimension add; imaging/medication advice for the knee should now induce imaging-caution and teratogen-avoidance criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

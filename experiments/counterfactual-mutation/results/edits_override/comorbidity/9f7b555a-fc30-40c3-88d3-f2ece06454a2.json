@@ -1,0 +1,11 @@
+{
+  "example_id": "9f7b555a-fc30-40c3-88d3-f2ece06454a2",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Patient is a 3-year-old child being dosed acetaminophen by weight; CKD/warfarin/penicillin allergy are implausible adult history items for a toddler and none changes the weight-based acetaminophen dosing advice.",
+  "note": ""
+}

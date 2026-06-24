@@ -1,0 +1,10 @@
+{
+  "example_id": "98024f2f-6b0e-4547-9816-680bea167f46",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "The only token 'Man' is an interjection/exclamation, not a sex marker for the patient; the patient's sex is never actually stated."
+}

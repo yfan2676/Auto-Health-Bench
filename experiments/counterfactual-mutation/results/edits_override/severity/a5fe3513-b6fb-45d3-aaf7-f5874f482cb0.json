@@ -1,0 +1,16 @@
+{
+  "example_id": "a5fe3513-b6fb-45d3-aaf7-f5874f482cb0",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "mild headache 2/10 after bike collision, no red-flag symptoms",
+  "target_value": "severe headache 9/10 with vomiting, confusion and blurred vision",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "Mild\t2 out of 10\nNo lumps\tNone\nNo vomiting\tNone\nNo confusion\tNone\nNo memory issues\tNone\nNo blurred vision\tNone",
+      "replace": "Severe\t9 out of 10\nNo lumps\tNone\nVomiting\tYes, several times\nConfusion\tYes\nNo memory issues\tNone\nBlurred vision\tYes"
+    }
+  ],
+  "rationale": "same post-collision head-injury report escalated from a mild 2/10 headache with no red flags to a severe 9/10 headache with vomiting, confusion and blurred vision, which should move triage toward immediate ER head-injury evaluation",
+  "note": "Edits turn index 2 only; the structured symptom table is escalated in place."
+}

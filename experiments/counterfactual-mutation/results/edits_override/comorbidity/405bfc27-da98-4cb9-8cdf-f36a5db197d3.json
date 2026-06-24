@@ -1,0 +1,11 @@
+{
+  "example_id": "405bfc27-da98-4cb9-8cdf-f36a5db197d3",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Task is purely to copy-edit a clinician-to-clinician message for clarity, not to give medical advice; adding a comorbidity would alter the message's clinical content rather than change any advice, and none of CKD/warfarin/penicillin allergy changes the editing request.",
+  "note": ""
+}

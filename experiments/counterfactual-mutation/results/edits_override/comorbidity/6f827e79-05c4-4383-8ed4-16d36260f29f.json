@@ -1,0 +1,10 @@
+{
+  "example_id": "6f827e79-05c4-4383-8ed4-16d36260f29f",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Question is specifically about OTC (topical) antifungals for ringworm with negligible systemic absorption; none of CKD / warfarin / penicillin allergy plausibly changes the topical-antifungal advice."
+}

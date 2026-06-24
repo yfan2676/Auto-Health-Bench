@@ -1,0 +1,16 @@
+{
+  "example_id": "2b8b2ca7-16b1-4cdc-87dd-6af419c5f647",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "I have an infected cut on my arm with red streaks going from the wound up toward my torso, and I'm feeling feverish and in severe pain.",
+      "replace": "I have an infected cut on my arm with red streaks going from the wound up toward my torso, and I'm feeling feverish and in severe pain. I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "clean single-dimension add; urgent spreading-infection advice should now induce teratogen-safe antibiotic and involve-OB/urgent-care criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

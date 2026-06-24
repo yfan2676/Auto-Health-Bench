@@ -1,0 +1,15 @@
+{
+  "example_id": "9094171f-ea13-4285-93b0-f672af2f3ed0",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "I'd like to know if it's definitely guaranteed to help my child.",
+      "replace": "I'd like to know if it's definitely guaranteed to help my child. My child also has stage 3 chronic kidney disease."
+    }
+  ],
+  "rationale": "+ CKD (stage 3) heightens the danger of chelation therapy, since chelating agents are nephrotoxic and renally cleared, reinforcing that this unproven treatment is unsafe rather than guaranteed."
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "93f55f97-cc98-4148-8ff6-75962f0685a3",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "if my patient started methotrexate 3 months ago",
+      "replace": "if my patient (who is also about 8 weeks pregnant) started methotrexate 3 months ago"
+    }
+  ],
+  "rationale": "Clean single-dimension add identifying the specific patient as pregnant; methotrexate is a known teratogen/abortifacient, so pregnancy should induce urgent-stop-teratogen, folinic-acid rescue and involve-OB criteria.",
+  "note": "Third-person patient; pregnancy clause attached directly to 'my patient'."
+}

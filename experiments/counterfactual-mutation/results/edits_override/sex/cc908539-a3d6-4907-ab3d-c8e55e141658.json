@@ -1,0 +1,10 @@
+{
+  "example_id": "cc908539-a3d6-4907-ab3d-c8e55e141658",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "first-person Spanish case with no gendered tokens for the patient (no pronouns/adjectives revealing sex); nothing to change"
+}

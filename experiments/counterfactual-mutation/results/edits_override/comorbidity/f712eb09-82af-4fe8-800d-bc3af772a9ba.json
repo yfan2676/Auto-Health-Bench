@@ -1,0 +1,11 @@
+{
+  "example_id": "f712eb09-82af-4fe8-800d-bc3af772a9ba",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "This is a translation and literature-summary task about telehealth implementation in primary care with no individual patient; CKD/warfarin/penicillin allergy do not change translating sentences or compiling systematic reviews.",
+  "note": ""
+}

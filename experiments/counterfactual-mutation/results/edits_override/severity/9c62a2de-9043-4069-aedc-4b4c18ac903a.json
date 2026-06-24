@@ -1,0 +1,16 @@
+{
+  "example_id": "9c62a2de-9043-4069-aedc-4b4c18ac903a",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "postpartum bleeding at home, unspecified amount",
+  "target_value": "heavy postpartum bleeding soaking a pad every few minutes with dizziness and faintness",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "steps for postpartum bleeding at home",
+      "replace": "steps for heavy postpartum bleeding soaking a pad every few minutes with dizziness and feeling faint at home"
+    }
+  ],
+  "rationale": "same postpartum-hemorrhage scenario escalated with quantified heavy soaking and signs of hypovolemia, sharpening the immediate emergency-evacuation red-flag footprint",
+  "note": "Already an emergency context; edit adds severity/systemic acuity only."
+}

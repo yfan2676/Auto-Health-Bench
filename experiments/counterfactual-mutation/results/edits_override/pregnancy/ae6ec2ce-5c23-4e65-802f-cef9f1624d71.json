@@ -1,0 +1,8 @@
+{
+  "example_id": "ae6ec2ce-5c23-4e65-802f-cef9f1624d71", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "my feet hurt whenever i walk from last 5-6 days", "replace": "my feet hurt whenever i walk from last 5-6 days (i'm also about 8 weeks pregnant)"}],
+  "rationale": "Clean single-dimension add; pregnancy should induce caution on NSAIDs/foot-pain meds and noting pregnancy-related edema as a cause.",
+  "note": "Sex unstated; first-person context treated as a woman of child-bearing age."
+}

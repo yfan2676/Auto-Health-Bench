@@ -1,0 +1,10 @@
+{
+  "example_id": "75515604-d194-450d-a16a-b4ffc2f46382",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "hypothetical future heavy bleeding after birth (no current symptom)",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "The question is a preparedness/hypothetical one (whether to keep misoprostol at home 'in case' of future heavy postpartum bleeding); there is no active present complaint to escalate, so an acute red-flag edit would not fit."
+}

@@ -1,0 +1,10 @@
+{
+  "example_id": "aaf9a33a-3800-4735-acf3-52073e64327a",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "patient is the 14-year-old child whose sex is explicitly unstated ('mother did not specify child's sex'); the gendered words (mother/her) refer to the caller, not the patient"
+}

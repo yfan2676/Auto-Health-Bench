@@ -1,0 +1,8 @@
+{
+  "example_id": "e690c779-3cb8-4271-8541-a699bb1bd475", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "me debo preocupar??", "replace": "me debo preocupar?? Además, estoy embarazada de unas 8 semanas."}],
+  "rationale": "Clean single-dimension add; pregnancy alters creatinine interpretation and should induce involve-OB/nephrology criteria and caution on renal medications.",
+  "note": "Sexo no indicado; contexto en primera persona tratado como mujer en edad fértil."
+}

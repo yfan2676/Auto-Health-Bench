@@ -95,6 +95,11 @@ def build_sample(s, ex):
     answer_rec = _read_json(common.ANSWERS / f"{eid}.json") or {}
     grade_rows = {g["idx"]: g for g in _read_jsonl(common.SWEEP_GRADES / f"{eid}.jsonl")}
     preds = {p["idx"]: p for p in footprint.get("predictions", [])}
+    # A freshly-authored dimension (D3+) has its sweep (edited inputs) but no behavioral run yet:
+    # no a-priori footprint, no model answers, no grades. Flag it so the viewer shows the edit-only
+    # state instead of implying a prediction/grade that doesn't exist.
+    has_footprint = bool(footprint)
+    pending = not (answer_rec or grade_rows)
 
     messages_orig = sweep.get("messages_orig", ex["messages"])
     answer = answer_rec.get("answer", "")
@@ -116,8 +121,12 @@ def build_sample(s, ex):
     for r in ex["rubrics"]:
         idx = r["idx"]
         p = preds.get(idx, {})
-        bucket = p.get("bucket", "kept")
-        predicted_sensitive = bool(p.get("predicted_sensitive", p.get("age_sensitive", bucket != "kept")))
+        if has_footprint:
+            bucket = p.get("bucket", "kept")
+            predicted_sensitive = bool(p.get("predicted_sensitive", p.get("age_sensitive", bucket != "kept")))
+        else:  # footprint classifier not run for this item yet -> no prediction to show
+            bucket = None
+            predicted_sensitive = None
         g = grade_rows.get(idx)
         if g:
             changed = bool(g.get("changed"))
@@ -145,6 +154,7 @@ def build_sample(s, ex):
 
     return {
         "example_id": eid, "dimension": sweep.get("dimension", s.get("dimension", "age")),
+        "pending": pending,
         "base_value": sweep.get("base_value"), "values": sweep.get("values", []),
         "label": f"{sweep.get('dimension','age')} {sweep.get('base_value')} → {sweep.get('values', [])}",
         "messages_orig": messages_orig, "answer": answer,

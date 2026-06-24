@@ -1,0 +1,16 @@
+{
+  "example_id": "71ff98ce-fac6-4dbe-9806-10389eee07c0",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "postpartum hemorrhage not slowing after oxytocin, looking pale and weak",
+  "target_value": "torrential bleeding soaking pads, now confused, clammy, with a thready fast pulse (shock)",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "the bleeding isn’t slowing, and she’s starting to look pale and weak",
+      "replace": "the bleeding is now torrential and soaking pads in minutes, and she’s gone confused and clammy with a thready, racing pulse"
+    }
+  ],
+  "rationale": "Same chief complaint (postpartum hemorrhage) escalated from slowly worsening with pallor to massive bleeding with hemodynamic-shock red-flags, which should move management toward urgent escalation (TXA, balloon tamponade, resuscitation, emergency transfer) rather than continued routine uterotonics.",
+  "note": "Other clinical details (oxytocin already given, remote setting) are unchanged."
+}

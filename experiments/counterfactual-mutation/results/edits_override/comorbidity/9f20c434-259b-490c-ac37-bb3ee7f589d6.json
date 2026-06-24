@@ -1,0 +1,16 @@
+{
+  "example_id": "9f20c434-259b-490c-ac37-bb3ee7f589d6",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "I’ve been feeling super anxious lately and I am 32.",
+      "replace": "I’ve been feeling super anxious lately and I am 32. I’m also on warfarin."
+    }
+  ],
+  "rationale": "+ on warfarin: first-line anxiety pharmacotherapy is usually an SSRI/SNRI, which raises bleeding risk and can potentiate warfarin (INR rise/GI bleed), so anticoagulation should prompt INR monitoring and cautious agent selection.",
+  "note": ""
+}

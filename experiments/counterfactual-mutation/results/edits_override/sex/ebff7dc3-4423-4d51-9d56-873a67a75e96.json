@@ -1,0 +1,12 @@
+{
+  "example_id": "ebff7dc3-4423-4d51-9d56-873a67a75e96",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "is it ok if he just rests", "replace": "is it ok if she just rests"}
+  ],
+  "rationale": "pure sex swap of the child patient's only pronoun; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria"
+}

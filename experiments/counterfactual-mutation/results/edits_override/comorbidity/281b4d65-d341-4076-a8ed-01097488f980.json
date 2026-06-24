@@ -1,0 +1,11 @@
+{
+  "example_id": "281b4d65-d341-4076-a8ed-01097488f980",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Clinician request is for trial evidence on brentuximab vedotin-based second-line / PD-1 combination regimens in Hodgkin's lymphoma; none of CKD/warfarin/penicillin allergy plausibly changes that literature-summary advice.",
+  "note": ""
+}

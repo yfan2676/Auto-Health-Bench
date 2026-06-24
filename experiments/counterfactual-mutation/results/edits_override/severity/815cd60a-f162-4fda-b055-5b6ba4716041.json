@@ -1,0 +1,16 @@
+{
+  "example_id": "815cd60a-f162-4fda-b055-5b6ba4716041",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "intermittent dizziness, near-faint, possibly dehydration",
+  "target_value": "constant severe dizziness with an actual fainting episode and chest pounding",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "I've been having this weird dizziness and sometimes i feel like i'm gonna faint.",
+      "replace": "I've been having this severe constant dizziness and earlier today i actually passed out and hit the floor, plus my heart was pounding."
+    }
+  ],
+  "rationale": "same dizziness/syncope complaint escalated from intermittent near-faint to constant severe dizziness with a true syncopal episode and palpitations, which should move triage toward urgent/ER evaluation rather than self-managed dehydration",
+  "note": ""
+}

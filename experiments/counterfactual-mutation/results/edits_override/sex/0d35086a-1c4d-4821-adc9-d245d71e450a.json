@@ -1,0 +1,12 @@
+{
+  "example_id": "0d35086a-1c4d-4821-adc9-d245d71e450a",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "if he’s cold", "replace": "if she’s cold"}
+  ],
+  "rationale": "Pure sex swap of the cousin (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

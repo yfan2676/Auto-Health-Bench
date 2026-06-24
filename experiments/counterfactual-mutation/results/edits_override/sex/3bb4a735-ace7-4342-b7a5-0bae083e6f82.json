@@ -1,0 +1,16 @@
+{
+  "example_id": "3bb4a735-ace7-4342-b7a5-0bae083e6f82",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "My father who is around 54", "replace": "My mother who is around 54"},
+    {"find": "but he’s worried", "replace": "but she’s worried"},
+    {"find": "if he swallows", "replace": "if she swallows"},
+    {"find": "also he wants", "replace": "also she wants"},
+    {"find": "irritate his gums", "replace": "irritate her gums"}
+  ],
+  "rationale": "Pure sex swap of the father (patient); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

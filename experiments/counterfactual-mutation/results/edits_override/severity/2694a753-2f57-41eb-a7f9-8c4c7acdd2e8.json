@@ -1,0 +1,16 @@
+{
+  "example_id": "2694a753-2f57-41eb-a7f9-8c4c7acdd2e8",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "throbbing back-of-head for months, sometimes dull/intermittent, mild dizziness",
+  "target_value": "sudden worst-ever thunderclap headache with neck stiffness and light sensitivity",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "but other times it’s pounding and I feel a little dizzy",
+      "replace": "but this time it came on suddenly as the worst headache of my life with a stiff neck and bad sensitivity to light"
+    }
+  ],
+  "rationale": "Same chief complaint (back-of-head headache) escalated from intermittent dull throbbing to a sudden worst-ever thunderclap presentation with meningismus/photophobia red-flags, which should move the response toward immediate ER evaluation for subarachnoid hemorrhage rather than tension-headache self-care.",
+  "note": "Edit applied to the first user turn; later turns referencing 'when it's bad' remain consistent with an acute flare."
+}

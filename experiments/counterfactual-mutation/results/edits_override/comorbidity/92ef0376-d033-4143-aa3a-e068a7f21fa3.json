@@ -1,0 +1,15 @@
+{
+  "example_id": "92ef0376-d033-4143-aa3a-e068a7f21fa3",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "the patient is breastfeeding",
+      "replace": "the patient is breastfeeding and also has stage 3 chronic kidney disease"
+    }
+  ],
+  "rationale": "+ CKD (stage 3) compounds the sedation/accumulation risk of a short-acting benzodiazepine (impaired clearance of drug/active metabolites), warranting lower dosing and closer monitoring."
+}

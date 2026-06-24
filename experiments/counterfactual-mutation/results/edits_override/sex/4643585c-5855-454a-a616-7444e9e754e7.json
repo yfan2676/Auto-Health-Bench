@@ -1,0 +1,10 @@
+{
+  "example_id": "4643585c-5855-454a-a616-7444e9e754e7",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Patient ('I', age 35, knee pain) gives no sex marker; the only gendered words ('her' bracelet/'her' arthritis) refer to the neighbor, not the patient."
+}

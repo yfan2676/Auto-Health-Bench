@@ -1,0 +1,12 @@
+{
+  "example_id": "af6ff14b-1cf0-481c-9b6e-19be1dbc4595",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "he's healthy overall", "replace": "she's healthy overall"}
+  ],
+  "rationale": "pure sex swap of the child patient's pronoun; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria"
+}

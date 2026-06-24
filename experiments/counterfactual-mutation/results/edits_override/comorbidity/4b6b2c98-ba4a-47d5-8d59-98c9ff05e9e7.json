@@ -1,0 +1,15 @@
+{
+  "example_id": "4b6b2c98-ba4a-47d5-8d59-98c9ff05e9e7",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "do i try a nonstimulant or keep the stimulant",
+      "replace": "i also have stage 3 chronic kidney disease do i try a nonstimulant or keep the stimulant"
+    }
+  ],
+  "rationale": "+ CKD (stage 3) should prompt caution/dose-adjustment for atomoxetine and stimulants (renal clearance, BP/cardiovascular effects) when choosing the next ADHD agent."
+}

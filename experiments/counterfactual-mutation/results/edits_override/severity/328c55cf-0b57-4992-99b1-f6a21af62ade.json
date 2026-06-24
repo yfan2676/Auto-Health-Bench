@@ -1,0 +1,16 @@
+{
+  "example_id": "328c55cf-0b57-4992-99b1-f6a21af62ade",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "fever 2 times, headache 1 time (mild, intermittent)",
+  "target_value": "high fever for 3 days with severe constant headache, stiff neck and confusion",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "Fever 2 times\nHeadache 1 time",
+      "replace": "Tez fever 3 din se lagatar\nBahut severe headache, gardan akad gayi hai aur thoda confusion bhi ho raha hai"
+    }
+  ],
+  "rationale": "Same chief complaint (fever + headache with encephalitis worry) escalated from a couple of mild episodes to a sustained high fever with severe headache, neck stiffness and confusion red-flags, which should move the response toward urgent/ER evaluation for possible encephalitis rather than routine vaccine/prevention advice.",
+  "note": "Added text written in the same Hinglish (Roman Hindi) register as the original message."
+}

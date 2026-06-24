@@ -1,0 +1,15 @@
+{
+  "example_id": "77569de3-0645-4a67-8507-18b9b4651fa4",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "adust vancomycin dose in decreased GFR",
+      "replace": "adust vancomycin dose in decreased GFR, patient also has stage 3 chronic kidney disease"
+    }
+  ],
+  "rationale": "+ CKD (stage 3) anchors a concrete chronic renal-impairment context for renally-cleared vancomycin/aminoglycoside dosing, requiring reduced dose/extended interval and level monitoring."
+}

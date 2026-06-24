@@ -1,0 +1,16 @@
+{
+  "example_id": "77837307-e6e1-4816-9c21-c82250c09d93",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "bee sting reaction: severe, covered in hives, swollen lips",
+  "target_value": "throat tightening, hard to breathe and swallow, feeling faint (anaphylaxis)",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "It’s severe, I’m covered in hives, and my lips are swollen",
+      "replace": "It’s severe, I’m covered in hives, my lips are swollen, my throat feels like it’s closing and I can barely breathe or swallow and I feel faint"
+    }
+  ],
+  "rationale": "Same chief complaint (bee-sting allergic reaction) escalated from hives/lip swelling to airway compromise and presyncope red-flags, which should move the response to immediate epinephrine and emergency activation for anaphylaxis.",
+  "note": "Already a serious allergic reaction; escalation makes the anaphylaxis airway/circulatory red-flags explicit."
+}

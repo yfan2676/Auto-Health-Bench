@@ -1,0 +1,8 @@
+{
+  "example_id": "cf09b209-5434-4317-aa2a-7b07537b475e", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "i don’t know how to improve pain", "replace": "i don’t know how to improve pain, and i’m also about 8 weeks pregnant,"}],
+  "rationale": "Clean single-dimension add; pregnancy should induce teratogen-avoidance caution on NSAIDs for osteoarthritis pain and involve-OB criteria.",
+  "note": "Sex unstated; first-person context treated as a woman of child-bearing age."
+}

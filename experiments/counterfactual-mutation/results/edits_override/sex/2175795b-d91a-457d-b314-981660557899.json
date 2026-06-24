@@ -1,0 +1,15 @@
+{
+  "example_id": "2175795b-d91a-457d-b314-981660557899",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "my patient about her ADHD", "replace": "my patient about his ADHD"},
+    {"find": "the latest note from her psychiatrist", "replace": "the latest note from his psychiatrist"},
+    {"find": "addresses her concerns", "replace": "addresses his concerns"}
+  ],
+  "rationale": "Pure sex swap of the patient (referred to as \"her\"); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria.",
+  "note": "Patient's own quoted MyChart message is first-person with no gender markers; only the clinician's third-person references are swapped."
+}

@@ -1,0 +1,10 @@
+{
+  "example_id": "f1fcc4a4-92c7-485c-af2a-6835cbfc218c",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "the patient's sex is only revealed by the name 'carla' in the assistant turns; the user messages contain no gendered token, so there is no editable sex marker in a user message"
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "66b448bf-2e49-488d-9d0b-f9912ab3f0f8",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "Si je te donne la liste des vaccins déjà prescrits à mon patient, tu peux me dire s'il en manque un pour voyager en Afrique de l'Ouest et en Asie du Sud-Est selon les directives de l'IAC ?",
+      "replace": "Si je te donne la liste des vaccins déjà prescrits à ma patiente, qui est enceinte d'environ 8 semaines, tu peux me dire s'il en manque un pour voyager en Afrique de l'Ouest et en Asie du Sud-Est selon les directives de l'IAC ?"
+    }
+  ],
+  "rationale": "clean single-dimension add; travel-vaccine advice should now induce live-vaccine caution (yellow fever) and involve-OB/travel-medicine criteria",
+  "note": "patient (the clinician's traveler) sex inferred; treated as woman of child-bearing age; 'mon patient' feminized to 'ma patiente' to add the pregnancy fact"
+}

@@ -42,6 +42,11 @@
            border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
   .badge.age { color:#9ecbff; border-color:#2c4a73; }
   .badge.disclosure { color:#ffce9e; border-color:#73512c; }
+  .badge.severity { color:#ff9e9e; border-color:#73302c; }
+  .badge.pregnancy { color:#d79eff; border-color:#542c73; }
+  .badge.comorbidity { color:#9effc7; border-color:#2c7350; }
+  .badge.sex { color:#9ee7ff; border-color:#2c5e73; }
+  .pendingnote { margin-top:8px; font-size:11.5px; color:#ffce9e; }
   .pr { font-size:10.5px; color:var(--muted); margin-top:3px; }
   /* ---- detail ---- */
   #detail { overflow-y:auto; min-height:0; padding:0 0 60px; }
@@ -209,7 +214,9 @@ function renderList() {
         el("span",{class:"badge "+s.dimension,text:s.dimension}),
       ]),
       el("div",{class:"lbl",text:s.label}),
-      el("div",{class:"pr",text:`P ${pct(m.precision)} · R ${pct(m.recall)} · off ${pct(m.off_target_rate)} · n=${m.n_criteria}`}),
+      el("div",{class:"pr",text: s.pending
+        ? `⏳ pending grade · ${s.rubrics.length} criteria`
+        : `P ${pct(m.precision)} · R ${pct(m.recall)} · off ${pct(m.off_target_rate)} · n=${m.n_criteria}`}),
     ]));
   });
   if (!list.children.length) list.append(el("div",{class:"empty",text:"no samples"}));
@@ -231,12 +238,14 @@ function select(id) {
   d.append(el("div",{class:"dhead"},[
     el("div",{class:"eid",text:s.example_id}),
     el("h2",{text:s.label}),
-    el("div",{class:"metricrow"},[
-      el("span",{class:"m"},[el("b",{text:pct(m.precision)})," precision"]),
-      el("span",{class:"m"},[el("b",{text:pct(m.recall)})," recall"]),
-      el("span",{class:"m"},[el("b",{text:pct(m.off_target_rate)})," off-target"]),
-      el("span",{class:"m"},[el("b",{text:`${m.tp}/${m.fp}/${m.fn}/${m.tn}`})," TP/FP/FN/TN"]),
-    ]),
+    s.pending
+      ? el("div",{class:"pendingnote",text:"⏳ behavioral run pending — showing the original input and the edited mutation only (no model answer or grade yet)"})
+      : el("div",{class:"metricrow"},[
+          el("span",{class:"m"},[el("b",{text:pct(m.precision)})," precision"]),
+          el("span",{class:"m"},[el("b",{text:pct(m.recall)})," recall"]),
+          el("span",{class:"m"},[el("b",{text:pct(m.off_target_rate)})," off-target"]),
+          el("span",{class:"m"},[el("b",{text:`${m.tp}/${m.fp}/${m.fn}/${m.tn}`})," TP/FP/FN/TN"]),
+        ]),
   ]));
 
   // 1. original input
@@ -293,8 +302,9 @@ function select(id) {
   s.rubrics.forEach(r=>{
     const isFoot = r.predicted_sensitive;
     const tr = el("tr",{class:r.confusion?("conf-"+r.confusion):""});
-    const predBadge = el("span",{class:"bk "+(isFoot?"bk-foot":"bk-kept"),
-      text:r.predicted_bucket}, );
+    const predBadge = r.predicted_bucket == null
+      ? el("span",{class:"muted",text:"—"})
+      : el("span",{class:"bk "+(isFoot?"bk-foot":"bk-kept"), text:r.predicted_bucket});
     const vcells = (s.values||[]).map((val,i)=>{
       const cell = (r.sweep&&r.sweep[i]) ? r.sweep[i].verdict : null;
       const flip = (r.flip_values||[]).includes(val);

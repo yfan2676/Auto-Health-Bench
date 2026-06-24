@@ -1,0 +1,11 @@
+{
+  "example_id": "1f548d5b-cd00-49a0-b327-283a2e00debd",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Request is an explicit talk-therapy plan for mild postpartum depression with no medication or management angle requested; CKD/warfarin/penicillin allergy would not change the psychotherapy/lifestyle advice sought.",
+  "note": ""
+}

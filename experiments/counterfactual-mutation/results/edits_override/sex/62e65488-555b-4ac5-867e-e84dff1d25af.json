@@ -1,0 +1,10 @@
+{
+  "example_id": "62e65488-555b-4ac5-867e-e84dff1d25af",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Case is condition-locked: the question is about older men with BPH (benign prostatic hyperplasia), a male-anatomy-specific condition, so swapping sex would make the scenario incoherent."
+}

@@ -1,0 +1,16 @@
+{
+  "example_id": "1fb6ab91-a999-437d-8c93-c5937c0a89a3",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "my eye hurts, one time in the past i had acute angle closure glaucoma",
+      "replace": "my eye hurts, one time in the past i had acute angle closure glaucoma. i'm also about 8 weeks pregnant"
+    }
+  ],
+  "rationale": "clean single-dimension add; glaucoma/eye-pain management should now induce teratogen-avoidance (medication caution) and involve-OB/ophthalmology criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

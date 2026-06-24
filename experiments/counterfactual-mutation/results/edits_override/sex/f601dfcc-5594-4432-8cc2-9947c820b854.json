@@ -1,0 +1,10 @@
+{
+  "example_id": "f601dfcc-5594-4432-8cc2-9947c820b854",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "the teenage patient's sex is never stated; the only gendered token ('if he needs anything else') refers to the email recipient Dr. Barnes, not the patient"
+}

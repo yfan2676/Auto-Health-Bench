@@ -1,0 +1,10 @@
+{
+  "example_id": "6c568ea6-86bd-4286-94ba-e3ccc8b67b21",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Question is about skipping the vitamin K injection for an already-born newborn; the patient of concern is the neonate, not a woman who could be pregnant."
+}

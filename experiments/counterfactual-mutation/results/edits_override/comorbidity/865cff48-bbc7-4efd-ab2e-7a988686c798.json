@@ -1,0 +1,10 @@
+{
+  "example_id": "865cff48-bbc7-4efd-ab2e-7a988686c798",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Post-kidney-transplant patient already has chronic renal impairment, so +CKD is effectively already present; the core advice (do not self-adjust immunosuppression; defer to the transplant team) is unchanged by warfarin or penicillin allergy."
+}

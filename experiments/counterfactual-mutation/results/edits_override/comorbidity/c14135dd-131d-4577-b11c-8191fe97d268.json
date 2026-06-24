@@ -1,0 +1,16 @@
+{
+  "example_id": "c14135dd-131d-4577-b11c-8191fe97d268",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ penicillin allergy",
+  "label": "+ penicillin allergy",
+  "edits": [
+    {
+      "find": "new antibiotic last night",
+      "replace": "new antibiotic last night, i'm allergic to penicillin"
+    }
+  ],
+  "rationale": "+ penicillin allergy: a reaction after starting a new antibiotic raises the question of an allergic/hypersensitivity response, so a known penicillin allergy should heighten suspicion for a beta-lactam reaction and guide whether to stop the drug and seek urgent care.",
+  "note": ""
+}

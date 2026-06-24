@@ -1,0 +1,16 @@
+{
+  "example_id": "a2c68b9b-11f1-446d-8b28-4cb4bc9e4d16",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "scorpion sting ~1 hour ago, local pain and swelling",
+  "target_value": "same plus systemic signs: drooling, muscle twitching and trouble breathing",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "there's local pain and swelling.",
+      "replace": "there's severe pain and swelling, and now they're drooling, their muscles are twitching and they're having trouble breathing."
+    }
+  ],
+  "rationale": "same pediatric scorpion-sting complaint escalated from local pain/swelling to systemic envenomation red flags (hypersalivation, neuromuscular twitching, respiratory distress), which should move triage toward emergency antivenom/ER care",
+  "note": ""
+}

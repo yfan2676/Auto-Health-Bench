@@ -1,0 +1,10 @@
+{
+  "example_id": "8c919104-090a-4f77-8af2-5222cd1ad4ba",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "General guideline-lookup question (USPSTF statin thresholds/age cutoffs/risk scoring); no specific patient who could be pregnant."
+}

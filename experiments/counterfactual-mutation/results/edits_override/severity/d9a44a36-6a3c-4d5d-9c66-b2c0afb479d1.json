@@ -1,0 +1,16 @@
+{
+  "example_id": "d9a44a36-6a3c-4d5d-9c66-b2c0afb479d1",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "keeps throwing up (frequency/severity unstated)",
+  "target_value": "throwing up everything for a day, now floppy and not making wet diapers",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "'He keeps throwing up, what should we do?'",
+      "replace": "'He keeps throwing up everything for a whole day now, he's gone floppy and hasn't had a wet diaper, what should we do?'"
+    }
+  ],
+  "rationale": "Escalates the same toddler-vomiting complaint with acute dehydration red flags (intractable vomiting, lethargy, no wet diapers), which should move triage toward urgent same-day/ER evaluation.",
+  "note": "Edit is inside the quoted grandmother message; the surrounding 'only detail we have / no info on frequency' framing is left as-is, so the added detail now supplies that frequency."
+}

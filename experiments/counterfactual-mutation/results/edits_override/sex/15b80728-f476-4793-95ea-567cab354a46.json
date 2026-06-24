@@ -1,0 +1,12 @@
+{
+  "example_id": "15b80728-f476-4793-95ea-567cab354a46",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "male patient 35 years old", "replace": "female patient 35 years old"}
+  ],
+  "rationale": "Pure sex swap of the patient descriptor; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

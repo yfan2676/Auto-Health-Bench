@@ -1,0 +1,10 @@
+{
+  "example_id": "8d409c7b-29d2-4df2-aa69-ab56c9339bc5",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Post-kidney-transplant patient on tacrolimus/mycophenolate/prednisone already has chronic renal impairment (+CKD effectively present); the advice (do not self-taper immunosuppression; consult transplant team) is unchanged by warfarin or penicillin allergy."
+}

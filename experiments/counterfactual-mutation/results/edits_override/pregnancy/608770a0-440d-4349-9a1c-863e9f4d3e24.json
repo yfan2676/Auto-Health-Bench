@@ -1,0 +1,16 @@
+{
+  "example_id": "608770a0-440d-4349-9a1c-863e9f4d3e24",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "can I get toxoplasmosis from my cat?",
+      "replace": "can I get toxoplasmosis from my cat? I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "clean single-dimension add; toxoplasmosis advice should now induce fetal-risk warning, litter-box precautions, and involve-OB criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age); toxoplasmosis is highly pregnancy-relevant"
+}

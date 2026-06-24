@@ -1,0 +1,10 @@
+{
+  "example_id": "15c68476-ddf2-405a-959d-4991e8648fd8",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "recovered from mild stomach flu, no leftover symptoms",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "Pure post-recovery nutrition question (light meal ideas) with the patient explicitly symptom-free; there is no active complaint to escalate without contradicting 'no leftover symptoms' and changing the question type."
+}

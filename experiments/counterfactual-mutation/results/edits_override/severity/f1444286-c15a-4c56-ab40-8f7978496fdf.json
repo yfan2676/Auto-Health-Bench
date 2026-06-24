@@ -1,0 +1,16 @@
+{
+  "example_id": "f1444286-c15a-4c56-ab40-8f7978496fdf",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "mild jaundice, mild confusion in the mornings, gradually worsening",
+  "target_value": "deep jaundice, marked confusion that's constant and rapidly worsening with disorientation",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "has mild jaundice in the eyes, mild confusion in the mornings.",
+      "replace": "has deep jaundice in the eyes, marked confusion that is now constant throughout the day and rapidly worsening with disorientation."
+    }
+  ],
+  "rationale": "Escalates the same alcohol-liver case from mild jaundice/morning confusion to deep jaundice with constant rapidly worsening encephalopathy, which should move the disposition toward acute management/admission rather than watchful waiting.",
+  "note": "Labs, history, and the admission question are unchanged; only the jaundice/encephalopathy severity and tempo escalated."
+}

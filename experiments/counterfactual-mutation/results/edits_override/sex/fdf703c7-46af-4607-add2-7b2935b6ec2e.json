@@ -1,0 +1,10 @@
+{
+  "example_id": "fdf703c7-46af-4607-add2-7b2935b6ec2e",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "a population-level scabies outbreak across multiple families with no single identified patient; the only gendered token ('He also wants references') refers to the consulting doctor, not a patient"
+}

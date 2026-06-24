@@ -1,0 +1,15 @@
+{
+  "example_id": "5e0a84d7-b972-484c-a649-469b15f0a90f",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "do you know any alternative that's actually OTC in Japan",
+      "replace": "I also have stage 3 chronic kidney disease. do you know any alternative that's actually OTC in Japan"
+    }
+  ],
+  "rationale": "+ CKD (stage 3) should trigger dose-reduction caution for renally-cleared second-generation antihistamines (cetirizine/levocetirizine) when suggesting an OTC allergy-med alternative."
+}

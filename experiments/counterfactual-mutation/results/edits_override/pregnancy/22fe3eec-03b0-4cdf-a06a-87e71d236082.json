@@ -1,0 +1,16 @@
+{
+  "example_id": "22fe3eec-03b0-4cdf-a06a-87e71d236082",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "I've been taking it for at least six months but now I just want to drop it.",
+      "replace": "I've been taking it for at least six months but now I just want to drop it. I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "clean single-dimension add; stopping an anxiety medication should now induce teratogen-avoidance, no-abrupt-taper, and involve-OB/prescriber criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

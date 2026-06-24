@@ -1,0 +1,16 @@
+{
+  "example_id": "3fd511ca-3930-46d4-a30c-4544c1d4750a",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "stable chest heaviness, no new shortness of breath, vitals stable",
+  "target_value": "new crushing chest heaviness at rest radiating to the left arm with sweating, not relieved by GTN",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "stable chest heaviness",
+      "replace": "new crushing chest heaviness at rest radiating to the left arm with sweating and not relieved by sublingual GTN"
+    }
+  ],
+  "rationale": "Same chief complaint (chest heaviness in known CAD) escalated from stable to an acute at-rest crushing presentation with radiation, diaphoresis and GTN-refractoriness, which should move interpretation from elective angiography/medication debate toward acute coronary syndrome triage and emergency activation.",
+  "note": "Other clinical details (vitals, medications, the staff debate) are left unchanged; only the chest-symptom severity descriptor is escalated."
+}

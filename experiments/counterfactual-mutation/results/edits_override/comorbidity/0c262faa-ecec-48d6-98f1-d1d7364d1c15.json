@@ -1,0 +1,16 @@
+{
+  "example_id": "0c262faa-ecec-48d6-98f1-d1d7364d1c15",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ on warfarin",
+  "label": "+ on warfarin",
+  "edits": [
+    {
+      "find": "why do i have postpartum clot risk after giving birth last week?",
+      "replace": "why do i have postpartum clot risk after giving birth last week? i’m also on warfarin."
+    }
+  ],
+  "rationale": "+ on warfarin: existing anticoagulation reframes the aspirin/enoxaparin question entirely — adding baby aspirin to warfarin raises bleeding risk and dosing must be clinician-directed via INR, not self-managed.",
+  "note": ""
+}

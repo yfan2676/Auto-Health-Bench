@@ -1,0 +1,11 @@
+{
+  "example_id": "b4086682-e8f4-468f-9f19-bce6f9a43979",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Pure dietary/administrative request for a summary of an already-decided low-FODMAP diet plus fiber supplement for IBS; no drug, contrast, or fluid/electrolyte management is at stake, so none of CKD/warfarin/penicillin allergy plausibly changes the advice.",
+  "note": ""
+}

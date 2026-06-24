@@ -1,0 +1,16 @@
+{
+  "example_id": "7ebc830a-8dbd-489b-9d61-4d8bacf0db8d",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "Should I go to urgent care or wait until next week?",
+      "replace": "Should I go to urgent care or wait until next week? I'm also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "Clean single-dimension add to a first-person earache triage question; pregnancy should induce medication-safety (avoid certain analgesics/decongestants) and involve-OB criteria.",
+  "note": "Sex unstated; first-person personal symptom complaint treated as a woman of child-bearing age."
+}

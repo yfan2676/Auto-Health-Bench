@@ -83,6 +83,17 @@ NOISE_FLOOR = RESULTS / f"noise_floor_{_BEHAVIOR}.json"  # per-dimension same-in
 EDITS_OVERRIDE = RESULTS / "edits_override"         # optional subagent-authored edits (D2 prose->data)
 
 
+def override_path(dimension, eid):
+    """Per-dimension subagent-override file for D3+ (severity/pregnancy/comorbidity/sex).
+
+    The K=1 dimensions store one authored edit per item under a per-dimension SUBDIR
+    (edits_override/<dimension>/<eid>.json) so they never collide with D2's flat
+    edits_override/<eid>.json, and so the same example can carry edits for several
+    dimensions at once. Disclosure keeps using EDITS_OVERRIDE / f"{eid}.json" directly.
+    """
+    return EDITS_OVERRIDE / dimension / f"{eid}.json"
+
+
 # --- data loading (resolve the HealthBench split flexibly) -------------------
 def data_dir():
     """Use CM_DATA_DIR, else this experiment's data/, else the sibling's data/."""

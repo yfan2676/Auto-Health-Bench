@@ -295,10 +295,15 @@ per-dimension trust record (footprint precision/recall) for the build half.
 |---|---|---|---|---|
 | D1 age | swap stated age | differentials, screening, dosing | empathy, safety-netting, work-up | done (pilot) |
 | D2 disclosure | fact stated → fact as data | read/interpret the value; stop asking for it | whole management plan | done (pilot) |
-| D3 severity | mild → acute descriptor | triage, ER-referral, red flags | education, history-taking | next |
-| D4 pregnancy | toggle pregnant on/off | teratogen avoidance, imaging caution, involve OB | symptom-management plan | next |
-| D5 comorbidity | + CKD / warfarin / allergy | interaction, contraindication, dose-adjust | primary work-up | next |
-| Dx sex (control) | swap patient sex | only where clinically real | the rest — a pure invariance test | next |
+| D3 severity | mild → acute descriptor | triage, ER-referral, red flags | education, history-taking | mutations authored (K=1, n=39); behavioral run pending |
+| D4 pregnancy | toggle pregnant on/off | teratogen avoidance, imaging caution, involve OB | symptom-management plan | mutations authored (K=1, n=39); behavioral run pending |
+| D5 comorbidity | + CKD / warfarin / allergy | interaction, contraindication, dose-adjust | primary work-up | mutations authored (K=1, n=29); behavioral run pending |
+| Dx sex (control) | swap patient sex | only where clinically real | the rest — a pure invariance test | mutations authored (K=1, n=26); behavioral run pending |
+
+*D3–Dx mutations were authored with capable Claude subagents (one single-dimension edit per
+sample, K=1) into `results/edits_override/<dim>/`, validated (every `find` an exact substring),
+and swept into `results/sweep/` in the same format as D1/D2 — ready for the behavioral half. See
+the README "How to run" D3+ block for the seed→author→validate→materialize→sweep recipe.*
 
 ### What would falsify it
 

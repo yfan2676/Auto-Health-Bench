@@ -1,0 +1,7 @@
+{
+  "example_id": "af750930-5fa5-4efe-8f85-b499641377d4", "dimension": "pregnancy", "applicable": false,
+  "base_value": "n/a", "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Patient already states she is pregnant ('Tô grávida'), so an ~8-weeks-pregnant add is not a counterfactual change."
+}

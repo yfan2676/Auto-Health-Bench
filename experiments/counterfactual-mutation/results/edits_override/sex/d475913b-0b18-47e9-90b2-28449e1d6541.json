@@ -1,0 +1,10 @@
+{
+  "example_id": "d475913b-0b18-47e9-90b2-28449e1d6541",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "case is sex-locked to male: built around a men's health screening with a prostate-specific PSA result, so swapping sex would make the clinical content incoherent"
+}

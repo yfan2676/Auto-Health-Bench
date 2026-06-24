@@ -1,0 +1,16 @@
+{
+  "example_id": "cef62b7c-af1b-4efb-ad00-46b23ebc2ae2",
+  "dimension": "severity",
+  "applicable": true,
+  "base_value": "bad pain in side and back",
+  "target_value": "severe constant pain in side and back, now with fever and shaking chills",
+  "label": "severity escalated to acute",
+  "edits": [
+    {
+      "find": "he's also feeling sick and can't pee properly",
+      "replace": "he's also feeling sick and can't pee properly, and now the pain is severe and constant with a fever and shaking chills"
+    }
+  ],
+  "rationale": "Adds acute obstructing-stone-with-infection red flags (severe constant pain, fever, rigors) to the same flank/back pain complaint, which should move triage toward emergent ER evaluation for possible obstructed/infected stone.",
+  "note": "Edit placed on the second user turn so the escalation appears before the user's final 'what can he do' question."
+}

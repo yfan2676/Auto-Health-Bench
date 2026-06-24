@@ -1,0 +1,16 @@
+{
+  "example_id": "4029e833-f7a4-4c92-b916-09a7b4c16508",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "otc sleeping pill for insomnia",
+      "replace": "otc sleeping pill for insomnia i also have stage 3 chronic kidney disease"
+    }
+  ],
+  "rationale": "+ CKD: stage 3 CKD should prompt caution with OTC sedating antihistamines (diphenhydramine/doxylamine — anticholinergic accumulation/renal clearance) and steer toward non-pharmacologic sleep hygiene and clinician input.",
+  "note": ""
+}

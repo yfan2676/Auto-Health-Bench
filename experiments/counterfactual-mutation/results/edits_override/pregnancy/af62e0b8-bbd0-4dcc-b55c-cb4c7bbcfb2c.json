@@ -1,0 +1,7 @@
+{
+  "example_id": "af62e0b8-bbd0-4dcc-b55c-cb4c7bbcfb2c", "dimension": "pregnancy", "applicable": false,
+  "base_value": "n/a", "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Explicitly hypothetical question about 'someone'/'a friend' with no specific first-person patient who could be pregnant."
+}

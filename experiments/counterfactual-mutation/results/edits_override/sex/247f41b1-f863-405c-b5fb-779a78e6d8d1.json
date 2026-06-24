@@ -1,0 +1,10 @@
+{
+  "example_id": "247f41b1-f863-405c-b5fb-779a78e6d8d1",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Case is anatomy/condition-locked: pregnancy and ACOG nicotine-replacement guidance apply only to female patients, so a sex swap is invalid."
+}

@@ -1,0 +1,10 @@
+{
+  "example_id": "6677cd8e-a891-4c38-9335-5a2043191a27",
+  "dimension": "sex",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "not applicable",
+  "edits": [],
+  "rationale": "Spanish impersonal/first-person query about removing a finger splinter; no gendered token reveals the patient's sex."
+}

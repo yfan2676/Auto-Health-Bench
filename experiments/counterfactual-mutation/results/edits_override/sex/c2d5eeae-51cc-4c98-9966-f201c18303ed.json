@@ -1,0 +1,12 @@
+{
+  "example_id": "c2d5eeae-51cc-4c98-9966-f201c18303ed",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "female",
+  "target_value": "male",
+  "label": "sex swapped female→male",
+  "edits": [
+    {"find": "chest pain. She notes similar episodes", "replace": "chest pain. He notes similar episodes"}
+  ],
+  "rationale": "pure sex swap of the patient's only pronoun; Father/Mother are family-history of others and unchanged; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria"
+}

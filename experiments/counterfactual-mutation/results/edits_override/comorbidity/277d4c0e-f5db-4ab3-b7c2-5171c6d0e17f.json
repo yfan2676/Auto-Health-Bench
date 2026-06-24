@@ -1,0 +1,11 @@
+{
+  "example_id": "277d4c0e-f5db-4ab3-b7c2-5171c6d0e17f",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Question is an evidence summary comparing red-light therapy vs narrowband UVB phototherapy for psoriasis with no drug/management decision; CKD/warfarin/penicillin allergy would not change the phototherapy-evidence advice.",
+  "note": ""
+}

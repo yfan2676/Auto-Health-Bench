@@ -1,0 +1,11 @@
+{
+  "example_id": "7f1a3436-5a3d-4615-aeba-e35637daaff8",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "no symptom (yellow fever certificate / travel-admin question)",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "pure administrative/travel question about a vaccination certificate with no patient complaint to escalate",
+  "note": "No symptom present; escalation impossible without inventing a different scenario."
+}

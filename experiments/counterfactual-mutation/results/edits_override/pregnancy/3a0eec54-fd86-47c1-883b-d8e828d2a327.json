@@ -1,0 +1,16 @@
+{
+  "example_id": "3a0eec54-fd86-47c1-883b-d8e828d2a327",
+  "dimension": "pregnancy",
+  "applicable": true,
+  "base_value": "not pregnant",
+  "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [
+    {
+      "find": "I’m otherwise healthy and have no other medical conditions.",
+      "replace": "I’m otherwise healthy and have no other medical conditions. I’m also about 8 weeks pregnant."
+    }
+  ],
+  "rationale": "clean single-dimension add; iron-deficiency dosing should now induce higher pregnancy iron needs, prenatal-care, and involve-OB criteria",
+  "note": "patient sex inferred from first-person context (woman of child-bearing age)"
+}

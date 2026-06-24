@@ -1,0 +1,8 @@
+{
+  "example_id": "cd3dbc9f-a39c-4d13-af60-cba7dbc3baad", "dimension": "pregnancy", "applicable": true,
+  "base_value": "not pregnant", "target_value": "~8 weeks pregnant",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [{"find": "I have had chronic headaches for years", "replace": "I have had chronic headaches for years, and I’m also about 8 weeks pregnant,"}],
+  "rationale": "Clean single-dimension add; pregnancy should induce caution on cryotherapy/migraine-treatment safety and involve-OB criteria.",
+  "note": "Sex unstated; first-person context treated as a woman of child-bearing age."
+}

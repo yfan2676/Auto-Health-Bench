@@ -1,0 +1,14 @@
+{
+  "example_id": "7fc84437-baa0-4018-a99a-3b98f4b8bbc4",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "my father bill was started", "replace": "my mother jane was started"},
+    {"find": "ago - he quickly turned jaundiced", "replace": "ago - she quickly turned jaundiced"},
+    {"find": "wanted to message his doctor", "replace": "wanted to message her doctor"}
+  ],
+  "rationale": "Pure sex swap of the patient (the parent: father→mother, name bill→jane, he→she, his→her); expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

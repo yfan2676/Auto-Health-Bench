@@ -152,6 +152,30 @@ For the best edits, author them with a capable model into
 `find` must be an exact substring of a user message; the same value is used across the styles so
 only the *form* of disclosure varies.
 
+**D3 severity / D4 pregnancy / D5 comorbidity / Dx sex (K=1, fully subagent-authored).** These
+dimensions are too semantic to detect by regex, so a capable Claude subagent both DECIDES
+applicability and AUTHORS the single edit (one mutated state per item, K=1 — vs K=3 for D1/D2).
+Each shares the `OverrideDimension` base (`src/dimensions/_override_base.py`) and reads one file
+per item from a **per-dimension subdir**, `results/edits_override/<dimension>/<example_id>.json`
+(so it never collides with D2's flat files). Schema:
+`{example_id, dimension, applicable, base_value, target_value, label, edits:[{find,replace}],
+rationale, note}` — each `edit` a deterministic exact-substring `replace(find, replace, 1)` on a
+user message; an insertion (pregnancy/comorbidity) re-emits an existing clause plus the new phrase.
+The flow inverts D1/D2 (the subagent's `applicable` flag *is* the detector):
+
+```bash
+python3 src/seed_candidates.py --dimension severity --limit 45 --out <scratch>/seed  # +the other 3
+# fan ~5 Claude subagents per dimension -> write results/edits_override/<dim>/<eid>.json
+python3 src/validate_overrides.py                       # exact-substring + schema gate (must pass)
+python3 src/materialize_shortlist.py                    # build shortlist rows from applicable overrides
+python3 src/sweep.py                                    # K=1 variant per item -> results/sweep/<eid>.json
+# then the shared GPU steps (footprint / answers / sweep_grade / noise_floor / analyze / build_viewer)
+```
+
+Authoring needs **no GPU**; the new mutations land in the same `sweep/` format as D1/D2, so every
+downstream step picks them up off the shortlist with no further change. Authored so far (one edit
+per sample, behavioral run pending): **severity 39, pregnancy 39, comorbidity 29, sex 26**.
+
 Config knobs (env): `HB_JUDGE_BASE_URLS` (comma-separated judge URLs, one per GPU),
 `CM_JUDGE_CONCURRENCY` (grading threads per endpoint, default 8), `HB_MAX_TOKENS`
 (**set 16384** — the a-priori footprint author call with thinking on can exceed 8192 on items
@@ -200,9 +224,15 @@ with many rubrics), `CM_JUDGE_TEMP` (default 0), `CM_JUDGE_THINK` (0), `CM_AUTHO
   self-disclosures; capable authors flag ~40% unsuitable. D1 age is regex-deterministic (478
   eligible). D2 edits are authored into `results/edits_override/` (above); the 4B prose→data render
   remains a fallback with an *advisory* `fact_preserved` check + diff guard.
+- **D3–Dx mutations authored (K=1, subagent-written), behavioral run pending.** Severity 39,
+  pregnancy 39, comorbidity 29, sex 26 single-dimension edits live in
+  `results/edits_override/<dim>/` + `results/sweep/`, on the shortlist alongside D1/D2. The GPU half
+  (footprint/answers/grade/floor/analyze) hasn't been run for them yet — it will pick them up off the
+  shortlist automatically. (D4/D5 footprints are mostly *induced* new criteria; sex is the
+  protected-attribute invariance control — expect near-total bridge.)
 - **Next:** lower the answer temperature or average several answers per input to shrink the ~27%
   floor and sharpen the net effect (important now that age sits inside the floor); to push D2 nearer
-  100 include clinician/third-party specific-instance cases; then add D3 (severity) per idea doc §5.
+  100 include clinician/third-party specific-instance cases; run the behavioral half for D3–Dx.
 
 ## Findings
 

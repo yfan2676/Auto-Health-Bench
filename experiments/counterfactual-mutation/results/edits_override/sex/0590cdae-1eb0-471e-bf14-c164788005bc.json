@@ -1,0 +1,12 @@
+{
+  "example_id": "0590cdae-1eb0-471e-bf14-c164788005bc",
+  "dimension": "sex",
+  "applicable": true,
+  "base_value": "male",
+  "target_value": "female",
+  "label": "sex swapped male→female",
+  "edits": [
+    {"find": "Mr. Pineda", "replace": "Ms. Pineda"}
+  ],
+  "rationale": "Pure sex swap of the patient's title; expect near-total bridge (invariance), movement only on genuinely sex-specific criteria."
+}

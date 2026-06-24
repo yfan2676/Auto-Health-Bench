@@ -1,0 +1,10 @@
+{
+  "example_id": "85408180-238e-4c1b-92c1-55d8ce6c3717",
+  "dimension": "pregnancy",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "+ ~8 weeks pregnant",
+  "edits": [],
+  "rationale": "Request is to revise a general clinical text about opioid-overdose/naloxone management; no specific identifiable patient who could be pregnant."
+}

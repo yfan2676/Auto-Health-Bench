@@ -1,0 +1,11 @@
+{
+  "example_id": "396aea2b-1e75-4569-b150-858e1f52a145",
+  "dimension": "comorbidity",
+  "applicable": false,
+  "base_value": "n/a",
+  "target_value": "n/a",
+  "label": "n/a",
+  "edits": [],
+  "rationale": "Neurologist asks about the process for using an unproven medication in drug-resistant epilepsy (evidence, ethics/IRB, compassionate-use pathways); no specific drug is named, so CKD/warfarin/penicillin allergy would not change the procedural advice.",
+  "note": ""
+}

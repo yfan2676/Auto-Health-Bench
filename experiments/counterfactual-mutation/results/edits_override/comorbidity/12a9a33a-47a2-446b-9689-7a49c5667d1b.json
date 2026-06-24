@@ -1,0 +1,16 @@
+{
+  "example_id": "12a9a33a-47a2-446b-9689-7a49c5667d1b",
+  "dimension": "comorbidity",
+  "applicable": true,
+  "base_value": "no added comorbidity",
+  "target_value": "+ CKD",
+  "label": "+ CKD",
+  "edits": [
+    {
+      "find": "A depuração de creatinina dele está em torno de 35 ml/min.",
+      "replace": "A depuração de creatinina dele está em torno de 35 ml/min. Ele também tem doença renal crônica estágio 3."
+    }
+  ],
+  "rationale": "+ CKD: chronic kidney disease confirms the renal impairment driving acyclovir dose reduction, reinforcing extended dosing intervals, hydration, and renal-function monitoring to avoid nephrotoxicity/neurotoxicity.",
+  "note": "Inserted clause in Portuguese to match conversation language."
+}

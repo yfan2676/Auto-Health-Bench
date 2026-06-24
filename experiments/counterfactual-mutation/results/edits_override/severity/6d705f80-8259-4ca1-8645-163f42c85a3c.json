@@ -1,0 +1,10 @@
+{
+  "example_id": "6d705f80-8259-4ca1-8645-163f42c85a3c",
+  "dimension": "severity",
+  "applicable": false,
+  "base_value": "chronic back pain (background), question is about buying strong painkillers while traveling",
+  "target_value": "n/a",
+  "label": "severity escalated to acute",
+  "edits": [],
+  "rationale": "The request is a medication-procurement/travel-logistics question (how to easily buy strong painkillers across countries); the chronic stable back pain is only background and there is no acute complaint being triaged, so an acute red-flag escalation would be unnatural and change the question's intent."
+}
