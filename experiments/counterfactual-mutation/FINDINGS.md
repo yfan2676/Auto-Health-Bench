@@ -119,6 +119,84 @@ above for both models):
   verdict object) with a one-shot thinking-on rescue. Live partial numbers: [`results/report.md`](results/report.md)
   (carries a ⚠ partial-run banner) and the viewer.
 
+## Update 2026-06-25 — full 6-dimension run complete + significance testing
+
+The Qwen3.6-27B run is now **complete for all six dimensions** (age, disclosure, severity,
+pregnancy, comorbidity, sex; **304 items, 3,601 criterion-pairs**). Both age/disclosure floors and
+the four D3–Dx floors are measured under the score-SD metric, so the net score SD is no longer
+pending:
+
+| dimension | items | sweep score SD | same-input floor SD | **net score SD** |
+|---|---|---|---|---|
+| severity    | 39  | 15.9% | 10.7% | **+5.2%** |
+| pregnancy   | 39  | 13.7% | 9.0%  | **+4.7%** |
+| comorbidity | 29  | 11.7% | 8.2%  | **+3.5%** |
+| disclosure  | 71  | 13.2% | 10.2% | **+3.1%** |
+| sex         | 26  | 9.0%  | 7.5%  | **+1.5%** |
+| age         | 100 | 13.5% | 13.7% | **−0.2%** |
+
+### Is the change real? A paired significance test that needs no floor
+
+The net score SD is a point estimate. Because the answers to `V` and `V_k` are independently
+sampled, *some* of the score movement is the model's own answer-sampling noise — so "a real change"
+means **the change exceeds that noise**, not "≠ 0". There is a clean test for it. Under the null
+*"the mutation doesn't affect grading,"* the answer to `V_k` is graded just like another answer to
+`V`, so **`score(V)` and `score(V_k)` are exchangeable** and the per-item shift
+Δ = score(V_k) − score(V) is symmetric about 0. We test that with an **item-level sign-flip
+permutation test** (flip each item's Δ sign with p = ½; 50k permutations; the *item* is the
+exchangeable unit, which respects within-item criterion correlation and handles K=1 vs K=3),
+Holm-corrected across the six dimensions, with a bootstrap 95% CI. It uses **nothing** from the
+separately-measured floor, and symmetric sampling noise **cannot inflate it** — but it only detects
+a *directional* (mean) shift.
+
+| dimension | n | net score SD (spread) | mean Δscore (directional) | 95% CI | p (Holm) | |
+|---|---|---|---|---|---|---|
+| age         | 100 | −0.2% | **−11.4%** | [−15.7, −7.2] | 0.0001 | *** |
+| disclosure  | 71  | +3.1% | −0.3%      | [−5.7, +5.2]  | 0.92   | ns |
+| severity    | 39  | +5.2% | **−17.3%** | [−24.7, −9.4] | 0.0005 | *** |
+| pregnancy   | 39  | +4.7% | −8.4%      | [−16.4, −0.8] | 0.18   | ns (raw p=.045) |
+| comorbidity | 29  | +3.5% | −5.4%      | [−14.0, +3.1] | 0.70   | ns |
+| sex         | 26  | +1.5% | −5.0%      | [−13.2, +2.0] | 0.70   | ns |
+
+A corroborating directional test on the **verdicts** (item-clustered sign-flip on each item's net
+criterion flips, #unmet→met − #met→unmet) agrees: age (p < 0.0001) and severity (p = 0.0007) are
+strongly significant, comorbidity weak (p = 0.026, uncorrected), the rest ns.
+
+### Takeaways
+
+- **Severity and age show an unambiguous, real, directional effect** — Holm-significant on both the
+  score-shift and the verdict-flip test. Mutating the dimension makes the model's answer satisfy the
+  *original* rubric markedly less (severity −17.3%, age −11.4% in score points): a genuine
+  mutation-caused change in graded outcomes.
+- **The directional test and the net-SD metric disagree — and that is the headline methodological
+  lesson.** Net SD called **age ≈ 0 ("bridge holds")**, yet age is the second-strongest *directional*
+  effect. The reason: age's same-input floor is large (13.7%), so a spread comparison (sweep 13.5% vs
+  floor 13.7%) **drowns** the effect, while the sign-flip test exploits the **consistent sign across
+  100 items**, which symmetric floor noise washes out. **Net SD understates a directional effect
+  buried in noise — the earlier "age is not a robust effect" reading was an artifact of the metric,
+  not the model.**
+- **Disclosure is the mirror image:** no directional shift (−0.3%, ns) despite a positive net SD
+  (+3.1%). Its effect is **variance-type** — re-encoding flips criteria in *both* directions without
+  moving the mean — which a directional test is blind to by construction.
+- **Sex (the protected-attribute control) is null on every directional test** (Holm p = 0.70) —
+  exactly what an invariance control should do.
+- **Pregnancy is suggestive** (raw p = 0.045) but not Holm-significant at n = 39; **comorbidity** is
+  weak.
+
+### Caveats + what this test can't reach
+
+- The sign-flip / signed-rank family assumes Δ is *symmetric* under H₀. The age/severity effects
+  (n = 100, p < 10⁻⁴) are far too strong to be symmetry artifacts, but the weaker dimensions lean on
+  it more.
+- A directional **score drop** means the mutation changed the model's answer such that the *fixed
+  original* rubric grades it lower — a real mutation-caused change (whether to read it as "the model
+  adapted" or "the rubric no longer fits the edited case" is a separate interpretation).
+- **This test cannot certify the variance-type effects** (disclosure, comorbidity): a magnitude/
+  spread test against the floor needs the floor's *per-item* score SDs, which `noise_floor.py` did
+  not persist (it saved only the per-dimension aggregate). A bootstrap CI on net SD would require
+  instrumenting `noise_floor.py` to save per-item values, re-running the six floors (~70 min GPU),
+  then a two-sample permutation test of sweep-SD vs floor-SD.
+
 ## D2 eligibility: the clean pool is smaller than it looks
 
 The disclosure picker's regex prefilter yields **193 hits** in the 5,000-item split, but most are
