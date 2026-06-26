@@ -134,6 +134,195 @@ Crucially, **every step gets its own check** so we can show it actually works:
 
 ---
 
+## The data dimension, beyond disclosure
+
+The pipeline above uses the simplest version of the data setting: the record is either
+absent (the original text-only case) or present (the data-equipped case). That on/off
+switch is the cleanest worked example, but it understates what "having data" actually
+means in deployment. A real wearable or connected-health assistant rarely receives a
+clean, complete, correctly formatted record that holds exactly the field the question
+needs. The data arrives partial, noisy, conflicting, voluminous, numeric, and sometimes
+at odds with what the patient says. Each of those is a separate property of the data, and
+each one changes what a good answer is, independently of whether any data is present at
+all. The right target, then, is not a single answer but a **policy over data states**:
+ask when the relevant field is absent, use it when it is present and clean, discount or
+flag it when it is noisy or stale, reconcile and surface the conflict when sources
+disagree, and find the relevant field when it is buried. "Use the data" as a blanket rule
+is wrong; the competence we want is conditional.
+
+This is a natural fit for the method, because each property is its own **single-variable
+mutation off the same known-good case**. We hold the question and the rest of the rubric
+fixed and vary one property of the supplied data. A minimal pair then lets us attribute
+any change in the verdict to the one property we varied; the locality measurement from
+Claim 1 tells us whether that property touches a small, predictable set of criteria or
+ripples everywhere; and the behavioral sanity checks tell us whether the score moved in
+the direction it should. A benchmark built from scratch for each of these settings could
+exercise them too, but it could not cleanly attribute a behavior change to the one varied
+property, nor certify cheaply that the untouched majority of the rubric stayed valid.
+That clean attribution, and the cheap certificate, are what our method adds. The
+sub-dimensions below are the concrete knobs; for each we give the single variable, the
+behavior a good assistant should show, the outcomes we might see and what each one would
+tell us, and why a product team should care.
+
+### Completeness (missingness)
+
+**The variable:** whether the decision-relevant field is present in the supplied record.
+The same case can be posed across a short spectrum: no record at all, a record present but
+missing the one field the question turns on, and a record that contains the field. The
+correct behavior differs by state: ask for the field when it is absent, use it when it is
+present.
+
+**Outcomes and what each tells us.** If the model tracks the state (asks when the field is
+missing, uses it when present), that is the graceful-degradation behavior we want, and the
+text-only benchmark, which only ever tests the "no field" state, structurally cannot see
+it. If the model collapses to one mode, that is a real, namable failure: always-ask wastes
+the record and re-pesters the patient for known data, while always-assume acts on data it
+does not actually have. Either mode scores as fine on a text-only benchmark and is a
+liability in deployment.
+
+**Why care:** missingness is the normal case in deployment, not the exception. Records are
+patchy. A product that behaves well only on complete records will misbehave on most real
+ones, and a benchmark that tests only the empty or the complete case will not catch it.
+
+### Quality and noise
+
+**The variable:** the cleanliness of the supplied value: a reliable clinic measurement
+versus a noisy or stale one, for instance a single jittery consumer-grade blood-pressure
+reading, or a lab value that is months out of date. The correct behavior is to act on a
+reliable value but to discount, caveat, or seek confirmation for a noisy or stale one,
+rather than treating it as definitive.
+
+**Outcomes and what each tells us.** If the model calibrates to quality (acts on the clean
+value, hedges on the noisy one), that is the behavior we want. If it over-trusts the noisy
+value (treats one artifact-laden reading as a finding), that is a dangerous over-reliance
+mode, and the one consumer-sensor products are most exposed to. If it discards the value
+entirely because it is imperfect, that is the opposite failure: throwing away usable
+signal. The method adds a sharp validity check here: the score should be **monotone in
+data quality**. Feeding a competent model a cleaner version of the same value should not
+lower its score, and degrading the value should not raise it. If the score does not move
+with quality, the benchmark is not really measuring data use, and that is a fault in our
+construct rather than in the model. Only a minimal-pair design can run that monotonicity
+test.
+
+**Why care:** consumer wearables produce noisy, artifact-prone streams. Over-trusting them
+is the signature failure of a sensor-equipped assistant, and it is invisible to any
+text-only benchmark.
+
+### Conflicting data
+
+**The variable:** whether two sources in the record agree. Construct a pair in which the
+wearable says one thing and the EHR (or the patient's self-report) says another. The
+correct behavior is to notice the conflict, surface it, and reason about it or seek
+resolution, rather than silently picking one source and proceeding.
+
+**Outcomes and what each tells us.** If the model flags and reconciles, that is the
+behavior we want, and a high bar most models will not clear. If it silently follows one
+source, it may even land on the right value, but it hides a decision the user needed to
+see; the danger is the confident, unflagged choice. If the verdict is unstable across runs
+(sometimes one source, sometimes the other), that tells us the conflict axis is not a
+clean single-variable mutation for this case, and we should treat the result cautiously or
+pick a sharper case.
+
+**Why care:** real records are full of disagreement: different devices, outdated entries,
+patient-reported versus measured. Reconciliation is a core competence of a data-equipped
+assistant and has no analog in a single-narrative text vignette.
+
+### Counter-intuitive data
+
+**The variable:** whether the supplied data agrees with the surface narrative. Build a pair
+in which the patient's story points one way and the verified data points the other: a
+reassuring account paired with an alarming lab, a worried account whose objective data is
+benign, or a value that is normal in general but abnormal for this particular patient. The
+correct behavior is to weight the verified data appropriately against the narrative, name
+the discrepancy, and let the data move the conclusion when it should.
+
+**Outcomes and what each tells us.** If the model lets the data override the narrative when
+it should, and explains why, that is the strongest evidence it is reading the record rather
+than pattern-matching the prose. If it anchors on the narrative and discounts the data,
+that is an anchoring failure a text-only benchmark cannot even produce, because in a text
+vignette the narrative is the only signal. If the data-aware answer scores worse than the
+narrative-led one, that is a direct sign the rubric still rewards the narrative reading and
+needs the data-conditioned repair.
+
+**Why care:** the cases where data matters most are exactly the ones where it contradicts
+the story, because that is where the data changes the action (an abnormal lab that turns a
+routine visit into an urgent referral). A benchmark that never pits data against narrative
+tests the model only where the two agree, which is where it matters least.
+
+### Volume and relevance (distraction)
+
+**The variable:** how much irrelevant record surrounds the one relevant field. The current
+proof-of-concept injects only the relevant field; real systems hand over a whole
+longitudinal record, most of it irrelevant to any single question. Hold the relevant field
+fixed and grow the surrounding record from a few distractor fields up to a full history.
+The correct behavior is to find and use the decision-relevant field without being pulled
+off course by an irrelevant value or losing the key one in a long context.
+
+**Outcomes and what each tells us.** If performance holds as volume grows, the model
+genuinely selects, which is good news for the realistic full-record interface. If
+performance degrades with volume (the relevant field gets lost, or a distractor value
+drives the answer), that is a context-handling failure, and a quantifiable one: hit rate
+on the relevant field and distractor-induced error rate, both as a function of record size.
+
+**Why care:** the realistic interface is a full chart, not a curated field. A model that
+uses data well only when handed exactly the right field will fail in the deployment where
+the whole record is dropped into context. This axis also feeds the validity story below:
+showing the effect survives realistic distraction is what separates genuine data use from
+"we handed the model the answer."
+
+### Complexity and format (numeracy and time)
+
+**The variable:** how the same fact is represented, and how much numeric or temporal
+reasoning it demands. The cheapest version is the disclosure-format pair already in our
+experiments: the same hypertension stated in prose versus shown as a blood-pressure number.
+The richer version, once sensor streams are available, is a trend over weeks of
+high-frequency data under different serializations (raw samples, per-window summaries, or
+derived features). The correct behavior is to read the number, the units, and the trend
+correctly, whatever the representation.
+
+**Outcomes and what each tells us.** If behavior is stable across representations of the
+same fact, the model is reasoning about the underlying clinical reality rather than the
+surface form. If behavior changes with representation (worse on the numeric form, sensitive
+to serialization), that is a numeracy or time-series gap, precisely the capability a
+wearable assistant lives on and one no described-symptom vignette can probe. Our
+six-variable run already saw the prose-versus-number version of this move behavior without
+a consistent direction, which is the signature of a gap rather than a bias.
+
+**Why care:** wearable and lab data are numbers and trends, not prose. If a model's
+competence depends on the data being narrated to it in words, it does not have the
+capability a sensor product needs, and only a format mutation can reveal that.
+
+### A cross-cutting caveat: where the data comes from
+
+One objection applies to every sub-dimension above and has to be stated rather than hidden:
+if we synthesize the record to fit the question, we may have handed the model exactly the
+data the answer needs, so "using the data helps" can be true by construction. That is a
+threat to external validity, not a reason to avoid the studies, and it is something to
+measure. The method's own tools handle it. Pair each case with a partially relevant and an
+adversarially irrelevant control (this is the volume-and-relevance axis above), and ablate
+data **provenance** (records generated from the question only, versus question plus rubric,
+versus guidance-augmented) to see how much of the effect depends on how the data was made.
+The monotonicity check from the quality axis does double duty here: if a competent model's
+score does not move with data quality, the benchmark may be rewarding hidden priors or
+leakage rather than genuine reading of the supplied record. Reporting these controls is
+what lets us claim the measured effect is data use and not data leakage.
+
+### How these connect to the experiments
+
+Each sub-dimension runs on the same three-part machinery the experiments below already use.
+The locality certificate (experiment 5) runs per axis: hold one answer fixed, grade it
+before and after the data mutation, and confirm the criteria we predicted unchanged really
+do stay put, so the inherited rubric is certified cheaply and any axis that ripples too far
+is demoted. The rank-preservation test (experiment 4) runs per axis: does the model
+leaderboard reorder once the data is noisy, conflicting, buried, or numeric? An axis that
+reorders the leaderboard is one where the existing benchmark hands a data-equipped product
+the wrong model choice, which is the strongest reason to repair it. And the behavioral
+sanity checks (monotonicity in quality, urgency tightening under abnormal data, graceful
+degradation across completeness states) are the stand-in references for the changed
+criteria where no prior expert rubric can exist.
+
+---
+
 ## Why the method is useful
 
 - **It reuses expensive expert work instead of throwing it away.** The cost of trusting a
