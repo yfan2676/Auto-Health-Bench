@@ -174,6 +174,43 @@ rather than bet on one.
 | Use as a training reward | Does training a model with the rubric as the reward signal improve it? | The most common validation in recent work. Strong signal, but it measures usefulness for *training*, not correctness of the *evaluation*, and it is expensive to run. |
 | Head-to-head against a baseline method | Do experts prefer our modifications over those from a simpler method? | Acceptable and done in the field (clinician-refinement studies). The strongest "is it actually better" evidence, and the most costly. |
 
+### What do we compare against?
+
+Several of the approaches above assume a trusted reference rubric, which is awkward for a
+mutation: by construction, the modified setting has no pre-existing expert rubric. There is
+no single gold reference. What we compare against depends on which part of the rubric we are
+checking.
+
+- **The unchanged part is its own reference.** A mutation rewrites only a small set of
+  criteria and inherits the rest of the expert rubric word-for-word. For that inherited
+  majority, the original expert rubric *is* the reference: the test is that those criteria
+  keep their verdicts, and reproduce the same model ranking, after the edit as before. That
+  covers most of the rubric and needs no new expert work.
+
+- **The changed part has no existing reference, by design.** For the few criteria the
+  mutation rewrites, there is no prior expert rubric to compare to, so we do not pretend
+  there is one. Instead we have an expert review just that small delta, and we require it to
+  pass behavioral sanity checks, for example that a more severe case tightens the urgency
+  criteria, or that better data raises a competent model's score. These stand in for a gold
+  reference where none can exist.
+
+- **Where a real reference does exist, use it.** Existing benchmarks already contain natural
+  pairs of cases that differ along a dimension we mutate (a younger and an older patient, a
+  milder and a more severe presentation), each with its own physician rubric. We can mutate
+  one case toward the other and compare our result against the actual expert rubric for that
+  target. This gives a genuine gold comparison for the dimensions where such pairs can be
+  found.
+
+- **A baseline comparison needs no gold at all.** "Are our mutations better than a simpler
+  method's?" is a relative judgment: produce the modified rubric two ways (our method versus
+  an off-the-shelf baseline) and have experts say which they prefer. This measures whether we
+  beat the obvious alternative, with no reference rubric required.
+
+The cleanest case is changing only how a fact is presented (the same hypertension stated in
+prose, then shown as a blood-pressure reading). Because the underlying clinical facts do not
+change, almost the entire expert rubric still applies as the reference, and only the "stop
+asking for it" and "read the value correctly" criteria are expected to move.
+
 A few honest caveats that apply to all of these:
 
 - The automatic grader is itself imperfect, so every comparison has to account for grader
