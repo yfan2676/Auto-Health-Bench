@@ -1,8 +1,8 @@
 # Benchmark Doctor
 
 A "benchmark of benchmarks" that checks whether an existing test is a good fit for a
-given product or model, and — when it is not — repairs it with small, controlled changes
-that keep most of the original expert quality.
+given product or model. When it is not, it repairs the test with small, controlled
+changes that keep most of the original expert quality.
 
 ---
 
@@ -15,7 +15,7 @@ a benchmark that validly tests *this* product, and if not, do they have to build
 one from scratch? Building from scratch throws away all the expert work that went into
 the benchmarks we already have. Our proposal is to treat this like a doctor would:
 first **diagnose** whether an existing benchmark fits the product, and if it does not,
-**treat** it with the smallest change that makes it fit — rather than replacing the
+**treat** it with the smallest change that makes it fit, rather than replacing the
 whole thing. We call this the **Benchmark Doctor**.
 
 ---
@@ -29,12 +29,12 @@ information arrives, how urgent things are. These assumptions are rarely written
 but they decide what counts as a "right answer."
 
 When the product's real setting differs from the benchmark's assumed setting, the
-benchmark can score the wrong thing — sometimes it even rewards behavior that would be
+benchmark can score the wrong thing; sometimes it even rewards behavior that would be
 wrong in deployment. A concrete example from our own work: HealthBench was written
 assuming the model only knows what the user typed, so many of its criteria reward the
 model for *asking* the patient for information. But a real wearable or connected-health
 assistant already has the patient's record. In that setting, asking for data the system
-already has is not good behavior — yet the original benchmark still gives points for it.
+already has is not good behavior, yet the original benchmark still gives points for it.
 On a small proof-of-concept, the original grading scored a correct, data-aware answer
 *lower* than a data-blind one. The benchmark is not broken; it is simply being used
 outside the setting it was written for.
@@ -48,8 +48,8 @@ a cheap way to fix it when it does not.
 
 The field already has useful pieces, but none of them solves this directly:
 
-- **Benchmark quality checks** ask "is this benchmark internally sound?" — never "is it
-  sound *for this particular product*?" A benchmark can be excellent and still be the
+- **Benchmark quality checks** ask whether a benchmark is internally sound, never whether
+  it is sound *for this particular product*. A benchmark can be excellent and still be the
   wrong test for you.
 - **Automatic benchmark generators** build new benchmarks from scratch. That discards
   the expert validation already baked into existing benchmarks, and it pays the full
@@ -68,13 +68,13 @@ whole new one": check if it's good *for you*, and if not, make the smallest repa
 The whole approach rests on two claims. Both sound plausible, but they deserve a clear
 argument, because everything else depends on them.
 
-### Claim 1: a small, controlled change to a case touches only a small, predictable part of the rubric — and we can measure exactly which part.
+### Claim 1: a small, controlled change to a case touches only a small, predictable part of the rubric, and we can measure exactly which part.
 
 A rubric is a list of mostly separate grading criteria. Many of them describe general
 good-care behavior: show empathy, ask about the symptom, explain clearly, give safety
 advice. These do not depend on the patient's exact age, or on whether a fact was typed
 in prose or shown as a lab value. Only a handful of criteria are tied to the thing we
-changed — for example, age-specific screening or drug dosing. So before running
+changed, such as age-specific screening or drug dosing. So before running
 anything, we already expect that changing one variable moves only a few criteria.
 
 The important point is that we do **not** have to take this on faith. We can measure it,
@@ -101,17 +101,17 @@ by grading the same item several times (or at a fixed, deterministic setting) to
 how often the grader flips on its own; we then only count movement that clearly exceeds
 that noise.
 
-This is a well-established testing idea — assert that a controlled change should not
-affect certain outputs, then hunt for violations — applied one grading criterion at a
-time. The payoff is large: the criteria we do *not* change certify themselves by staying
-the same, so we only ever need expert attention on the small set that did change.
+This is a well-established testing idea, applied one grading criterion at a time: assert
+that a controlled change should not affect certain outputs, then hunt for violations. The
+payoff is large: the criteria we do *not* change certify themselves by staying the same,
+so we only ever need expert attention on the small set that did change.
 
 ### Claim 2: today's models can perform these counterfactual changes reliably enough to be useful.
 
 A "counterfactual change" here means producing a realistic, internally consistent version
-of a case that differs in exactly one thing — the same complaint for an older patient, the
-same fact shown as a data value instead of a sentence, the same case with one added
-condition — and then editing the few rubric criteria that this affects.
+of a case that differs in exactly one thing (the same complaint for an older patient, the
+same fact shown as a data value instead of a sentence, or the same case with one added
+condition), and then editing the few rubric criteria that this affects.
 
 There are three reasons to believe current models are up to this.
 
@@ -120,8 +120,8 @@ A deployed health model has to take arbitrary, messy, real patient data and prod
 ideal answer, live, for every input. By contrast, our pipeline only has to *describe what
 a good answer looks like*, offline, for cases we choose. Writing a controlled variant of
 an already-validated case, and adjusting a handful of criteria, is a small, constrained
-rewrite. This gap — specifying the right answer is far easier than producing it — is the
-reason the evaluation can be automated even though the model under test cannot be.
+rewrite. This gap, where specifying the right answer is far easier than producing it, is
+the reason the evaluation can be automated even though the model under test cannot be.
 
 **We never trust the model to redo the hard part.** The large, expert-written portion of
 the rubric is inherited word-for-word; no model is asked to re-derive it. The model is
@@ -139,7 +139,7 @@ queue. We use more than one signal rather than trusting a single model call.
 The recent literature supports the feasibility directly: as of early 2026, several groups
 have automatically generated medical grading rubrics and validated them on HealthBench,
 with some reporting quality on par with physician-written rubrics. So "can a model produce
-useful clinical criteria at all" is largely settled — yes. The open problem is how to
+useful clinical criteria at all" is largely settled: yes. The open problem is how to
 *validate* the result, which is exactly what the measurement in Claim 1 is for.
 
 The honest version of Claim 2 is therefore not "the model's changes are perfect." It is:
@@ -150,17 +150,17 @@ step checkable, keeps the genuinely new content small, and inherits the rest fro
 
 ## The proposed pipeline (using the data setting as the example)
 
-The Benchmark Doctor can adjust several different aspects of a case — the patient's age,
+The Benchmark Doctor can adjust several different aspects of a case: the patient's age,
 the severity of symptoms, an added condition or medication, whether the patient might be
 pregnant, or how a fact is presented. The clearest worked example is the **data setting**:
 moving a text-only benchmark into the setting of a product that already holds the patient's
 record. The user picks the aspect they care about, and the workflow runs like this:
 
 1. **Start from a realistic question.** Take a real member-style question from HealthBench
-   (or a similar benchmark) — a genuine case a user might bring to a health assistant.
+   (or a similar benchmark), a genuine case a user might bring to a health assistant.
 
 2. **Choose a patient profile that adds a realistic complication.** Decide what kind of
-   patient would make this case more clinically interesting — for instance, a profile
+   patient would make this case more clinically interesting, for instance a profile
    whose history changes the safe course of action. The goal is a realistic complication,
    not an arbitrary one.
 
@@ -185,7 +185,7 @@ Crucially, **every step gets its own check** so we can show it actually works:
   internally consistent change.
 - Step 4: the before-and-after measurement from Claim 1 confirms that the untouched
   criteria really do stay put, and a small expert review covers only the changed criteria.
-- Step 5: we confirm the result behaves sensibly — for example, giving a competent model
+- Step 5: we confirm the result behaves sensibly. For example, giving a competent model
   better data should raise its score, not lower it; if it does not, the test, not the
   model, is suspect.
 
@@ -209,8 +209,8 @@ Crucially, **every step gets its own check** so we can show it actually works:
 - **It can reveal model properties no current leaderboard reports.** For example: does a
   model correctly switch from *asking* for information to *using* it when the record is
   present? Does its general care quality stay steady when only the patient's age changes,
-  or does it quietly get worse — a fairness signal that is hard to argue with, because the
-  untouched criteria are supposed to be unaffected by age.
+  or does it quietly get worse? A silent drop would be a fairness signal that is hard to
+  argue with, because the untouched criteria are supposed to be unaffected by age.
 
 ---
 
@@ -227,7 +227,7 @@ rather than bet on one.
 | Expert rating of the result | Do clinicians judge the modified rubric/criteria as correct? | The gold standard, but expensive, and limited by the fact that experts themselves disagree a lot (so there is a ceiling on how much agreement is even achievable). |
 | Agreement with an expert-made rubric | Do scores from the modified rubric track scores from the human reference? | Common; usually done as per-item correlation. Works only where a trusted reference exists. |
 | Preserving the model ranking | Does the modified rubric rank a set of models the same way the trusted rubric does? | Under-used, and a good fit for "did we keep the quality." This is the yardstick we lean on; it needs care, because rankings can be fragile, so it must be reported with significance tests, not as a single number. |
-| Direct comparison of rubrics | Side-by-side, is the generated rubric as valid as a human-written one? | A recent benchmark does exactly this and finds models still struggle to write fully valid criteria on their own — which is why we modify rather than generate from scratch. |
+| Direct comparison of rubrics | Side-by-side, is the generated rubric as valid as a human-written one? | A recent benchmark does exactly this and finds models still struggle to write fully valid criteria on their own, which is why we modify rather than generate from scratch. |
 | Use as a training reward | Does training a model with the rubric as the reward signal improve it? | The most common validation in recent work. Strong signal, but it measures usefulness for *training*, not correctness of the *evaluation*, and it is expensive to run. |
 | Head-to-head against a baseline method | Do experts prefer our modifications over those from a simpler method? | Acceptable and done in the field (clinician-refinement studies). The strongest "is it actually better" evidence, and the most costly. |
 
@@ -242,7 +242,7 @@ A few honest caveats that apply to all of these:
   than assume, that a modification preserved quality.
 
 The most defensible position, given all this, is: we do not claim our modifications are
-perfect. We claim you can *tell how good they are and what it costs to check* — and that is
+perfect. We claim you can *tell how good they are and what it costs to check*, and that is
 exactly the position the evidence supports.
 
 ---
@@ -263,11 +263,11 @@ exactly the position the evidence supports.
 
 Related documents, in more depth:
 
-- `benchmark-fit.md` — the full framework: fit as a measurable quantity, repair as a
-  graduated ladder, and a certification standard.
-- `counterfactual-mutation.md` — the operator behind the small controlled changes, and how
+- `benchmark-fit.md`: the full framework, covering fit as a measurable quantity, repair as
+  a graduated ladder, and a certification standard.
+- `counterfactual-mutation.md`: the operator behind the small controlled changes, and how
   the locality claim is made to validate itself.
-- `vision.md` — the data-grounded evaluation track in depth.
-- `auto-rubric-generation.md` — what makes a rubric good and how to generate one.
-- `lit-review/` — the underlying literature, including the work cited in the evaluation
+- `vision.md`: the data-grounded evaluation track in depth.
+- `auto-rubric-generation.md`: what makes a rubric good and how to generate one.
+- `lit-review/`: the underlying literature, including the work cited in the evaluation
   section above.
