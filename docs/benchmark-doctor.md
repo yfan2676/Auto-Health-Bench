@@ -239,6 +239,106 @@ exactly the position the evidence supports.
 
 ---
 
+## Experiments
+
+Each experiment below is designed so that every possible outcome changes what we believe or
+what we would do next. As a rule of thumb, if an experiment could only confirm something we
+already assume, or if neither result would change a decision, we treat it as unnecessary and
+do not run it. We are most interested in the data setting, so the questions are framed there.
+
+### What we have run
+
+**1. How much of the benchmark already supplies patient data.** This grounds the diagnosis
+step (is the benchmark a fit for a data-equipped product?). The question: in the existing
+benchmark, how often is the patient's own data already present, versus how often does a
+criterion reward the model for asking for data a record could supply? If most cases already
+include the data and rarely reward asking, a text-only benchmark already resembles a
+data-present product and little repair is needed. If most cases are data-blind yet still
+reward asking, there is a large mismatch worth fixing. Result: about one in six
+conversations contain the patient's own structured data, almost none contain wearable data,
+and roughly 1,791 of 5,000 cases reward asking for information a record could hold. The
+mismatch is large, which is what justifies working on the data dimension at all; a small
+mismatch would have told us to drop it.
+
+**2. Does the original rubric still score correctly once the answer uses the record?** This
+grounds Claim 1 and the fit test in the data dimension. The question: when we add the
+patient's record and the model correctly uses it, does the original rubric still reward that
+answer? If the data-aware answer scores at least as well as a data-blind one, the benchmark
+transfers to the data setting unchanged. If it scores lower, the benchmark is penalizing
+correct behavior and needs repair. Result (a 30-case proof of concept): under the original
+rubric the data-aware answer averaged 42% against the data-blind answer's 59%, the original
+rubric lost points for using the record in 19 of 30 cases (one sharp case swung 62 points),
+and a data-conditioned rubric restored the data-aware answer to 71%. The same run also
+caught a model that had the data on file and still gave generic advice, a failure the
+text-only benchmark could not see. The opposite result (no score drop) would have told us
+the data axis does not matter for this benchmark. Caveat: small sample, a model grader
+standing in for physicians, and the mutated rubric is a hypothesis that still needs review.
+
+**3. Where does a single-variable edit actually move the rubric?** This grounds Claim 1
+(a controlled change touches a small, predictable part, and we can measure which part). The
+question: when we change exactly one variable (age, severity, an added condition, pregnancy,
+how a fact is disclosed, or sex) and hold the rest fixed, do the graded outcomes move only
+where that variable should matter, and by how much above the model's own answer-to-answer
+noise? We ran this across six variables on a 27B model with a significance test. Three kinds
+of outcome are all informative: a real change concentrated where expected (the variable is
+local, and a model that fails to move there has a gap), no change above noise (a true "no
+effect," which is what we want for a protected attribute like sex), or change scattered
+everywhere (the variable is not local, so we should not cheaply mutate along it). Result:
+severity and age produced real, significant score drops (about 17 and 11 points); changing
+how a fact is disclosed (prose versus a number) moved behavior without a consistent
+direction, exposing a numeracy gap; sex, the control, showed no effect, as it should; and
+the change concentrated in completeness and accuracy while communication stayed the most
+stable, matching the prediction that the general-care part of the rubric is what does not
+move.
+
+### What we propose to run
+
+**4. Rank preservation in the data dimension (the headline test).** This grounds the
+diagnosis step and the "preserving the model ranking" row of the evaluation. Run a suite of
+models twice on the same cases: once graded by the original text-only rubric, once by the
+data-conditioned rubric with the record present. Then compare the two model rankings. There
+are two outcomes, and both decide something real:
+
+- *The ranking is preserved.* The data-present rubric orders the models the same way the
+  original does. This means a model's text-only score already predicts how it would stand in
+  the data setting, so for the purpose of choosing a model the existing benchmark is fit to
+  use as-is, and the data repair changes absolute scores and reveals behaviors but not the
+  leaderboard. Useful: it tells a product team they can trust the existing benchmark for
+  model selection, and it bounds our own claim honestly.
+- *The ranking changes.* A model that looks best on the text-only benchmark is not the best
+  once the record is present. This means the existing benchmark gives the wrong leaderboard
+  for a data-equipped product, which is the strongest justification for repairing it, and
+  the reordering points to which models and criteria drive the change. Useful: it tells the
+  same product team that picking a model on the existing benchmark would be a mistake.
+
+Either way the result changes a real decision (trust the existing leaderboard, or repair
+before trusting it), which is why the experiment is worth running. One guard: a ranking
+change reads as "the benchmark is unfit" only after the check below passes. On the inherited,
+unchanged criteria the mutated rubric must reproduce the original ranking; if even those
+shift, the problem is our pipeline, not the benchmark.
+
+**5. The self-certifying check: do the unchanged criteria really stay unchanged?** This
+grounds Claim 1's "we can measure which part" and the "unchanged part is its own reference"
+argument. Hold one model answer fixed and grade it against each criterion before and after
+the edit, changing only the case. The criteria we predicted unchanged should keep the same
+verdict, at the rate the grader flips on identical inputs (its noise floor). If they sit at
+the floor, the inherited part is certified automatically with no expert, and only the changed
+criteria need review. If they move well above the floor, the edit leaks further than
+predicted and we demote that variable. (Our six-dimension run measured a related fresh-answer
+version of this; the fixed-answer version is the cleaner certificate and is the next step.)
+
+**6. Repair versus rebuild (the economic claim).** This grounds the utility argument that the
+cost of a trustworthy benchmark scales with the size of the change, not the size of the
+benchmark. On the cases that drift, build the data-present rubric two ways: mutate the few
+affected criteria, or generate a fresh rubric from scratch with an off-the-shelf method.
+Compare them on agreement with the trusted ranking over the unchanged criteria and on how
+many criteria a human must review. If mutation matches the from-scratch quality at a fraction
+of the expert review, the repair-not-rebuild thesis holds. If from-scratch is just as cheap
+or clearly better, the central economic claim is wrong and we would switch to generation.
+Either result settles whether the method is worth using.
+
+---
+
 ## Companion documents
 
 Related documents, in more depth:
