@@ -65,86 +65,29 @@ whole new one": check if it's good *for you*, and if not, make the smallest repa
 
 ## The core bet, and why it is reasonable
 
-The whole approach rests on two claims. Both sound plausible, but they deserve a clear
-argument, because everything else depends on them.
+The approach rests on two claims. We do not try to settle them by argument here; the
+evaluation we propose is what actually tests them. The goal here is just to show they are
+reasonable enough to be worth testing.
 
-### Claim 1: a small, controlled change to a case touches only a small, predictable part of the rubric, and we can measure exactly which part.
+**Claim 1: a small, controlled change to a case touches only a small, predictable part of
+the rubric, and we can measure which part.** Most criteria describe general good care
+(show empathy, ask about the symptom, explain clearly) and do not depend on the one
+variable we change, such as the patient's age; only a handful are tied to it, like
+age-specific screening or dosing. We do not have to take this on faith: grade one fixed
+answer against the rubric before and after the change, and any criterion whose verdict
+stays the same was, by direct evidence, unaffected. So "the change is local" becomes a
+counted result, and a change that moves too many criteria is simply discarded as a poor
+candidate.
 
-A rubric is a list of mostly separate grading criteria. Many of them describe general
-good-care behavior: show empathy, ask about the symptom, explain clearly, give safety
-advice. These do not depend on the patient's exact age, or on whether a fact was typed
-in prose or shown as a lab value. Only a handful of criteria are tied to the thing we
-changed, such as age-specific screening or drug dosing. So before running
-anything, we already expect that changing one variable moves only a few criteria.
-
-The important point is that we do **not** have to take this on faith. We can measure it,
-cheaply, and without any human expert, using a simple before-and-after check:
-
-1. Take one fixed model answer.
-2. Grade that same answer against the rubric on the original case, then on the changed
-   case.
-3. Any criterion whose pass/fail verdict stays the same was, by direct evidence,
-   unaffected by the change. Any criterion whose verdict flips is one the change actually
-   touched.
-
-This turns "I believe the change is local" into a counted result: how many criteria
-actually moved. If a change moves only a few criteria, it is local; if it moves many, it
-is not, and we simply discard that kind of change as a poor candidate. The method polices
-itself.
-
-We make this more reliable in two ways. First, instead of a single before-and-after, we
-sweep the variable across several values (for example, ages 18, 30, 45, 60, 75) and
-watch which criteria stay constant across the whole range. A criterion that never moves
-across a wide, realistic range is very likely truly independent of that variable, and our
-confidence grows the wider we sweep. Second, we separate real movement from grader noise
-by grading the same item several times (or at a fixed, deterministic setting) to learn
-how often the grader flips on its own; we then only count movement that clearly exceeds
-that noise.
-
-This is a well-established testing idea, applied one grading criterion at a time: assert
-that a controlled change should not affect certain outputs, then hunt for violations. The
-payoff is large: the criteria we do *not* change certify themselves by staying the same,
-so we only ever need expert attention on the small set that did change.
-
-### Claim 2: today's models can perform these counterfactual changes reliably enough to be useful.
-
-A "counterfactual change" here means producing a realistic, internally consistent version
-of a case that differs in exactly one thing (the same complaint for an older patient, the
-same fact shown as a data value instead of a sentence, or the same case with one added
-condition), and then editing the few rubric criteria that this affects.
-
-There are three reasons to believe current models are up to this.
-
-**The task we are asking the model to do is much easier than the task we are testing.**
-A deployed health model has to take arbitrary, messy, real patient data and produce the
-ideal answer, live, for every input. By contrast, our pipeline only has to *describe what
-a good answer looks like*, offline, for cases we choose. Writing a controlled variant of
-an already-validated case, and adjusting a handful of criteria, is a small, constrained
-rewrite. This gap, where specifying the right answer is far easier than producing it, is
-the reason the evaluation can be automated even though the model under test cannot be.
-
-**We never trust the model to redo the hard part.** The large, expert-written portion of
-the rubric is inherited word-for-word; no model is asked to re-derive it. The model is
-only asked to (a) make a clean one-variable edit to the case and (b) rewrite the small set
-of criteria that the change affects. The first is easy to verify automatically (a simple
-diff confirms only the intended variable changed). The second produces the only genuinely
-new clinical content, and it is small enough for a human expert to review.
-
-**Every step is checkable, so errors surface instead of silently corrupting the
-benchmark.** We cross-check the model's claim about which criteria *should* change against
-the measured before-and-after result from Claim 1. When the model's prediction and the
-measurement agree, we have high confidence; when they disagree, that case goes to a review
-queue. We use more than one signal rather than trusting a single model call.
-
-The recent literature supports the feasibility directly: as of early 2026, several groups
-have automatically generated medical grading rubrics and validated them on HealthBench,
-with some reporting quality on par with physician-written rubrics. So "can a model produce
-useful clinical criteria at all" is largely settled: yes. The open problem is how to
-*validate* the result, which is exactly what the measurement in Claim 1 is for.
-
-The honest version of Claim 2 is therefore not "the model's changes are perfect." It is:
-the changes do not need to be perfect, they need to be *checkable*; the design makes each
-step checkable, keeps the genuinely new content small, and inherits the rest from experts.
+**Claim 2: today's models can perform these changes reliably enough to be useful.**
+Specifying what a good answer looks like, offline, for cases we choose is far easier than
+the live task a deployed model faces, so what we ask of the model is a small, constrained
+edit, not open-ended generation. We also inherit the expert rubric verbatim and ask the
+model only to edit the few criteria the change touches, which is small enough to check
+automatically and to put in front of an expert. Recent work already auto-generates medical
+rubrics at close to physician quality, so the open question is not whether a model can
+write useful criteria but how to validate what it writes, which is what the evaluation
+does.
 
 ---
 
