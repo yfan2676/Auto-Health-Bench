@@ -33,6 +33,10 @@ experiments/*/results/**/sweep/*
 experiments/*/results/**/sweep_grades/*
 experiments/*/results/**/sweep_grades_*/*
 experiments/*/results/**/edits_override/*
+# counterfactual-replication: per-criterion grades carry verbatim judge text; the deterministic
+# selection is regenerable from src/sample.py (seeded). report.md / metrics.json still sync.
+experiments/*/results/**/grades_*/*
+experiments/*/results/**/selection.jsonl
 # Aggregated viewer bundle embeds verbatim prompt/rubric/judge text — git-ignored by default
 # (large; per-experiment opt-in). viewer/index.html and src/build_viewer.py are code and DO sync.
 experiments/*/viewer/data.json

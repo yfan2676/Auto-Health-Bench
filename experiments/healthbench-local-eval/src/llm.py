@@ -64,9 +64,13 @@ def extract_json(text):
     raise ValueError(f"no parseable JSON object in model output:\n{text}")
 
 
-def chat(messages, ep, *, temperature, top_p, max_tokens, think):
+def chat(messages, ep, *, temperature, top_p, max_tokens, think, top_k=None, min_p=None):
     """One chat completion. `ep` is a config.Endpoint. Returns the message text
-    with any <think> block stripped."""
+    with any <think> block stripped.
+
+    `top_k`/`min_p` are optional vLLM sampling extras (Qwen3's recommended thinking-mode
+    settings are top_k=20, min_p=0). They are only added to the payload when not None, so
+    existing callers that omit them are unaffected."""
     messages = [dict(m) for m in messages]  # don't mutate the caller's list
 
     payload = {
@@ -76,6 +80,11 @@ def chat(messages, ep, *, temperature, top_p, max_tokens, think):
         "top_p": top_p,
         "max_tokens": max_tokens,
     }
+    # vLLM's OpenAI-compatible server accepts top_k / min_p as top-level extra sampling params.
+    if top_k is not None:
+        payload["top_k"] = top_k
+    if min_p is not None:
+        payload["min_p"] = min_p
 
     # Toggle Qwen3 thinking per backend.
     if ep.backend == "ollama":

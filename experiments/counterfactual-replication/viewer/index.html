@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Counterfactual-replication viewer</title>
+<style>
+  :root {
+    --bg:#0f1115; --panel:#161922; --panel2:#1d2230; --line:#2a3040; --fg:#e6e9ef;
+    --muted:#9aa3b2; --accent:#5b9dff;
+    --ins-bg:#16432a; --ins-fg:#7ee2a0; --del-bg:#4a1d1a; --del-fg:#ff9b91;
+    --pass:#3ddc84; --fail:#ff6b6b; --up:#3ddc84; --down:#ff6b6b;
+    --sig-bg:#13311f; --sig-fg:#7ee2a0; --ns-bg:#2a1a1a; --ns-fg:#ffb0a8;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:13.5px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+         background:var(--bg); color:var(--fg); }
+  a { color:var(--accent); }
+  #app { display:grid; grid-template-columns:340px 1fr; height:100vh; }
+  /* ---- sidebar ---- */
+  #side { border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; }
+  #side header { padding:12px 14px; border-bottom:1px solid var(--line); }
+  #side h1 { font-size:14px; margin:0 0 8px; }
+  .globals { font-size:11.5px; color:var(--muted); line-height:1.7; }
+  .globals b { color:var(--fg); }
+  .globals .sig { color:var(--sig-fg); } .globals .ns { color:var(--ns-fg); }
+  .controls { padding:10px 14px; border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:8px; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .chipbtn { padding:3px 9px; border:1px solid var(--line); border-radius:12px; background:var(--panel2);
+             color:var(--muted); cursor:pointer; font-size:11.5px; }
+  .chipbtn.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .controls input, .controls select { background:var(--panel2); border:1px solid var(--line); color:var(--fg);
+             border-radius:6px; padding:5px 8px; font-size:12px; }
+  #list { overflow-y:auto; flex:1; min-height:0; }
+  .item { padding:9px 14px; border-bottom:1px solid var(--line); cursor:pointer; }
+  .item:hover { background:var(--panel); }
+  .item.sel { background:var(--panel2); border-left:3px solid var(--accent); padding-left:11px; }
+  .item .top { display:flex; justify-content:space-between; gap:8px; align-items:center; }
+  .item .eid { font-size:11px; color:var(--muted); font-family:ui-monospace,monospace; }
+  .item .lbl { font-size:12.5px; margin-top:2px; }
+  .badge { font-size:10px; padding:1px 6px; border-radius:8px; background:var(--panel2);
+           border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+  .badge.age { color:#9ecbff; border-color:#2c4a73; }
+  .badge.disclosure { color:#ffce9e; border-color:#73512c; }
+  .badge.severity { color:#ff9e9e; border-color:#73302c; }
+  .badge.pregnancy { color:#d79eff; border-color:#542c73; }
+  .badge.comorbidity { color:#9effc7; border-color:#2c7350; }
+  .badge.sex { color:#9ee7ff; border-color:#2c5e73; }
+  .pendingnote { margin-top:8px; font-size:11.5px; color:#ffce9e; }
+  .pr { font-size:10.5px; color:var(--muted); margin-top:3px; }
+  .delta.up { color:var(--up); } .delta.down { color:var(--down); }
+  /* ---- detail ---- */
+  #detail { overflow-y:auto; min-height:0; padding:0 0 60px; }
+  .empty { color:var(--muted); padding:40px; text-align:center; }
+  section { border-bottom:1px solid var(--line); padding:16px 22px; }
+  section h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);
+               margin:0 0 12px; }
+  .dhead { padding:16px 22px; background:var(--panel); border-bottom:1px solid var(--line); }
+  .dhead .eid { font-family:ui-monospace,monospace; color:var(--muted); font-size:11.5px; }
+  .dhead h2 { font-size:16px; margin:4px 0 10px; text-transform:none; letter-spacing:0; color:var(--fg); }
+  .metricrow { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; }
+  .metricrow .m b { color:var(--fg); } .metricrow .m { color:var(--muted); }
+  .sigpanel { display:flex; gap:18px; flex-wrap:wrap; font-size:12px; margin-top:10px;
+              padding:10px 12px; background:var(--panel2); border:1px solid var(--line); border-radius:8px; }
+  .sigpanel .m { color:var(--muted); } .sigpanel .m b { color:var(--fg); }
+  .pill { font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:8px; }
+  .pill.sig { background:var(--sig-bg); color:var(--sig-fg); }
+  .pill.ns { background:var(--ns-bg); color:var(--ns-fg); }
+  /* chat */
+  .msg { border:1px solid var(--line); border-radius:8px; margin-bottom:8px; overflow:hidden; }
+  .msg .role { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);
+               background:var(--panel2); padding:3px 10px; }
+  .msg .content { padding:9px 11px; white-space:pre-wrap; }
+  .msg.user .role { color:#9ecbff; } .msg.assistant .role { color:#ffce9e; }
+  details.answer { margin-top:6px; } details.answer summary { cursor:pointer; color:var(--muted); }
+  .diff .content { white-space:pre-wrap; }
+  ins { background:var(--ins-bg); color:var(--ins-fg); text-decoration:none; border-radius:2px; }
+  del { background:var(--del-bg); color:var(--del-fg); border-radius:2px; }
+  .diffmeta { color:var(--muted); font-size:11.5px; margin-bottom:8px; }
+  /* rubric table */
+  table { width:100%; border-collapse:collapse; }
+  th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; font-size:12.5px; }
+  th { color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .cell-axis { color:var(--muted); font-size:11px; white-space:nowrap; }
+  .pts { font-family:ui-monospace,monospace; }
+  .grp { border-left:1px solid var(--line); }
+  .vverdict { display:inline-flex; gap:3px; align-items:center; }
+  .vcell { width:18px; height:18px; border-radius:4px; display:inline-flex; align-items:center;
+           justify-content:center; font-size:11px; font-weight:700; }
+  .vcell.pass { background:#143a26; color:var(--pass); } .vcell.fail { background:#3a1a1a; color:var(--fail); }
+  .vhdr { font-size:9.5px; color:var(--muted); text-align:center; }
+  .crit { max-width:520px; }
+  details.expl summary { cursor:pointer; color:var(--muted); font-size:11.5px; margin-top:4px; }
+  .expl-block { margin:6px 0 2px; padding:7px 9px; background:var(--panel2); border-radius:6px; font-size:12px; }
+  .expl-block .lbl { color:var(--muted); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; }
+  .muted { color:var(--muted); }
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="side">
+    <header>
+      <h1>Counterfactual mutation — score effect</h1>
+      <div class="globals" id="globals"></div>
+    </header>
+    <div class="controls">
+      <div class="filters" id="dimFilters"></div>
+      <select id="sort">
+        <option value="absdelta">sort: |Δ score| ↓</option>
+        <option value="delta">sort: Δ score ↓</option>
+        <option value="id">sort: id</option>
+      </select>
+      <input id="search" placeholder="filter by id…" autocomplete="off">
+    </div>
+    <div id="list"></div>
+  </aside>
+  <main id="detail"><div class="empty">Loading…</div></main>
+</div>
+<script>
+const S = { data:null, sel:null, dim:"all", sort:"absdelta", q:"" };
+
+function el(tag, props, kids) {
+  const n = document.createElement(tag);
+  if (props) for (const k in props) {
+    if (k === "class") n.className = props[k];
+    else if (k === "text") n.textContent = props[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), props[k]);
+    else n.setAttribute(k, props[k]);
+  }
+  for (const c of (kids || [])) if (c != null) n.append(c.nodeType ? c : document.createTextNode(c));
+  return n;
+}
+const pct  = x => (x == null ? "n/a" : (x*100).toFixed(1) + "%");
+const sdelta = x => (x == null ? "n/a" : (x>=0?"+":"") + (x*100).toFixed(1) + "%");
+const fp = p => (p == null ? "n/a" : (p >= 1e-4 ? p.toFixed(4) : p.toExponential(1)));
+
+function load() {
+  fetch("./data.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { S.data = d; initFilters(); renderGlobals(); renderList();
+                 if (d.samples[0]) select(d.samples[0].example_id); })
+    .catch(e => {
+      document.getElementById("detail").innerHTML =
+        '<div class="empty">Could not load data.json ('+e+').<br>Run <code>python3 src/build_viewer.py</code>, '+
+        'then serve with <code>python3 -m http.server -d viewer 8080</code> and open http://localhost:8080</div>';
+    });
+}
+
+function dimMetric(dim) {
+  const bd = (S.data.metrics || {}).by_dimension || {};
+  return bd[dim] || null;
+}
+
+function renderGlobals() {
+  const meta = S.data.meta, g = document.getElementById("globals");
+  const rows = [
+    ["model", meta.version],
+    ["runs", meta.runs + " × (answer+grade), judge T=" + meta.judge_temp],
+    ["samples", meta.n_items],
+  ];
+  const bd = (S.data.metrics || {}).by_dimension || {};
+  meta.dimensions.forEach(d => {
+    const m = bd[d]; if (!m) return;
+    const cls = m.significant ? "sig" : "ns";
+    rows.push([d, `Δ <b>${sdelta(m.delta)}</b> · p <span class="${cls}">${fp(m.ttest.p)}</span>`
+      + (m.significant ? ' <span class="sig">✓</span>' : '')]);
+  });
+  if (bd.all) rows.push(["all (pooled)", `Δ <b>${sdelta(bd.all.delta)}</b> · p ${fp(bd.all.ttest.p)}`]);
+  g.innerHTML = rows.map(r => r[0]+": "+r[1]).join("<br>");
+}
+
+function initFilters() {
+  const dims = ["all", ...S.data.meta.dimensions];
+  const c = document.getElementById("dimFilters"); c.innerHTML = "";
+  dims.forEach(d => c.append(el("span", {
+    class:"chipbtn"+(S.dim===d?" active":""), text:(d==="all"?"All":d),
+    onclick:()=>{ S.dim=d; [...c.children].forEach(x=>x.classList.remove("active")); event.target.classList.add("active"); renderList(); }
+  })));
+  document.getElementById("sort").addEventListener("change", e=>{ S.sort=e.target.value; renderList(); });
+  document.getElementById("search").addEventListener("input", e=>{ S.q=e.target.value.toLowerCase(); renderList(); });
+}
+
+const sampleDelta = s => (s.scores ? s.scores.delta : null);
+
+function visibleSamples() {
+  let xs = S.data.samples.filter(s => S.dim==="all" || s.dimension===S.dim);
+  if (S.q) xs = xs.filter(s => s.example_id.toLowerCase().includes(S.q));
+  const dv = s => sampleDelta(s) == null ? -Infinity : sampleDelta(s);
+  if (S.sort==="absdelta") xs.sort((a,b)=>Math.abs(dv(b))-Math.abs(dv(a)));
+  else if (S.sort==="delta") xs.sort((a,b)=>dv(b)-dv(a));
+  else xs.sort((a,b)=>a.example_id.localeCompare(b.example_id));
+  return xs;
+}
+
+function renderList() {
+  const list = document.getElementById("list"); list.innerHTML = "";
+  visibleSamples().forEach(s => {
+    const dv = sampleDelta(s);
+    const cls = dv == null ? "" : (dv >= 0 ? "up" : "down");
+    list.append(el("div", { class:"item"+(s.example_id===S.sel?" sel":""), onclick:()=>select(s.example_id) }, [
+      el("div",{class:"top"},[
+        el("span",{class:"eid",text:s.example_id.slice(0,8)+"…"}),
+        el("span",{class:"badge "+s.dimension,text:s.dimension}),
+      ]),
+      el("div",{class:"lbl",text:s.label}),
+      el("div",{class:"pr"}, s.pending
+        ? [`⏳ pending grade · ${s.rubrics.length} criteria`]
+        : [el("span",{class:"delta "+cls, text:"Δ "+sdelta(dv)}), ` · n=${s.scores?s.scores.n_criteria:0}`]),
+    ]));
+  });
+  if (!list.children.length) list.append(el("div",{class:"empty",text:"no samples"}));
+}
+
+function verdictCell(v) {
+  if (v == null) return el("span",{class:"vcell",text:"·"});
+  return el("span",{class:"vcell "+(v?"pass":"fail"), text:v?"✓":"✗"});
+}
+
+function answersBlock(title, answers) {
+  const wrap = el("div");
+  if (!answers.length) { wrap.append(el("div",{class:"muted",text:"no answers yet"})); return wrap; }
+  answers.forEach((a,i)=> wrap.append(el("details",{class:"answer"},[
+    el("summary",{text:`${title} — run ${i}`}),
+    el("div",{class:"msg assistant"},[el("div",{class:"role",text:`assistant — ${title} run ${i}`}),
+      el("div",{class:"content",text:a})])])));
+  return wrap;
+}
+
+function select(id) {
+  S.sel = id; renderList();
+  const s = S.data.samples.find(x=>x.example_id===id);
+  const d = document.getElementById("detail"); d.innerHTML = ""; d.scrollTop = 0;
+  if (!s) { d.append(el("div",{class:"empty",text:"not found"})); return; }
+  const sc = s.scores, dm = dimMetric(s.dimension);
+
+  // header: per-sample scores + per-dimension significance
+  const head = el("div",{class:"dhead"},[
+    el("div",{class:"eid",text:s.example_id}),
+    el("h2",{text:s.label}),
+  ]);
+  if (s.pending) {
+    head.append(el("div",{class:"pendingnote",text:"⏳ grading pending — showing inputs and any answers only"}));
+  } else if (sc) {
+    head.append(el("div",{class:"metricrow"},[
+      el("span",{class:"m"},["orig ",el("b",{text:pct(sc.orig_mean)})]),
+      el("span",{class:"m"},["mut ",el("b",{text:pct(sc.mut_mean)})]),
+      el("span",{class:"m"},["Δ ",el("b",{text:sdelta(sc.delta)})]),
+      el("span",{class:"m"},["orig run SD ",el("b",{text:pct(sc.orig_run_sd)})]),
+      el("span",{class:"m"},["criteria ",el("b",{text:String(sc.n_criteria)})]),
+    ]));
+  }
+  if (dm) {
+    head.append(el("div",{class:"sigpanel"},[
+      el("span",{class:"m"},[s.dimension+" (n="+dm.n+")  "]),
+      el("span",{class:"m"},["Δ overall ",el("b",{text:sdelta(dm.delta)})]),
+      el("span",{class:"m"},["runs ",el("b",{text:dm.runs_up+"↑ / "+dm.runs_down+"↓"})]),
+      el("span",{class:"m"},["orig run SD ",el("b",{text:pct(dm.orig_run_sd)})]),
+      el("span",{class:"m"},["d_z ",el("b",{text:dm.cohens_dz==null?"n/a":dm.cohens_dz.toFixed(2)})]),
+      el("span",{class:"m"},["t-p ",el("b",{text:fp(dm.ttest.p)})]),
+      el("span",{class:"m"},["perm ",el("b",{text:fp(dm.perm.p)})]),
+      el("span",{class:"m"},["wilcox ",el("b",{text:fp(dm.wilcoxon.p)})]),
+      el("span",{class:"pill "+(dm.significant?"sig":"ns"),text:dm.significant?"significant":"n.s."}),
+    ]));
+  }
+  d.append(head);
+
+  // 1. original input + its answers
+  const s1 = el("section",{},[el("h2",{text:"1 · Original input"})]);
+  s.messages_orig.forEach(msg => s1.append(el("div",{class:"msg "+(msg.role||"")},[
+    el("div",{class:"role",text:msg.role||""}), el("div",{class:"content",text:msg.content||""})])));
+  s1.append(el("div",{class:"muted",style:"margin:10px 0 4px",text:`${s.orig_answers.length} original answer(s)`}));
+  s1.append(answersBlock("original", s.orig_answers));
+  d.append(s1);
+
+  // 2. mutated input (word diff) + its answers
+  const s2 = el("section",{},[el("h2",{text:"2 · Mutated input — highlighted changes"})]);
+  let meta = `${s.chosen_label}  ·  change ${pct(s.change_frac)}`;
+  if (s.ok===false) meta += "  ⚠ flagged (no/large change)";
+  s2.append(el("div",{class:"diffmeta",text:meta}));
+  s.variant_diff.forEach(md=>{
+    const content = el("div",{class:"content"});
+    md.spans.forEach(sp=>{
+      if (sp.op==="insert") content.append(el("ins",{text:sp.text}));
+      else if (sp.op==="delete") content.append(el("del",{text:sp.text}));
+      else content.append(document.createTextNode(sp.text));
+    });
+    s2.append(el("div",{class:"msg "+(md.role||"")},[el("div",{class:"role",text:md.role||""}),content]));
+  });
+  s2.append(el("div",{class:"muted",style:"margin:10px 0 4px",text:`${s.mut_answers.length} mutated answer(s)`}));
+  s2.append(answersBlock("mutated", s.mut_answers));
+  d.append(s2);
+
+  // 3. per-criterion verdict grid across the runs
+  const runs = S.data.meta.runs;
+  const sec = el("section",{},[el("h2",{text:"3 · Per-criterion verdicts — original vs mutated, per run"})]);
+  const oh = Array.from({length:runs},(_, i)=>el("th",{class:"vhdr"+(i===0?" grp":""),text:"o"+i}));
+  const mh = Array.from({length:runs},(_, i)=>el("th",{class:"vhdr"+(i===0?" grp":""),text:"m"+i}));
+  const table = el("table",{},[el("thead",{},[el("tr",{},[
+    el("th",{text:"axis"}), el("th",{text:"pts"}), el("th",{text:"criterion"}),
+    ...oh, ...mh])])]);
+  const tb = el("tbody");
+  s.rubrics.forEach(r=>{
+    const tr = el("tr",{});
+    const ocells = (r.orig_verdicts||[]).map((v,i)=>el("td",{class:"vhdr"+(i===0?" grp":"")},[verdictCell(v)]));
+    const mcells = (r.mut_verdicts||[]).map((v,i)=>el("td",{class:"vhdr"+(i===0?" grp":"")},[verdictCell(v)]));
+    while (ocells.length < runs) ocells.push(el("td",{class:"vhdr"},[verdictCell(null)]));
+    while (mcells.length < runs) mcells.push(el("td",{class:"vhdr"},[verdictCell(null)]));
+    const detail = el("details",{class:"expl"},[el("summary",{text:"why"})]);
+    (r.orig_expl||[]).forEach((e,i)=> e && detail.append(el("div",{class:"expl-block"},[
+      el("div",{class:"lbl",text:"original run "+i+" → "+(r.orig_verdicts[i]?"met":"not met")}), e])));
+    (r.mut_expl||[]).forEach((e,i)=> e && detail.append(el("div",{class:"expl-block"},[
+      el("div",{class:"lbl",text:"mutated run "+i+" → "+(r.mut_verdicts[i]?"met":"not met")}), e])));
+    tr.append(
+      el("td",{class:"cell-axis",text:r.axis||"—"}),
+      el("td",{class:"pts",text:(r.points>0?"+":"")+r.points}),
+      el("td",{class:"crit"},[r.criterion]),
+      ...ocells, ...mcells,
+    );
+    tb.append(tr);
+    const dr = el("tr",{}); const dtd = el("td",{colspan:String(3+2*runs)}); dtd.append(detail); dr.append(dtd); tb.append(dr);
+  });
+  table.append(tb); sec.append(table);
+  sec.append(el("div",{class:"muted",style:"margin-top:10px",
+    text:"o0..o"+(runs-1)+" = original answer runs, m0..m"+(runs-1)+" = mutated answer runs; ✓ met / ✗ not met. All graded against the same original rubric."}));
+  d.append(sec);
+}
+load();
+</script>
+</body>
+</html>
