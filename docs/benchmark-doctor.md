@@ -1,12 +1,8 @@
 # Benchmark Doctor
 
-A plain-language overview of the project: a "benchmark of benchmarks" that checks
-whether an existing test is a good fit for a given product or model, and — when it is
-not — repairs it with small, controlled changes that keep most of the original expert
-quality.
-
-This document is the readable summary. The more technical companion docs are listed at
-the end for anyone who wants the formal version.
+A "benchmark of benchmarks" that checks whether an existing test is a good fit for a
+given product or model, and — when it is not — repairs it with small, controlled changes
+that keep most of the original expert quality.
 
 ---
 
@@ -220,12 +216,11 @@ Crucially, **every step gets its own check** so we can show it actually works:
 
 ## How we will judge whether a modification is good
 
-This is the least settled part, and we should say so plainly: **this is an emerging area,
-and there is no single agreed-upon metric for the quality of a rubric modification.**
-Recent work uses several different yardsticks, each measuring something slightly different.
-Below is the menu, what each one actually checks, and how mature it is. Our plan is to lead
-with the one that best fits "did the modification preserve quality" and report several
-rather than betting on one.
+This is the least settled part: **this is an emerging area, and there is no single
+agreed-upon metric for the quality of a rubric modification.** Recent work uses several
+different yardsticks, each measuring something slightly different. Our plan is to lead with
+the one that best fits "did the modification preserve quality," and to report several
+rather than bet on one.
 
 | Approach | What it checks | Status in the field |
 |---|---|---|
@@ -266,7 +261,7 @@ exactly the position the evidence supports.
 
 ## Companion documents
 
-For the formal versions of the ideas summarized here:
+Related documents, in more depth:
 
 - `benchmark-fit.md` — the full framework: fit as a measurable quantity, repair as a
   graduated ladder, and a certification standard.
